@@ -125,10 +125,10 @@ describe("Sofascore 3-Kolonlu MainLayout ve MatchSelection Mimarisi", () => {
       );
 
       const rootDiv = container.firstChild as HTMLElement;
-      expect(rootDiv.style.getPropertyValue("--portal-background")).toBe("#07131F");
+      expect(rootDiv.style.getPropertyValue("--portal-background")).toBe("#0C0A10");
       expect(rootDiv.className).toContain("text-ink");
-      expect(rootDiv.style.getPropertyValue("--portal-panel")).toBe("#0E2033");
-      expect(rootDiv.style.getPropertyValue("--portal-border")).toBe("#1B3550");
+      expect(rootDiv.style.getPropertyValue("--portal-panel")).toBe("#16131D");
+      expect(rootDiv.style.getPropertyValue("--portal-border")).toBe("#2C2438");
 
       // Sol ve sağ panellerin aside elementleri
       const asides = container.querySelectorAll("aside");
