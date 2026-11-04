@@ -3,7 +3,7 @@
     "lig_adi": "Uzman Posta Kadınlar Voleybol 2. Ligi",
     "sezon": "2026-2027",
     "kategori": "Büyük Kadınlar",
-    "guncellenme_zamani": "2026-11-04T10:02:38.992176",
+    "guncellenme_zamani": "2026-11-04T12:47:57.390786",
     "toplam_grup_sayisi": 16,
     "toplam_takim_sayisi": 163,
     "toplam_mac_sayisi": 797,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-2-ligi-2026-27-o45047/matches"
     },
     "volleybox_synced_matches": 794,
-    "volleybox_sync_updated_at": "2026-11-04T10:02:38.992323"
+    "volleybox_sync_updated_at": "2026-11-04T12:49:52.227939"
   },
   "gruplar": [
     {
@@ -6933,17 +6933,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-08",
-            "vb_time": "18:30",
+            "vb_time": "16:30",
             "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-08",
-              "vb_time": "18:30",
+              "vb_time": "16:30",
               "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
-              "details": "Saat Değişti (TVF: 16:30 / VB: 18:30)"
+              "details": null
             }
           }
         },
@@ -7495,16 +7495,16 @@
             "has_score": false,
             "vb_date": "2026-11-28",
             "vb_time": "18:30",
-            "vb_hall": "İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi",
+            "vb_hall": "İBB Çekmeköy Spor Kompleksi",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
               "time_diff": false,
-              "hall_diff": true,
+              "hall_diff": false,
               "vb_date": "2026-11-28",
               "vb_time": "18:30",
-              "vb_hall": "İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi",
-              "details": "Salon Değişti (TVF: İBB ÇEKMEKÖY SPOR KOMPLEKSİ / VB: İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi)"
+              "vb_hall": "İBB Çekmeköy Spor Kompleksi",
+              "details": null
             }
           }
         },
@@ -11907,8 +11907,8 @@
             "url": "https://women.volleybox.net/tr/balkesir-ds-spor-corlu-belediyesi-spor-kulubu-c410105",
             "host_name": "Balıkesir DSİ Spor",
             "guest_name": "Çorlu Belediyesi Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "3 - 0",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "16:00",
             "vb_hall": "Kurtdereli Kapalı Spor Salonu",
@@ -12012,17 +12012,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-04",
-            "vb_time": "18:00",
+            "vb_time": "20:00",
             "vb_hall": "Kurtdereli Kapalı Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-04",
-              "vb_time": "18:00",
+              "vb_time": "20:00",
               "vb_hall": "Kurtdereli Kapalı Spor Salonu",
-              "details": "Saat Değişti (TVF: 20:00 / VB: 18:00)"
+              "details": null
             }
           }
         },
@@ -18083,8 +18083,8 @@
             "url": "https://women.volleybox.net/tr/bayrakl-belediyesi-spor-kulubu-gelisim-koleji-sk-c410289",
             "host_name": "Bayraklı Belediyesi Spor Kulübü",
             "guest_name": "Gelişim Koleji SK",
-            "score": null,
-            "has_score": false,
+            "score": "3 - 2",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "19:00",
             "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
@@ -18134,8 +18134,8 @@
             "url": "https://women.volleybox.net/tr/efor-genclik-spor-kulubu-aydn-buyuksehir-belediyespor-ii-c410290",
             "host_name": "Efor Gençlik Spor Kulübü",
             "guest_name": "Aydın Büyükşehir Belediyespor II",
-            "score": null,
-            "has_score": false,
+            "score": "3 - 1",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "20:00",
             "vb_hall": "Urla 12 Eylül Spor Salonu",
@@ -21160,18 +21160,18 @@
             "guest_name": "Muğlatürk Fethiye Zirve Spor Kulübü",
             "score": null,
             "has_score": false,
-            "vb_date": "2026-11-08",
-            "vb_time": "10:00",
+            "vb_date": "2026-11-07",
+            "vb_time": "16:00",
             "vb_hall": "Süleyman Evcilmen Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
-              "date_diff": true,
-              "time_diff": true,
+              "has_diff": false,
+              "date_diff": false,
+              "time_diff": false,
               "hall_diff": false,
-              "vb_date": "2026-11-08",
-              "vb_time": "10:00",
+              "vb_date": "2026-11-07",
+              "vb_time": "16:00",
               "vb_hall": "Süleyman Evcilmen Spor Salonu",
-              "details": "Tarih Değişti (TVF: 2026-11-07 / VB: 2026-11-08) | Saat Değişti (TVF: 16:00 / VB: 10:00)"
+              "details": null
             }
           }
         },
@@ -26339,8 +26339,8 @@
             "url": "https://women.volleybox.net/tr/duzce-1907-spor-kulubu-karabuk-genclik-ve-spor-l-mudurlugu-spor-kulubu-c410362",
             "host_name": "Düzce 1907 Spor Kulübü",
             "guest_name": "Karabük Gençlik ve Spor İl Müdürlüğü Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "1 - 3",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "16:00",
             "vb_hall": "18 Temmuz Kapalı Spor Salonu",
@@ -27719,17 +27719,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-29",
-            "vb_time": "19:00",
+            "vb_time": "18:00",
             "vb_hall": "Başiskele Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-29",
-              "vb_time": "19:00",
+              "vb_time": "18:00",
               "vb_hall": "Başiskele Spor Salonu",
-              "details": "Saat Değişti (TVF: 18:00 / VB: 19:00)"
+              "details": null
             }
           }
         },
@@ -29618,8 +29618,8 @@
             "url": "https://women.volleybox.net/tr/golbas-ncek-spor-kulubu-ankara-barosu-spor-kulubu-c410390",
             "host_name": "Gölbaşı İncek Spor Kulübü",
             "guest_name": "Ankara Barosu Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "3 - 0",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "16:00",
             "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
@@ -29669,8 +29669,8 @@
             "url": "https://women.volleybox.net/tr/eryaman-gelisim-sk-mke-ankaragucu-c410391",
             "host_name": "Eryaman Gelişim SK",
             "guest_name": "MKE Ankaragücü Temiz Enerji Birliği Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "0 - 3",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "19:00",
             "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
@@ -37519,18 +37519,18 @@
             "guest_name": "Akça Grup Osmancık Belediyespor",
             "score": null,
             "has_score": false,
-            "vb_date": "2026-11-08",
+            "vb_date": "2026-11-07",
             "vb_time": "14:00",
             "vb_hall": "Fındıklı Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
-              "date_diff": true,
+              "has_diff": false,
+              "date_diff": false,
               "time_diff": false,
               "hall_diff": false,
-              "vb_date": "2026-11-08",
+              "vb_date": "2026-11-07",
               "vb_time": "14:00",
               "vb_hall": "Fındıklı Spor Salonu",
-              "details": "Tarih Değişti (TVF: 2026-11-07 / VB: 2026-11-08)"
+              "details": null
             }
           }
         },
@@ -41001,8 +41001,8 @@
             "url": "https://women.volleybox.net/tr/gaziantep-buyuksehir-belediyespor-ekol-spor-kulubu-c410481",
             "host_name": "Gaziantep Büyükşehir Belediyespor",
             "guest_name": "MSE Filo Elazığ Ekol Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "0 - 3",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "16:00",
             "vb_hall": "Talat Özkarslı Spor Salonu",
@@ -41052,8 +41052,8 @@
             "url": "https://women.volleybox.net/tr/kvk-voleybol-kulubu-kayseri-atletik-spor-kulubu-c410482",
             "host_name": "KVK Voleybol Kulübü",
             "guest_name": "Forliva Kayseri Atletik Spor",
-            "score": null,
-            "has_score": false,
+            "score": "0 - 3",
+            "has_score": true,
             "vb_date": "2026-11-03",
             "vb_time": "16:00",
             "vb_hall": "Gevher Nesibe Spor Salonu",
@@ -67447,8 +67447,8 @@
         "url": "https://women.volleybox.net/tr/balkesir-ds-spor-corlu-belediyesi-spor-kulubu-c410105",
         "host_name": "Balıkesir DSİ Spor",
         "guest_name": "Çorlu Belediyesi Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "3 - 0",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "16:00",
         "vb_hall": "Kurtdereli Kapalı Spor Salonu",
@@ -67498,8 +67498,8 @@
         "url": "https://women.volleybox.net/tr/duzce-1907-spor-kulubu-karabuk-genclik-ve-spor-l-mudurlugu-spor-kulubu-c410362",
         "host_name": "Düzce 1907 Spor Kulübü",
         "guest_name": "Karabük Gençlik ve Spor İl Müdürlüğü Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "1 - 3",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "16:00",
         "vb_hall": "18 Temmuz Kapalı Spor Salonu",
@@ -67549,8 +67549,8 @@
         "url": "https://women.volleybox.net/tr/golbas-ncek-spor-kulubu-ankara-barosu-spor-kulubu-c410390",
         "host_name": "Gölbaşı İncek Spor Kulübü",
         "guest_name": "Ankara Barosu Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "3 - 0",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "16:00",
         "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
@@ -67600,8 +67600,8 @@
         "url": "https://women.volleybox.net/tr/gaziantep-buyuksehir-belediyespor-ekol-spor-kulubu-c410481",
         "host_name": "Gaziantep Büyükşehir Belediyespor",
         "guest_name": "MSE Filo Elazığ Ekol Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "0 - 3",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "16:00",
         "vb_hall": "Talat Özkarslı Spor Salonu",
@@ -67651,8 +67651,8 @@
         "url": "https://women.volleybox.net/tr/kvk-voleybol-kulubu-kayseri-atletik-spor-kulubu-c410482",
         "host_name": "KVK Voleybol Kulübü",
         "guest_name": "Forliva Kayseri Atletik Spor",
-        "score": null,
-        "has_score": false,
+        "score": "0 - 3",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "16:00",
         "vb_hall": "Gevher Nesibe Spor Salonu",
@@ -67702,8 +67702,8 @@
         "url": "https://women.volleybox.net/tr/bayrakl-belediyesi-spor-kulubu-gelisim-koleji-sk-c410289",
         "host_name": "Bayraklı Belediyesi Spor Kulübü",
         "guest_name": "Gelişim Koleji SK",
-        "score": null,
-        "has_score": false,
+        "score": "3 - 2",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "19:00",
         "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
@@ -67753,8 +67753,8 @@
         "url": "https://women.volleybox.net/tr/eryaman-gelisim-sk-mke-ankaragucu-c410391",
         "host_name": "Eryaman Gelişim SK",
         "guest_name": "MKE Ankaragücü Temiz Enerji Birliği Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "0 - 3",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "19:00",
         "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
@@ -67804,8 +67804,8 @@
         "url": "https://women.volleybox.net/tr/efor-genclik-spor-kulubu-aydn-buyuksehir-belediyespor-ii-c410290",
         "host_name": "Efor Gençlik Spor Kulübü",
         "guest_name": "Aydın Büyükşehir Belediyespor II",
-        "score": null,
-        "has_score": false,
+        "score": "3 - 1",
+        "has_score": true,
         "vb_date": "2026-11-03",
         "vb_time": "20:00",
         "vb_hall": "Urla 12 Eylül Spor Salonu",
@@ -68623,17 +68623,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-04",
-        "vb_time": "18:00",
+        "vb_time": "20:00",
         "vb_hall": "Kurtdereli Kapalı Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-04",
-          "vb_time": "18:00",
+          "vb_time": "20:00",
           "vb_hall": "Kurtdereli Kapalı Spor Salonu",
-          "details": "Saat Değişti (TVF: 20:00 / VB: 18:00)"
+          "details": null
         }
       }
     },
@@ -69183,18 +69183,18 @@
         "guest_name": "Akça Grup Osmancık Belediyespor",
         "score": null,
         "has_score": false,
-        "vb_date": "2026-11-08",
+        "vb_date": "2026-11-07",
         "vb_time": "14:00",
         "vb_hall": "Fındıklı Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
-          "date_diff": true,
+          "has_diff": false,
+          "date_diff": false,
           "time_diff": false,
           "hall_diff": false,
-          "vb_date": "2026-11-08",
+          "vb_date": "2026-11-07",
           "vb_time": "14:00",
           "vb_hall": "Fındıklı Spor Salonu",
-          "details": "Tarih Değişti (TVF: 2026-11-07 / VB: 2026-11-08)"
+          "details": null
         }
       }
     },
@@ -69438,18 +69438,18 @@
         "guest_name": "Muğlatürk Fethiye Zirve Spor Kulübü",
         "score": null,
         "has_score": false,
-        "vb_date": "2026-11-08",
-        "vb_time": "10:00",
+        "vb_date": "2026-11-07",
+        "vb_time": "16:00",
         "vb_hall": "Süleyman Evcilmen Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
-          "date_diff": true,
-          "time_diff": true,
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
           "hall_diff": false,
-          "vb_date": "2026-11-08",
-          "vb_time": "10:00",
+          "vb_date": "2026-11-07",
+          "vb_time": "16:00",
           "vb_hall": "Süleyman Evcilmen Spor Salonu",
-          "details": "Tarih Değişti (TVF: 2026-11-07 / VB: 2026-11-08) | Saat Değişti (TVF: 16:00 / VB: 10:00)"
+          "details": null
         }
       }
     },
@@ -72040,17 +72040,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-08",
-        "vb_time": "18:30",
+        "vb_time": "16:30",
         "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-08",
-          "vb_time": "18:30",
+          "vb_time": "16:30",
           "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
-          "details": "Saat Değişti (TVF: 16:30 / VB: 18:30)"
+          "details": null
         }
       }
     },
@@ -82853,16 +82853,16 @@
         "has_score": false,
         "vb_date": "2026-11-28",
         "vb_time": "18:30",
-        "vb_hall": "İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi",
+        "vb_hall": "İBB Çekmeköy Spor Kompleksi",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
           "time_diff": false,
-          "hall_diff": true,
+          "hall_diff": false,
           "vb_date": "2026-11-28",
           "vb_time": "18:30",
-          "vb_hall": "İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi",
-          "details": "Salon Değişti (TVF: İBB ÇEKMEKÖY SPOR KOMPLEKSİ / VB: İstanbul Büyükşehir Belediyesi Cebeci Spor Kompleksi)"
+          "vb_hall": "İBB Çekmeköy Spor Kompleksi",
+          "details": null
         }
       }
     },
@@ -85300,17 +85300,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-29",
-        "vb_time": "19:00",
+        "vb_time": "18:00",
         "vb_hall": "Başiskele Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-29",
-          "vb_time": "19:00",
+          "vb_time": "18:00",
           "vb_hall": "Başiskele Spor Salonu",
-          "details": "Saat Değişti (TVF: 18:00 / VB: 19:00)"
+          "details": null
         }
       }
     },
