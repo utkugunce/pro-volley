@@ -1,26 +1,25 @@
-import { DashboardClient } from "@/components/DashboardClient";
-import { getInitialHomeFixtures } from "@/utils/getInitialFixtures";
+import { SultanlarLigiClient } from "@/components/sultanlar-ligi/SultanlarLigiClient";
+import { compactKadinlar2LigData } from "@/utils/kadinlar2LigPayload";
+import { getSultanlarLigiData } from "@/utils/sultanlarLigiServer";
 
-export const revalidate = 900;
+export const revalidate = 300;
 
 export function generateMetadata(): import("next").Metadata {
-  const title = "Altyapı Voleybol — TVF Fikstür ve Puan Durumu";
-  const description = "Türkiye Voleybol Federasyonu 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig haftalık maç bülteni, puan durumu ve fikstür.";
+  const title = "TVF Profesyonel Voleybol Ligleri — Sultanlar Ligi, 1. Lig & 2. Lig";
+  const description =
+    "Türkiye Voleybol Federasyonu Vodafone Sultanlar Ligi, Arabica Coffee House Kadınlar 1. Ligi ve Uzman Posta Kadınlar 2. Ligi canlı puan durumu, fikstür ve sonuçlar.";
 
   return {
     title: {
       absolute: title,
     },
     description,
-    alternates: {
-      canonical: "https://altyapivoleybol.com.tr",
-    },
     openGraph: {
       title,
       description,
       type: "website",
       locale: "tr_TR",
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png", alt: "Altyapı Voleybol" }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png", alt: "TVF Profesyonel Voleybol Ligleri" }],
     },
     twitter: {
       card: "summary_large_image",
@@ -32,6 +31,6 @@ export function generateMetadata(): import("next").Metadata {
 }
 
 export default function Page() {
-  const initialData = getInitialHomeFixtures();
-  return <DashboardClient initialData={initialData} initialTab="home" initialCity="all" initialDataPartial={true} />;
+  const data = compactKadinlar2LigData(getSultanlarLigiData());
+  return <SultanlarLigiClient initialData={data} initialTab="home" />;
 }

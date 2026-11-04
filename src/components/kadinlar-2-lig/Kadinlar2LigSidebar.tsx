@@ -121,18 +121,6 @@ export const Kadinlar2LigSidebar: React.FC<Kadinlar2LigSidebarProps> = ({
 
               <Link
                 prefetch={false}
-                href="/"
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                  <span className="font-medium text-[11px] truncate">TVF Altyapı Ligleri</span>
-                </span>
-                <span className="text-[10px] text-ink-3 font-display tabular-nums shrink-0">81 İl →</span>
-              </Link>
-
-              <Link
-                prefetch={false}
                 href="/takvim"
                 className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
               >

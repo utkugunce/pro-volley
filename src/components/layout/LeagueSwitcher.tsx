@@ -33,12 +33,6 @@ export const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({
       href: "/kadinlar-2-ligi",
       title: "Uzman Posta Kadınlar 2. Ligi (16 Grup) — Puan Durumu & Fikstür",
     },
-    {
-      key: "altyapi",
-      label: "Altyapı (81 İl)",
-      href: "/",
-      title: "TVF Resmi 81 İl Altyapı Voleybol Ligleri & Fikstürleri",
-    },
   ];
 
   return (

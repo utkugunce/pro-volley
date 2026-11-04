@@ -68,18 +68,6 @@ jobs:
 
         run: npm ci
 
-      - name: Run TVF 81 provinces scraper
-
-        run: |
-
-          python scripts/scrape_all_provinces.py --force
-
-      - name: Run TVF Kadinlar 2. Lig scraper
-
-        run: |
-
-          python scripts/scrape_kadinlar_2_lig.py
-
       - name: Run TVF Sultanlar Ligi scraper
         run: |
           python scripts/scrape_sultanlar_ligi.py
@@ -88,11 +76,13 @@ jobs:
         run: |
           python scripts/scrape_kadinlar_1_lig.py
 
-      - name: Sync Volleybox matches & scores
-
+      - name: Run TVF Kadinlar 2. Lig scraper
         run: |
+          python scripts/scrape_kadinlar_2_lig.py
 
-          python scripts/sync_volleybox_matches.py
+      - name: Sync Volleybox matches & scores
+        run: |
+          python scripts/sync_volleybox_matches.py --city pro
 
       - name: Check standings team name conflicts
 

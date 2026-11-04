@@ -41,7 +41,7 @@ describe("Kadinlar2LigSidebar Component (Stage 2 Integration)", () => {
     expect(screen.getByText("22 Takım")).toBeDefined();
   });
 
-  it("renders bridge navigation link to TVF Altyapı Ligleri (81 İl)", () => {
+  it("renders bridge navigation link to Voleybol Takvimi", () => {
     render(
       <Kadinlar2LigSidebar
         groups={mockGroups}
@@ -53,9 +53,9 @@ describe("Kadinlar2LigSidebar Component (Stage 2 Integration)", () => {
       />
     );
 
-    const altyapiLink = screen.getByRole("link", { name: /TVF Altyapı Ligleri/i });
-    expect(altyapiLink).toBeDefined();
-    expect(altyapiLink.getAttribute("href")).toBe("/");
+    const takvimLink = screen.getByRole("link", { name: /Voleybol Takvimi/i });
+    expect(takvimLink).toBeDefined();
+    expect(takvimLink.getAttribute("href")).toBe("/takvim");
   });
 
   it("renders bridge navigation links to Sultanlar and 1. Lig", () => {
