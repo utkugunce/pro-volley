@@ -341,11 +341,11 @@ function collectMissingMatchesPreview(cityFilter?: string): TournamentMissingSum
         if (!matchesThis) continue;
       }
 
-      const pPath = path.join(dataDir, pConfig.file);
-      if (!fs.existsSync(pPath)) continue;
+      const pPath = path.join(/*turbopackIgnore: true*/ dataDir, pConfig.file);
+      if (!fs.existsSync(/*turbopackIgnore: true*/ pPath)) continue;
 
       try {
-        const pRaw = JSON.parse(fs.readFileSync(pPath, "utf-8"));
+        const pRaw = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ pPath, "utf-8"));
         const matches = Array.isArray(pRaw.tum_maclar) ? pRaw.tum_maclar : [];
 
         for (const m of matches) {
