@@ -51,7 +51,7 @@ jobs:
         run: npm test
 
       - name: Next.js build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
