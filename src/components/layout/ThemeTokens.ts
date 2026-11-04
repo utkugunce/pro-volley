@@ -1,5 +1,5 @@
 export const ThemeTokens = {
-  background: "#07131F",
-  panel: "#0E2033",
-  border: "#1B3550",
+  background: "#0C0A10",
+  panel: "#16131D",
+  border: "#2C2438",
 } as const;

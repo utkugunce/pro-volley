@@ -1,13 +1,13 @@
 {
-  "name": "Altyapı Voleybol — TVF Fikstür ve Puan Durumu",
-  "short_name": "Altyapı Voleybol",
-  "description": "Türkiye Voleybol Federasyonu (TVF) 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig canlı fikstür, maç sonuçları ve puan durumu.",
+  "name": "Pro Voleybol — Sultanlar Ligi, 1. Lig ve 2. Lig Canlı Puan Durumu",
+  "short_name": "Pro Voleybol",
+  "description": "Türkiye Voleybol Federasyonu (TVF) Vodafone Sultanlar Ligi, Arabica Coffee House Kadınlar 1. Ligi ve Kadınlar 2. Ligi canlı fikstür, maç sonuçları ve puan durumu.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#07131F",
-  "theme_color": "#07131F",
+  "background_color": "#0C0A10",
+  "theme_color": "#0C0A10",
   "scope": "/",
   "categories": ["sports", "news"],
   "icons": [

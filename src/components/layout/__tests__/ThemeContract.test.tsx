@@ -8,14 +8,14 @@ import { buildThemeVarsCss } from "@/theme/palettes";
 import fs from "fs";
 import path from "path";
 
-describe("Fileönü Tasarım Sistemi Sözleşmesi", () => {
-  it("ThemeTokens doğru Fileönü hex değerlerini içerir", () => {
-    expect(ThemeTokens.background).toBe("#07131F");
-    expect(ThemeTokens.panel).toBe("#0E2033");
-    expect(ThemeTokens.border).toBe("#1B3550");
+describe("Pro Voleybol Tasarım Sistemi Sözleşmesi", () => {
+  it("ThemeTokens doğru Royal Gold & Crimson hex değerlerini içerir", () => {
+    expect(ThemeTokens.background).toBe("#0C0A10");
+    expect(ThemeTokens.panel).toBe("#16131D");
+    expect(ThemeTokens.border).toBe("#2C2438");
   });
 
-  it("tailwind.config.ts anlamsal Fileönü token'larını CSS değişkenine bağlar; karanlık tema değerleri korunur", () => {
+  it("tailwind.config.ts anlamsal token'ları CSS değişkenine bağlar; karanlık tema değerleri korunur", () => {
     const colors = tailwindConfig.theme?.extend?.colors as any;
     expect(colors).toBeDefined();
 
@@ -30,22 +30,22 @@ describe("Fileönü Tasarım Sistemi Sözleşmesi", () => {
       return "#" + channels!.slice(1, 4).map((n) => Number(n).toString(16).padStart(2, "0")).join("").toUpperCase();
     };
 
-    expect(darkHex(colors.canvas)).toBe("#07131F");
-    expect(darkHex(colors.surface.DEFAULT)).toBe("#0E2033");
-    expect(darkHex(colors.surface.muted)).toBe("#0A1A2B");
-    expect(darkHex(colors.surface.raised)).toBe("#13293F");
-    expect(darkHex(colors.panel)).toBe("#0E2033");
-    expect(darkHex(colors.line)).toBe("#1B3550");
-    expect(darkHex(colors.ink.DEFAULT)).toBe("#EAF6FA");
-    expect(darkHex(colors.ink[2])).toBe("#A9C3D1");
-    expect(darkHex(colors.ink[3])).toBe("#8CA8B8");
-    expect(darkHex(colors.live)).toBe("#FF6E82");
-    expect(darkHex(colors.done)).toBe("#9BE15D");
-    expect(darkHex(colors.warn)).toBe("#FFC24D");
-    expect(darkHex(colors.selected.DEFAULT)).toBe("#5B9DFF");
-    expect(darkHex(colors.selected.strong)).toBe("#2A63BD");
-    expect(darkHex(colors.slate[900])).toBe("#0E2033");
-    expect(darkHex(colors.emerald[400])).toBe("#9BE15D");
+    expect(darkHex(colors.canvas)).toBe("#0C0A10");
+    expect(darkHex(colors.surface.DEFAULT)).toBe("#16131D");
+    expect(darkHex(colors.surface.muted)).toBe("#110E17");
+    expect(darkHex(colors.surface.raised)).toBe("#201B2B");
+    expect(darkHex(colors.panel)).toBe("#16131D");
+    expect(darkHex(colors.line)).toBe("#2C2438");
+    expect(darkHex(colors.ink.DEFAULT)).toBe("#FBF7F0");
+    expect(darkHex(colors.ink[2])).toBe("#D8CEC2");
+    expect(darkHex(colors.ink[3])).toBe("#B3A698");
+    expect(darkHex(colors.live)).toBe("#FF5C77");
+    expect(darkHex(colors.done)).toBe("#8EE058");
+    expect(darkHex(colors.warn)).toBe("#FFD166");
+    expect(darkHex(colors.selected.DEFAULT)).toBe("#FF6B85");
+    expect(darkHex(colors.selected.strong)).toBe("#B81D3A");
+    expect(darkHex(colors.slate[900])).toBe("#16131D");
+    expect(darkHex(colors.emerald[400])).toBe("#8EE058");
   });
 
   it("AppShell varsayılan olarak data-section='altyapi' atar", () => {
@@ -68,13 +68,13 @@ describe("Fileönü Tasarım Sistemi Sözleşmesi", () => {
     expect(root.getAttribute("data-section")).toBe("kadinlar-2-lig");
   });
 
-  it("globals.css dosyasında Fileönü kök ve Kadınlar 2. Lig token tanımları mevcuttur", () => {
+  it("globals.css dosyasında Pro Voleybol kök ve Kadınlar 2. Lig token tanımları mevcuttur", () => {
     const cssPath = path.resolve(__dirname, "../../../app/globals.css");
     const css = fs.readFileSync(cssPath, "utf-8");
-    expect(css).toContain("--canvas: #07131f;");
-    expect(css).toContain('--primary: #2dd4c0;');
+    expect(css).toContain("--canvas: #0c0a10;");
+    expect(css).toContain("--primary: #f5b83d;");
     expect(css).toContain('[data-section="kadinlar-2-lig"]');
-    expect(css).toContain('--primary: #d98bff;');
+    expect(css).toContain("--primary: #e09eff;");
   });
 });
 

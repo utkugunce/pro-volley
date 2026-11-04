@@ -13,22 +13,22 @@ export const contrast = (a: string, b: string) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-describe("Fileönü palet kontrastı (WCAG)", () => {
-  const surface = "#0E2033";
+describe("Pro Voleybol palet kontrastı (WCAG)", () => {
+  const surface = "#16131D";
   const textPairs: [string, string, string][] = [
-    ["ink", "#EAF6FA", "#07131F"],
-    ["ink-2/surface", "#A9C3D1", surface],
-    ["ink-3/surface", "#8CA8B8", surface],
-    ["primary/surface", "#2DD4C0", surface],
-    ["live/surface", "#FF6E82", surface],
-    ["done/surface", "#9BE15D", surface],
-    ["selected-text/surface", "#7FB4FF", surface],
-    ["warn/surface", "#FFC24D", surface],
-    ["orchid/surface", "#D98BFF", surface],
-    ["form-loss/surface", "#FF8FA0", surface],
-    ["primary-fg/primary", "#032320", "#2DD4C0"],
-    ["orchid fg/orchid", "#2A0B3A", "#D98BFF"],
-    ["white/selected-strong", "#FFFFFF", "#2A63BD"],
+    ["ink", "#FBF7F0", "#0C0A10"],
+    ["ink-2/surface", "#D8CEC2", surface],
+    ["ink-3/surface", "#B3A698", surface],
+    ["primary/surface", "#F5B83D", surface],
+    ["live/surface", "#FF5C77", surface],
+    ["done/surface", "#8EE058", surface],
+    ["selected-text/surface", "#FF8FA3", surface],
+    ["warn/surface", "#FFD166", surface],
+    ["orchid/surface", "#E09EFF", surface],
+    ["form-loss/surface", "#FF8599", surface],
+    ["primary-fg/primary", "#1C1202", "#F5B83D"],
+    ["orchid fg/orchid", "#2A0B3A", "#E09EFF"],
+    ["white/selected-strong", "#FFFFFF", "#B81D3A"],
   ];
   it.each(textPairs)("%s ≥ 4.5", (_n, fg, bg) => {
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);

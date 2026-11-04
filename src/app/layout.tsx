@@ -6,6 +6,7 @@ import { THEME_INIT_SCRIPT } from "@/theme/theme";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { GlobalJsonLd } from "@/components/JsonLd";
+import { ProGlobalTopRibbon } from "@/components/layout/ProGlobalTopRibbon";
 import {
   AnalyticsConsentWrapper,
   CookieConsentBanner,
@@ -51,7 +52,7 @@ const spaceGrotesk = localFont({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#07131F",
+  themeColor: "#0C0A10",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -59,30 +60,33 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Altyapı Voleybol — TVF Fikstür ve Puan Durumu",
-    template: "%s | Altyapı Voleybol",
+    default: "Pro Voleybol — Sultanlar Ligi, 1. Lig ve 2. Lig Canlı Puan Durumu & Fikstür",
+    template: "%s | Pro Voleybol",
   },
-  description: "Türkiye Voleybol Federasyonu (TVF) 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig ile 1. Lig haftalık maç programı, canlı sonuçlar ve puan durumu.",
-  metadataBase: new URL("https://altyapivoleybol.com.tr"),
+  description:
+    "Türkiye Voleybol Federasyonu (TVF) Vodafone Sultanlar Ligi, Arabica Coffee House Kadınlar 1. Ligi ve Uzman Posta Kadınlar 2. Ligi resmi maç programı, canlı sonuçlar ve puan durumu.",
+  metadataBase: new URL("https://pro-volley.onrender.com"),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Altyapı Voleybol",
+    title: "Pro Voleybol",
   },
   openGraph: {
-    title: "Altyapı Voleybol — TVF Fikstür ve Puan Durumu",
-    description: "Türkiye Voleybol Federasyonu (TVF) 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig ile 1. Lig haftalık maç programı, canlı sonuçlar ve puan durumu.",
-    url: "https://altyapivoleybol.com.tr",
-    siteName: "Altyapı Voleybol",
+    title: "Pro Voleybol — Sultanlar Ligi, 1. Lig ve 2. Lig Canlı Puan Durumu & Fikstür",
+    description:
+      "Vodafone Sultanlar Ligi, Arabica Coffee House Kadınlar 1. Ligi ve Kadınlar 2. Ligi haftalık maç programı, canlı sonuçlar ve puan durumu.",
+    url: "https://pro-volley.onrender.com",
+    siteName: "Pro Voleybol",
     locale: "tr_TR",
     type: "website",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png", alt: "Altyapı Voleybol" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png", alt: "Pro Voleybol" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Altyapı Voleybol — TVF Fikstür ve Puan Durumu",
-    description: "Türkiye Voleybol Federasyonu (TVF) 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig ile 1. Lig haftalık maç programı, canlı sonuçlar ve puan durumu.",
+    title: "Pro Voleybol — Sultanlar Ligi, 1. Lig ve 2. Lig Canlı Puan Durumu & Fikstür",
+    description:
+      "Vodafone Sultanlar Ligi, Arabica Coffee House Kadınlar 1. Ligi ve Kadınlar 2. Ligi haftalık maç programı, canlı sonuçlar ve puan durumu.",
     images: ["/opengraph-image"],
   },
   icons: {
@@ -134,6 +138,7 @@ export default function RootLayout({
           Ana içeriğe atla
         </a>
         <GlobalJsonLd />
+        <ProGlobalTopRibbon />
         {children}
         <AnalyticsConsentWrapper />
         <CookieConsentBanner />

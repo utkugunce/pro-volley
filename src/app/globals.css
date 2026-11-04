@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --canvas: #07131f;
-  --surface: #0e2033;
-  --surface-muted: #0a1a2b;
-  --surface-raised: #13293f;
-  --line: #1b3550;
-  --ink: #eaf6fa;
-  --ink-2: #a9c3d1;
-  --ink-3: #8ca8b8;
-  --live: #ff6e82;
-  --done: #9be15d;
-  --selected: #5b9dff;
-  --selected-strong: #2a63bd;
-  --selected-text: #7fb4ff;
-  --warn: #ffc24d;
-  --primary: #2dd4c0;
-  --primary-rgb: 45 212 192;
-  --primary-hover-rgb: 94 234 212;
-  --primary-fg-rgb: 3 35 32;
-  --primary-soft: rgb(45 212 192 / 0.14);
-  --rank-mid-rgb: 183 155 255;
+  --canvas: #0c0a10;
+  --surface: #16131d;
+  --surface-muted: #110e17;
+  --surface-raised: #201b2b;
+  --line: #2c2438;
+  --ink: #fbf7f0;
+  --ink-2: #d8cec2;
+  --ink-3: #b3a698;
+  --live: #ff5c77;
+  --done: #8ee058;
+  --selected: #ff6b85;
+  --selected-strong: #b81d3a;
+  --selected-text: #ff8fa3;
+  --warn: #ffd166;
+  --primary: #f5b83d;
+  --primary-rgb: 245 184 61;
+  --primary-hover-rgb: 255 209 102;
+  --primary-fg-rgb: 28 18 2;
+  --primary-soft: rgb(245 184 61 / 0.15);
+  --rank-mid-rgb: 255 110 130;
 
   /* Geriye dönük uyumluluk */
   --background: var(--canvas);
@@ -58,16 +58,34 @@
   --ease-spring: linear(0, 0.0258, 0.09, 0.1763, 0.2732, 0.3724, 0.4683, 0.5573, 0.6376, 0.7082, 0.7689, 0.8202, 0.8628, 0.8976, 0.9256, 0.9476, 0.9648, 0.9778, 0.9875, 0.9945, 0.9994, 1.0026, 1.0047, 1.0058, 1.0062, 1.0062, 1.0059, 1.0055, 1.0049, 1.0043, 1.0036, 1.0031, 1.0025, 1.002, 1.0016, 1.0013, 1);
   --radius-panel: 1rem;
   --border-subtle: color-mix(in oklab, var(--line) 70%, transparent);
-  --shadow-resting: 0 1px 3px rgba(0, 0, 0, 0.25);
-  --shadow-floating: 0 20px 48px rgba(0, 0, 0, 0.45);
+  --shadow-resting: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-floating: 0 20px 48px rgba(0, 0, 0, 0.55);
+}
+
+[data-section="sultanlar"] {
+  --primary: #f5b83d;
+  --primary-rgb: 245 184 61;
+  --primary-hover-rgb: 255 209 102;
+  --primary-fg-rgb: 28 18 2;
+  --primary-soft: rgb(245 184 61 / 0.15);
+  --rank-mid-rgb: 255 110 130;
+}
+
+[data-section="kadinlar-1-lig"] {
+  --primary: #ff5c77;
+  --primary-rgb: 255 92 119;
+  --primary-hover-rgb: 255 133 153;
+  --primary-fg-rgb: 36 5 12;
+  --primary-soft: rgb(255 92 119 / 0.15);
+  --rank-mid-rgb: 245 184 61;
 }
 
 [data-section="kadinlar-2-lig"] {
-  --primary: #d98bff;
-  --primary-rgb: 217 139 255;
-  --primary-hover-rgb: 232 177 255;
+  --primary: #e09eff;
+  --primary-rgb: 224 158 255;
+  --primary-hover-rgb: 238 194 255;
   --primary-fg-rgb: 42 11 58;
-  --primary-soft: rgb(217 139 255 / 0.14);
+  --primary-soft: rgb(224 158 255 / 0.15);
   --rank-mid-rgb: 127 180 255;
 }
 
@@ -75,30 +93,30 @@
    Renk token'ları (Tailwind) src/theme/theme-vars.css içindeki CSS değişkenlerinden gelir.
    Burada yalnızca değişkenle bağlanmamış eski değişkenler ve özel sınıflar açık temaya uyarlanır. */
 html[data-theme="light"] {
-  --canvas: #f4f8fb;
+  --canvas: #faf7f2;
   --surface: #ffffff;
-  --surface-muted: #eef3f8;
+  --surface-muted: #f2ece4;
   --surface-raised: #ffffff;
-  --line: #cbd8e3;
-  --ink: #0b1b2b;
-  --ink-2: #3e566b;
-  --ink-3: #566f84;
-  --live: #c42d49;
-  --done: #3f7a1c;
-  --selected: #2a63bd;
-  --selected-strong: #2a63bd;
-  --selected-text: #1e4fa0;
-  --warn: #b7791f;
-  --primary: #0f766e;
-  --primary-rgb: 15 118 110;
-  --primary-hover-rgb: 17 94 89;
+  --line: #dfd5c8;
+  --ink: #18131e;
+  --ink-2: #4b4154;
+  --ink-3: #695d73;
+  --live: #b81d3a;
+  --done: #2f6f15;
+  --selected: #b81d3a;
+  --selected-strong: #b81d3a;
+  --selected-text: #94152d;
+  --warn: #b45309;
+  --primary: #b45309;
+  --primary-rgb: 180 83 9;
+  --primary-hover-rgb: 146 64 14;
   --primary-fg-rgb: 255 255 255;
-  --primary-soft: rgb(15 118 110 / 0.12);
-  --rank-mid-rgb: 42 99 189;
+  --primary-soft: rgb(180 83 9 / 0.12);
+  --rank-mid-rgb: 184 29 58;
   --glass-rgb: 255 255 255;
-  --glass-hover-rgb: 238 243 248;
-  --edge-rgb: 11 27 43;
-  --shadow-rgb: 11 27 43;
+  --glass-hover-rgb: 242 236 228;
+  --edge-rgb: 24 19 30;
+  --shadow-rgb: 24 19 30;
 }
 
 html[data-theme="light"] [data-section="kadinlar-2-lig"] {
@@ -111,8 +129,8 @@ html[data-theme="light"] [data-section="kadinlar-2-lig"] {
 }
 
 :root {
-  --glass-rgb: 14 32 51;
-  --glass-hover-rgb: 19 41 63;
+  --glass-rgb: 22 19 29;
+  --glass-hover-rgb: 32 27 43;
   --edge-rgb: 255 255 255;
   --shadow-rgb: 0 0 0;
 }
@@ -148,7 +166,7 @@ body {
 
 @layer utilities {
   .hero-heading-gradient {
-    background-image: linear-gradient(90deg, var(--ink) 0%, var(--ink-3) 100%);
+    background-image: linear-gradient(90deg, var(--ink) 0%, var(--primary) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -214,15 +232,15 @@ body {
   }
 
   .text-glow-red {
-    text-shadow: 0 0 12px rgba(255, 110, 130, 0.50);
+    text-shadow: 0 0 12px rgba(255, 92, 119, 0.50);
   }
 
   .text-glow-amber {
-    text-shadow: 0 0 12px rgba(255, 194, 77, 0.50);
+    text-shadow: 0 0 12px rgba(245, 184, 61, 0.50);
   }
 
   .text-glow-emerald {
-    text-shadow: 0 0 12px rgba(155, 225, 93, 0.45);
+    text-shadow: 0 0 12px rgba(142, 224, 88, 0.45);
   }
 
   .font-scoreboard {
@@ -251,11 +269,11 @@ body {
   }
 
   .ambient-glow-red {
-    box-shadow: 0 0 35px -8px rgba(255, 110, 130, 0.30);
+    box-shadow: 0 0 35px -8px rgba(255, 92, 119, 0.30);
   }
 
   .ambient-glow-emerald {
-    box-shadow: 0 0 35px -8px rgba(155, 225, 93, 0.30);
+    box-shadow: 0 0 35px -8px rgba(142, 224, 88, 0.30);
   }
 
   .no-scrollbar {
@@ -545,7 +563,7 @@ html[data-theme="light"] ::-webkit-scrollbar-thumb {
 
 /* Açık tema: logo "plaka" zemini (bg-ink) koyu logoların okunabilirliği için açık kalır. */
 html[data-theme="light"] .bg-ink {
-  background-color: #eaf6fa;
+  background-color: #fbf7f0;
 }
 
 /* AppShell, --portal-* değişkenlerini satır içi (koyu) hex ile atar; açık temada tema değişkenlerine yönlendirilir. */

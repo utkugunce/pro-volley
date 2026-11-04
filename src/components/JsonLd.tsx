@@ -11,13 +11,13 @@ export interface BreadcrumbItem {
 }
 
 export function GlobalJsonLd() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://altyapivoleybol.com.tr";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pro-volley.onrender.com";
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "SportsOrganization",
-    "name": "Altyapı Voleybol",
-    "alternateName": "Altyapı Voleybol Platformu",
+    "name": "Pro Voleybol",
+    "alternateName": "Pro Voleybol Platformu",
     "url": baseUrl,
     "logo": `${baseUrl}/icon.svg`,
     "description": "Türkiye Voleybol Federasyonu (TVF) 81 İl Temsilciliği yerel ligleri ve TVF Kadınlar 2. Ligi resmi fikstür, canlı sonuç ve puan durumu takip platformu.",
@@ -29,14 +29,14 @@ export function GlobalJsonLd() {
     },
     "sameAs": [
       "https://tvf.org.tr",
-      "https://altyapivoleybol.com.tr",
+      "https://pro-volley.onrender.com",
     ],
   };
 
   const webSiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Altyapı Voleybol",
+    "name": "Pro Voleybol",
     "url": baseUrl,
     "potentialAction": {
       "@type": "SearchAction",
@@ -159,7 +159,7 @@ export function ArticleJsonLd({
   url,
   datePublished,
   dateModified,
-  authorName = "Altyapı Voleybol",
+  authorName = "Pro Voleybol",
 }: {
   title: string;
   description: string;
@@ -168,7 +168,7 @@ export function ArticleJsonLd({
   dateModified?: string;
   authorName?: string;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://altyapivoleybol.com.tr";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pro-volley.onrender.com";
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -188,7 +188,7 @@ export function ArticleJsonLd({
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Altyapı Voleybol",
+      "name": "Pro Voleybol",
       "url": baseUrl,
       "logo": {
         "@type": "ImageObject",

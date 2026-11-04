@@ -83,7 +83,7 @@ describe("palet ve CSS değişkenleri", () => {
 
   it("açık temada slate ölçeği tersine çevrilir (50 koyu metin, 950 açık zemin)", () => {
     expect(lightShade("slate", "50")).not.toBe(PALETTES.slate[50]);
-    expect(lightShade("slate", "950")).toBe("#F4F8FB");
+    expect(lightShade("slate", "950")).toBe("#FAF7F2");
   });
 
   it("canlı dolgu tonları (500/600) iki temada aynıdır, diğerleri aynalanır", () => {

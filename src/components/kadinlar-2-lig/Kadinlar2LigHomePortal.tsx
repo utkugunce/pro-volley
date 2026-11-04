@@ -171,10 +171,14 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
       <div className="flex items-center justify-between pb-1">
         <h1 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-          <span className="hero-heading-gradient">TVF Kadınlar 2. Ligi Maç Merkezi & Bülteni</span>
+          <span className="hero-heading-gradient">
+            {leagueTitle ? `${leagueTitle} Maç Merkezi & Bülteni` : "TVF Kadınlar 2. Ligi Maç Merkezi & Bülteni"}
+          </span>
         </h1>
         <span className="text-[11px] font-display tabular-nums text-ink-3">
-          {selectedGroupFilter === "all" ? "16 Grup" : `Grup ${selectedGroupFilter}`} · {stats.totalMatches} Maç
+          {isSingleGroup
+            ? `Tek Grup · ${stats.totalMatches} Maç`
+            : `${selectedGroupFilter === "all" ? `${stats.totalGroups} Grup` : `Grup ${selectedGroupFilter}`} · ${stats.totalMatches} Maç`}
         </span>
       </div>
 
