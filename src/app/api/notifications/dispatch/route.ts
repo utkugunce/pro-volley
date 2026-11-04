@@ -1,0 +1,184 @@
+import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import {
+  getPushSubscriptions,
+  sendWebPush,
+  sendWebPushBatch,
+  StoredSubscription,
+} from "@/utils/webPush";
+import { applyOverridesToMatchesAsync } from "@/utils/overrides";
+import { parseMatchDateTime } from "@/utils/notifications";
+import { Match } from "@/types/fixture";
+import { getRateLimitResponse, requireConfiguredSecret } from "@/utils/apiSecurity";
+import { RateLimiter } from "@/utils/rateLimit";
+
+const dispatchLimiter = new RateLimiter({
+  name: "notifications-dispatch",
+  windowMs: 5 * 60 * 1000,
+  maxRequests: 5,
+});
+
+function loadAllMatches(): Match[] {
+  const allMatches: Match[] = [];
+  const seenIds = new Set<string>();
+
+  // 1. data/cities dizinindeki tüm illeri topla
+  const citiesDir = path.join(process.cwd(), "data", "cities");
+  if (fs.existsSync(citiesDir)) {
+    const files = fs.readdirSync(citiesDir).filter((f) => f.endsWith(".json"));
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(citiesDir, file), "utf-8");
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed.matches)) {
+          for (const m of parsed.matches) {
+            if (m.id && !seenIds.has(m.id)) {
+              seenIds.add(m.id);
+              allMatches.push(m);
+            }
+          }
+        }
+      } catch {
+        // Hatalı dosyayı atla
+      }
+    }
+  }
+
+  // 2. data/fixtures.json fallback
+  const fixturesPath = path.join(process.cwd(), "data", "fixtures.json");
+  if (fs.existsSync(fixturesPath)) {
+    try {
+      const content = fs.readFileSync(fixturesPath, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed.matches)) {
+        for (const m of parsed.matches) {
+          if (m.id && !seenIds.has(m.id)) {
+            seenIds.add(m.id);
+            allMatches.push(m);
+          }
+        }
+      }
+    } catch {
+      // Hatalı dosyayı atla
+    }
+  }
+
+  return allMatches;
+}
+
+function doesSubscriptionMatch(sub: StoredSubscription, match: Match): boolean {
+  const favTeams = (sub.favoriteTeams || []).map((t) => t.toLowerCase().trim());
+  const favMatches = sub.favoriteMatches || [];
+
+  // Doğrudan maç ID'si eşleşiyor mu?
+  if (favMatches.includes(match.id)) {
+    return true;
+  }
+
+  // Takım eşleşmesi var mı?
+  if (favTeams.length > 0) {
+    const home = (match.home_team || "").toLowerCase();
+    const away = (match.away_team || "").toLowerCase();
+    const matchesTeam = favTeams.some(
+      (team) => home.includes(team) || away.includes(team)
+    );
+    if (matchesTeam) return true;
+  }
+
+  // Abone hiçbir filtre seçmediyse tüm maç bildirimlerini alır
+  if (favTeams.length === 0 && favMatches.length === 0) {
+    return true;
+  }
+
+  return false;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const authError = process.env.CRON_SECRET
+      ? requireConfiguredSecret(req, "CRON_SECRET")
+      : requireConfiguredSecret(req, "ADMIN_TOKEN");
+    if (authError) return authError;
+
+    const rateLimitError = await getRateLimitResponse(req, dispatchLimiter);
+    if (rateLimitError) return rateLimitError;
+
+    const subscriptions = await getPushSubscriptions();
+    if (subscriptions.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        message: "Aktif bildirim abonesi bulunamadı.",
+        sent: 0,
+        failed: 0,
+      });
+    }
+
+    const rawMatches = loadAllMatches();
+    const allMatches = await applyOverridesToMatchesAsync(rawMatches);
+
+    // Parametre ile test veya özel dakika penceresi desteği
+    const requestedLeadMinutes = Number.parseInt(
+      req.nextUrl.searchParams.get("leadMinutes") || "35",
+      10
+    );
+    const leadMinutes = Number.isFinite(requestedLeadMinutes)
+      ? Math.min(Math.max(requestedLeadMinutes, 1), 24 * 60)
+      : 35;
+    const windowMs = leadMinutes * 60 * 1000;
+    const now = new Date();
+
+    // Önümüzdeki pencerede başlayacak olan ve tamamlanmamış maçları filtrele
+    const upcomingMatches = allMatches.filter((match) => {
+      if (match.status === "finished") return false;
+      const matchDate = parseMatchDateTime(match.date, match.time);
+      if (!matchDate) return false;
+
+      const diffMs = matchDate.getTime() - now.getTime();
+      return diffMs > 0 && diffMs <= windowMs;
+    });
+
+    let sentCount = 0;
+    let failedCount = 0;
+
+    for (const match of upcomingMatches) {
+      const venue = match.hall || (match as Match & { venue?: string }).venue || "Belirtilmedi";
+      const payload = {
+        title: `🏐 Maç Başlıyor! (${match.time})`,
+        body: `${match.home_team} - ${match.away_team} maçı ${match.time}'da başlıyor! Salon: ${venue}`,
+        tag: `match-${match.id}`,
+        data: {
+          url: `/mac/${match.id}`,
+          matchId: match.id,
+        },
+      };
+
+      const matchingSubs = subscriptions.filter((sub) => doesSubscriptionMatch(sub, match));
+      if (matchingSubs.length > 0) {
+        const batchRes = await sendWebPushBatch(matchingSubs, payload);
+        sentCount += batchRes.sent;
+        failedCount += batchRes.failed;
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      upcomingMatchesCount: upcomingMatches.length,
+      totalSubscribers: subscriptions.length,
+      sent: sentCount,
+      failed: failedCount,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("Bildirim dağıtım hatası:", err);
+    return NextResponse.json(
+      { error: "Bildirimler dağıtılırken sunucu hatası oluştu." },
+      { status: 500 }
+    );
+  }
+}
+
+// Vercel Cron veya GET tetiklemeleri için GET desteği
+export async function GET(req: NextRequest) {
+  return POST(req);
+}

@@ -1,0 +1,848 @@
+import { describe, it, expect } from "vitest";
+import {
+  getVolleyboxMapping,
+  getVolleyboxLeagueMapping,
+  buildVolleyboxMap,
+  normalizeKey,
+} from "../volleybox";
+import { VolleyboxMappingsFile } from "@/types/fixture";
+
+describe("volleybox utility", () => {
+  describe("normalizeKey", () => {
+    it("should trim and lower-case keys", () => {
+      expect(normalizeKey("  VakıfBank  ")).toBe("vakıfbank");
+      expect(normalizeKey("Fenerbahçe ")).toBe("fenerbahçe");
+    });
+  });
+
+  describe("getVolleyboxMapping with live mappings", () => {
+    it("returns correct mapping for verified team (Pegasus U18)", () => {
+      const mapping = getVolleyboxMapping("Pegasus", "Genç Kızlar Süper Lig");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("pegasus-spor-kulubu-u18-t54139");
+      expect(mapping?.confidence).toBe("verified");
+      expect(mapping?.age_category).toBe("U18");
+      expect(mapping?.local_logo).toBeDefined();
+      expect(mapping?.local_logo).toContain("/logos/");
+    });
+
+    it("returns correct mapping for verified team (Pegasus U16)", () => {
+      const mapping = getVolleyboxMapping("Pegasus", "Yıldız Kızlar Süper Lig");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("pegasus-spor-kulubu-u16-t54150");
+      expect(mapping?.confidence).toBe("verified");
+      expect(mapping?.age_category).toBe("U16");
+    });
+
+    it("correctly resolves category with group suffix (e.g. 'Genç Kızlar Süper Lig - A Grubu')", () => {
+      const mapping = getVolleyboxMapping("Fenerbahçe", "Genç Kızlar Süper Lig - A Grubu");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("fenerbahce-u18-t27716");
+    });
+
+    it("disambiguates Bizimkent U16 A and B teams", () => {
+      const bizimkentA = getVolleyboxMapping("Bizimkent Voleybol", "Yıldız Kızlar Süper Lig");
+      expect(bizimkentA).toBeDefined();
+      expect(bizimkentA?.matched_as).toBe("Bizimkent Voleybol Spor Kulübü U16");
+      expect(bizimkentA?.volleybox_url).toContain("bizimkent-voleybol-spor-kulubu-u16-t41638");
+
+      const bizimkentB = getVolleyboxMapping("Bizimkent Sk", "Yıldız Kızlar Süper Lig");
+      expect(bizimkentB).toBeDefined();
+      expect(bizimkentB?.matched_as).toBe("Bizimkent Spor Kulübü U16");
+      expect(bizimkentB?.volleybox_url).toBe("https://women.volleybox.net/tr/bizimkent-spor-kulubu-u16-t54145");
+
+      const bizimkentBSourceName = getVolleyboxMapping(
+        "Bizimkent Voleybol Spor Kulübü U16 - B",
+        "Yıldız Kızlar Süper Lig",
+        undefined,
+        "İstanbul"
+      );
+      expect(bizimkentBSourceName?.matched_as).toBe("Bizimkent Spor Kulübü U16");
+      expect(bizimkentBSourceName?.volleybox_url).toBe(bizimkentB?.volleybox_url);
+
+      const akademiAtletik = getVolleyboxMapping("Akademi Atletik", "Yıldız Kızlar Süper Lig", undefined, "İstanbul");
+      expect(akademiAtletik).toBeDefined();
+      expect(akademiAtletik?.matched_as).toBe("Marmara Akademi Spor Kulübü U16");
+
+      const tekirdagVoleybolAkademi = getVolleyboxMapping("Voleybol Akademi Tekirdağ Spor Kulübü", "Yıldız Kızlar Süper Lig", undefined, "Tekirdağ");
+      expect(tekirdagVoleybolAkademi).toBeDefined();
+      expect(tekirdagVoleybolAkademi?.matched_as).toBe("Tekirdağ Voleybol Akademi Spor Kulübü U16");
+    });
+
+    it("maps the Bizimkent İlkokulu U18 source name to its official profile", () => {
+      const mapping = getVolleyboxMapping(
+        "Bizimkent İlkokulu",
+        "Genç Kızlar 1. Ligi - 5. Bölge",
+        undefined,
+        "İstanbul"
+      );
+
+      expect(mapping?.matched_as).toBe("Bizimkent İlkokulu Spor Kulübü U18");
+      expect(mapping?.volleybox_url).toBe(
+        "https://women.volleybox.net/tr/bizimkent-lkokulu-spor-kulubu-u18-t47013"
+      );
+    });
+
+    it("maps the İzmir 1. Lig C-group Dost name to Dost Spor - B U18", () => {
+      const mapping = getVolleyboxMapping(
+        "Dost Spor U18",
+        "Genç Kızlar 1. Ligi - Genç Kız - C Gr",
+        undefined,
+        "İzmir"
+      );
+
+      expect(mapping?.matched_as).toBe("Dost Spor - B U18");
+      expect(mapping?.volleybox_url).toBe("https://women.volleybox.net/tr/dost-spor-u18-t53583");
+    });
+
+    it("maps the Çanakkale Belediyespor source name to the correct U16 team", () => {
+      const mapping = getVolleyboxMapping(
+        "Çanakkale Belediyespor",
+        "Yıldız Kızlar Süper Lig",
+        undefined,
+        "Çanakkale"
+      );
+
+      expect(mapping?.matched_as).toBe("Çanakkale Belediyespor U16");
+      expect(mapping?.volleybox_url).toBe("https://women.volleybox.net/canakkale-belediyespor-u16-t48846");
+    });
+
+    it("returns correct mapping for other cities (Bursa, İzmir, Antalya, Yalova, Düzce, Niğde)", () => {
+      // Bursa
+      const bursa23Nisan = getVolleyboxMapping("Bursa 23 Nisan Spor Kulübü", "Genç Kızlar Süper Lig");
+      expect(bursa23Nisan).toBeDefined();
+      expect(bursa23Nisan?.volleybox_url).toContain("23-nisan-spor-kulubu-u18-t42339");
+
+      // İzmir (case insensitivity with Turkish İ)
+      const izmirArkas = getVolleyboxMapping("ARKAS", "Genç Kızlar Süper Lig");
+      expect(izmirArkas).toBeDefined();
+      expect(izmirArkas?.volleybox_url).toContain("arkas-spor-kadn-altyap-takmlar-u18-t31879");
+
+      const izmirspor = getVolleyboxMapping("İZMİRSPOR", "Genç Kızlar Süper Lig");
+      expect(izmirspor).toBeDefined();
+      expect(izmirspor?.volleybox_url).toContain("zmirspor-u18-t41248");
+
+      // İzmir Dost Kulübü (1. Lig ve Süper Lig özel eşleşmeleri)
+      const dost1LigA = getVolleyboxMapping("Dost - A", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(dost1LigA).toBeDefined();
+      expect(dost1LigA?.matched_as).toBe("Dost Spor - B U18");
+      expect(dost1LigA?.volleybox_url).toContain("dost-spor-u18-t53583");
+
+      const dost1LigB = getVolleyboxMapping("Dost - B", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(dost1LigB).toBeDefined();
+      expect(dost1LigB?.matched_as).toBe("Dost Spor - C U18");
+      expect(dost1LigB?.volleybox_url).toContain("dost-spor-u18-t53584");
+
+      const dostSuperLig = getVolleyboxMapping("DOST", "Genç Kızlar Süper Lig", undefined, "İzmir");
+      expect(dostSuperLig).toBeDefined();
+      expect(dostSuperLig?.matched_as).toBe("Dost Spor U18");
+      expect(dostSuperLig?.volleybox_url).toContain("dost-spor-u18-t53574");
+
+      const dostU16 = getVolleyboxMapping("DOST", "Yıldız Kızlar Süper Lig", undefined, "İzmir");
+      expect(dostU16).toBeDefined();
+      expect(dostU16?.matched_as).toBe("Dost Spor U16");
+      expect(dostU16?.volleybox_url).toContain("dost-spor-u16-t41415");
+
+      // İzmir 1. Ligi B Takımları (Arkas, Volkan Güç, Monza, Karşıyaka, Altınay, Kzy Bornova, Altınordu)
+      const arkas1Lig = getVolleyboxMapping("Arkas", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(arkas1Lig).toBeDefined();
+      expect(arkas1Lig?.matched_as).toBe("Arkas Spor Kulübü - B U18");
+      expect(arkas1Lig?.volleybox_url).toContain("arkas-spor-u18-t53580");
+
+      const volkan1Lig = getVolleyboxMapping("Volkan Güç", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(volkan1Lig).toBeDefined();
+      expect(volkan1Lig?.matched_as).toBe("Volkan Güç Spor Kulübü - B U18");
+      expect(volkan1Lig?.volleybox_url).toContain("volkan-guc-spor-kulubu-u18-t53592");
+
+      const monza1Lig = getVolleyboxMapping("Monza", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(monza1Lig).toBeDefined();
+      expect(monza1Lig?.matched_as).toBe("Monza Spor Kulübü - B U18");
+      expect(monza1Lig?.volleybox_url).toContain("monza-spor-kulubu-u18-t53589");
+
+      const karsiyaka1Lig = getVolleyboxMapping("Karşıyaka", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(karsiyaka1Lig).toBeDefined();
+      expect(karsiyaka1Lig?.matched_as).toBe("Karşıyaka SK - B U18");
+      expect(karsiyaka1Lig?.volleybox_url).toContain("karsyaka-sk-u18-t53586");
+
+      const altinay1Lig = getVolleyboxMapping("Altınay", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(altinay1Lig).toBeDefined();
+      expect(altinay1Lig?.matched_as).toBe("İzmir Altınay Spor Kulübü - B U18");
+      expect(altinay1Lig?.volleybox_url).toContain("zmir-altnay-spor-kulubu-b-u18-t41258");
+
+      const kzy1Lig = getVolleyboxMapping("Kzy Bornova", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(kzy1Lig).toBeDefined();
+      expect(kzy1Lig?.matched_as).toBe("KZY Bornova Spor Kulübü - B U18");
+      expect(kzy1Lig?.volleybox_url).toContain("kzy-bornova-spor-kulubu-u18-t54521");
+
+      const altinordu1Lig = getVolleyboxMapping("Altınordu", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(altinordu1Lig).toBeDefined();
+      expect(altinordu1Lig?.matched_as).toBe("Altınordu Voleybol - B U18");
+      expect(altinordu1Lig?.volleybox_url).toContain("altnordu-voleybol-b-u18-t41259");
+
+      const userCorrections = [
+        ["Dost Spor U18", "Genç Kızlar 1. Ligi", "İzmir", "t53583"],
+        ["Volkan Güç Spor Kulübü - B U18", "Genç Kızlar Süper Lig", "İzmir", "t41256"],
+        ["Altınordu Voleybol - B U18", "Genç Kızlar Süper Lig", "İzmir", "t41238"],
+        ["KZY Bornova Spor Kulübü - B U18", "Genç Kızlar Süper Lig", "İzmir", "t53577"],
+        ["Monza Spor Kulübü - B U18", "Genç Kızlar Süper Lig", "İzmir", "t44603"],
+        ["İzmir Altınay Spor Kulübü - B U18", "Genç Kızlar Süper Lig", "İzmir", "t41236"],
+        ["Erciyes Aslan Spor Kulübü", "Genç Kızlar Süper Lig", "Kayseri", "t41955"],
+        ["Erciyes Aslan Spor Kulübü U16", "Genç Kızlar Süper Lig", "Kayseri", "t41955"],
+        ["Kayseri Voleybol Kulübü - A", "Genç Kızlar Süper Lig", "Kayseri", "t41950"],
+        ["Develi Gençlik Ve Spor İlçe Müdürlüğü S.K.", "Yıldız Kızlar Süper Lig", "Kayseri", "t42418"],
+        ["Kayseri Voleybol Kulübü - A", "Yıldız Kızlar Süper Lig", "Kayseri", "t41424"],
+        ["Altıyıldız Spor Kulubü", "Yıldız Kızlar Süper Lig", "Kayseri", "t54199"],
+        ["Kayseri Cimnastik Spor Kulübü - C", "Yıldız Kızlar Süper Lig", "Kayseri", "t54902"],
+        ["Altınoluk İzzet Öksüzkaya S.K. - B", "Yıldız Kızlar Süper Lig", "Kayseri", "t54903"],
+        ["Samsun Büyükşehir Sk", "Genç Kızlar 1. Ligi", "Samsun", "t42570"],
+        ["Bafra Akademi Sk", "Genç Kızlar 1. Ligi", "Samsun", "t42569"],
+        ["Anadolu Voleybol Akademi Sk (B)", "Genç Kızlar 1. Ligi", "Samsun", "t42564"],
+        ["Bafra Vera Sk", "Genç Kızlar 1. Ligi", "Samsun", "t54656"],
+        ["55 Matasyon Sk", "Genç Kızlar 1. Ligi", "Samsun", "t42572"],
+        ["Gülizar Hasan Yılmaz Spor Lisesi Sk", "Genç Kızlar 1. Ligi", "Samsun", "t42565"],
+        ["Sam55 Sk", "Genç Kızlar 1. Ligi", "Samsun", "t54659"],
+        ["Atakum Atılım Sk (B)", "Genç Kızlar 1. Ligi", "Samsun", "t54657"],
+      ] as const;
+
+      for (const [team, category, city, profileId] of userCorrections) {
+        const mapping = getVolleyboxMapping(team, category, undefined, city);
+        expect(mapping?.volleybox_url, `${team} (${city}, ${category})`).toContain(profileId);
+      }
+
+      // Antalya
+      const zenit = getVolleyboxMapping("07 Zenit S.K.", "Genç Kızlar Süper Lig");
+      expect(zenit).toBeDefined();
+      expect(zenit?.volleybox_url).toContain("07-zenit-spor-kulubu-u18-t54208");
+
+      // Yalova
+      const atakent = getVolleyboxMapping("Atakent Spor Kulübü (A)", "Genç Kızlar Süper Lig");
+      expect(atakent).toBeDefined();
+      expect(atakent?.volleybox_url).toContain("yalova-atakent-spor-kulubu-u18-t41959");
+
+      const altinManset = getVolleyboxMapping("Altın Manşet Spor Kulübü", "Yıldız Kızlar Süper Lig", undefined, "Yalova");
+      expect(altinManset).toBeDefined();
+      expect(altinManset?.volleybox_url).toContain("altn-manset-spor-kulubu-u16-t54555");
+      expect(altinManset?.age_category).toBe("U16");
+
+      const elitAkademi = getVolleyboxMapping("Elit Akademi Spor Kulübü", "Yıldız Kızlar Süper Lig", undefined, "Yalova");
+      expect(elitAkademi).toBeDefined();
+      expect(elitAkademi?.volleybox_url).toContain("yalova-elit-akademi-spor-kulubu-u16-t54556");
+      expect(elitAkademi?.age_category).toBe("U16");
+
+      const yalovaGenclik = getVolleyboxMapping("Gençlik Ve Spor İl Müdürlü Spor Kulübü", "Yıldız Kızlar Süper Lig", undefined, "Yalova");
+      expect(yalovaGenclik).toBeDefined();
+      expect(yalovaGenclik?.volleybox_url).toContain("yalova-genclik-ve-spor-l-mudurlugu-sk-u16-t54557");
+      expect(yalovaGenclik?.age_category).toBe("U16");
+
+      // Mersin
+      const tarsusGelecek = getVolleyboxMapping("TARSUS GELECEK SK", "Genç Kızlar Süper Lig", undefined, "Mersin");
+      expect(tarsusGelecek).toBeDefined();
+      expect(tarsusGelecek?.volleybox_url).toContain("tarsus-gelecek-spor-kulubu-u18-t54551");
+      expect(tarsusGelecek?.age_category).toBe("U18");
+
+      const alsancakSk = getVolleyboxMapping("ALSANCAK SK", "Genç Kızlar Süper Lig", undefined, "Mersin");
+      expect(alsancakSk).toBeDefined();
+      expect(alsancakSk?.volleybox_url).toContain("alsancak-spor-kulubu-u18-t54553");
+      expect(alsancakSk?.age_category).toBe("U18");
+
+      const mezitliBld = getVolleyboxMapping("MEZİTLİ BELEDİYE SK", "Genç Kızlar Süper Lig", undefined, "Mersin");
+      expect(mezitliBld).toBeDefined();
+      expect(mezitliBld?.volleybox_url).toContain("mezitli-belediyesi-genclik-ve-spor-kulubu-u18-t54554");
+      expect(mezitliBld?.age_category).toBe("U18");
+
+      // Düzce
+      const duzce1907 = getVolleyboxMapping("Düzce 1907 Spor Kulübü", "Genç Kızlar Süper Lig");
+      expect(duzce1907).toBeDefined();
+      expect(duzce1907?.volleybox_url).toContain("duzce-1907-spor-kulubu-u18-t48245");
+
+      // Niğde
+      const bor = getVolleyboxMapping("Bor Belediye Spor Kulübü", "Genç Kızlar Süper Lig");
+      expect(bor).toBeDefined();
+      expect(bor?.volleybox_url).toContain("bor-belediyespor-u18-t48235");
+
+      // Aksaray
+      const eskil = getVolleyboxMapping("Eskil Tuzgölü Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Aksaray");
+      expect(eskil).toBeDefined();
+      expect(eskil?.volleybox_url).toContain("eskil-tuzgolu-spor-kulubu-u18-t55571");
+
+      const ankaA = getVolleyboxMapping("Aksaray Anka Spor Kulübü (A)", "Genç Kızlar Süper Lig", undefined, "Aksaray");
+      expect(ankaA).toBeDefined();
+      expect(ankaA?.volleybox_url).toContain("aksaray-anka-spor-a-u18-t42915");
+
+      const kuzeyboru = getVolleyboxMapping("Kuzeyboru Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Aksaray");
+      expect(kuzeyboru).toBeDefined();
+      expect(kuzeyboru?.volleybox_url).toContain("kuzeyboru-u18-t42920");
+
+      const yildizSk = getVolleyboxMapping("Yıldız Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Aksaray");
+      expect(yildizSk).toBeDefined();
+      expect(yildizSk?.volleybox_url).toContain("yldz-spor-kulubu-u18-t42921");
+    });
+
+    it("returns undefined for an unknown/unmapped team", () => {
+      const mapping = getVolleyboxMapping("Bilinmeyen Mahalle Spor Kulübü");
+      expect(mapping).toBeUndefined();
+    });
+
+    it("returns undefined for empty or whitespace team name", () => {
+      expect(getVolleyboxMapping("")).toBeUndefined();
+      expect(getVolleyboxMapping("   ")).toBeUndefined();
+    });
+  });
+
+  describe("buildVolleyboxMap with custom dataset", () => {
+    const mockData: VolleyboxMappingsFile = {
+      mappings: [
+        {
+          internal_name: "Test Kulübü",
+          internal_category: "Genç Kızlar Süper Lig",
+          matched_as: "Test Kulübü U18",
+          volleybox_url: "https://women.volleybox.net/test-u18-t99991",
+          age_category: "U18",
+          confidence: "verified",
+          note: null,
+          verified_at: "2026-09-14",
+        },
+        {
+          internal_name: "Kulüp Düzeyi Takım",
+          internal_category: "Yıldız Kızlar Süper Lig",
+          matched_as: "Kulüp Düzeyi Profesyonel Takımı",
+          volleybox_url: "https://women.volleybox.net/kulup-pro-t99992",
+          age_category: null,
+          confidence: "club_level_only",
+          note: "Bu bağlantı kulübün profesyonel takımına gider, bu genç takımın kendi profili değildir",
+          verified_at: "2026-09-14",
+        },
+        {
+          internal_name: "Kırık Link Takımı",
+          internal_category: "Genç Kızlar Süper Lig",
+          matched_as: "Kırık Link U18",
+          volleybox_url: "https://women.volleybox.net/broken-t99993",
+          age_category: "U18",
+          confidence: "broken",
+          note: "404 Not Found",
+          verified_at: "2026-09-14",
+        },
+      ],
+    };
+
+    const customMap = buildVolleyboxMap(mockData);
+
+    it("returns verified mapping for test club", () => {
+      const res = getVolleyboxMapping("Test Kulübü", "Genç Kızlar Süper Lig", customMap);
+      expect(res).toBeDefined();
+      expect(res?.confidence).toBe("verified");
+      expect(res?.volleybox_url).toBe("https://women.volleybox.net/test-u18-t99991");
+    });
+
+    it("returns club_level_only mapping with correct note", () => {
+      const res = getVolleyboxMapping("Kulüp Düzeyi Takım", "Yıldız Kızlar Süper Lig", customMap);
+      expect(res).toBeDefined();
+      expect(res?.confidence).toBe("club_level_only");
+      expect(res?.note).toBe(
+        "Bu bağlantı kulübün profesyonel takımına gider, bu genç takımın kendi profili değildir"
+      );
+    });
+
+    it("excludes broken links from lookup map", () => {
+      const res = getVolleyboxMapping("Kırık Link Takımı", "Genç Kızlar Süper Lig", customMap);
+      expect(res).toBeUndefined();
+    });
+  });
+
+  describe("getVolleyboxLeagueMapping with live league mappings", () => {
+    it("returns correct tournament mapping for Istanbul U18", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "İstanbul");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-stanbul-super-ligi-u18-2026-27-o50864");
+      expect(mapping?.age_category).toBe("U18");
+    });
+
+    it("returns correct tournament mapping for Istanbul U16", () => {
+      const mapping = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "istanbul");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-stanbul-super-ligi-u16-2026-27-o50865");
+      expect(mapping?.age_category).toBe("U16");
+    });
+
+    it("resolves city-specific leagues such as İzmir U18", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "İzmir");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-zmir-super-ligi-u18-2026-27-o49401");
+    });
+
+    it("returns correct tournament mapping for Istanbul Genç Kızlar 1. Ligi (U18 1. Lig)", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar 1. Ligi", "İstanbul");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-stanbul-1-ligi-u18-2026-27-o50866");
+      expect(mapping?.age_category).toBe("U18");
+    });
+
+    it("returns correct tournament mapping for İzmir Genç Kızlar 1. Ligi (U18 1. Lig)", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar 1. Ligi", "İzmir");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-zmir-1-ligi-u18-2026-27-o49400");
+      expect(mapping?.age_category).toBe("U18");
+    });
+
+    it("resolves İzmir 1. Ligi despite the city, age, and group suffix", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar 1. Ligi · Genç Kız - C Gr", "İzmir");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toBe("https://women.volleybox.net/women-zmir-1-ligi-u18-2026-27-o49400");
+    });
+
+    it("resolves city-specific leagues such as Bursa U18", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Bursa");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-bursa-super-ligi-u18-2026-27-o50939");
+    });
+
+    it("resolves category with group suffix (e.g. 'Genç Kızlar Süper Lig - A Grubu')", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig - A Grubu", "İstanbul");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-stanbul-super-ligi-u18-2026-27-o50864");
+    });
+
+    it("falls back to default Istanbul tournament if city is not specified", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-stanbul-super-ligi-u18-2026-27-o50864");
+    });
+
+    it("returns undefined for an unknown/empty league name", () => {
+      expect(getVolleyboxLeagueMapping("")).toBeUndefined();
+      expect(getVolleyboxLeagueMapping("Bilinmeyen Bölgesel Turnuva")).toBeUndefined();
+    });
+
+    it("never returns past season (2025/26) tournament links for current season tracker (e.g. Adana)", () => {
+      // Adana in volleybox-mappings.json has only 2025/26 tournament entries, which must NOT be returned for 2026/27
+      const adanaU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Adana");
+      expect(adanaU18).toBeUndefined();
+
+      const adanaU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Adana");
+      expect(adanaU16).toBeUndefined();
+    });
+
+    it("returns correct tournament mapping for Ankara U18 and U16 2026/27", () => {
+      const ankaraU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Ankara");
+      expect(ankaraU18).toBeDefined();
+      expect(ankaraU18?.volleybox_url).toContain("women-ankara-super-ligi-u18-2026-27-o51021");
+      expect(ankaraU18?.age_category).toBe("U18");
+
+      const ankaraU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Ankara");
+      expect(ankaraU16).toBeDefined();
+      expect(ankaraU16?.volleybox_url).toContain("women-ankara-super-ligi-u16-2026-27-o51022");
+      expect(ankaraU16?.age_category).toBe("U16");
+    });
+
+    it("returns correct tournament mapping for Aydın U18 2026/27", () => {
+      const aydinU18 = getVolleyboxLeagueMapping("Genç Kızlar 1. Ligi", "Aydın");
+      expect(aydinU18).toBeDefined();
+      expect(aydinU18?.volleybox_url).toContain("women-aydn-ligi-u18-2026-27-o50895");
+      expect(aydinU18?.age_category).toBe("U18");
+    });
+
+    it("returns correct tournament mapping for Mersin U18 and Yalova U16 2026/27", () => {
+      const mersinU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Mersin");
+      expect(mersinU18).toBeDefined();
+      expect(mersinU18?.volleybox_url).toContain("women-mersin-super-ligi-u18-2026-27-o51071");
+
+      const yalovaU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Yalova");
+      expect(yalovaU16).toBeDefined();
+      expect(yalovaU16?.volleybox_url).toContain("women-yalova-super-ligi-u16-2026-27-o51072");
+    });
+
+    it("returns correct tournament mapping for Istanbul 1. Lig regions", () => {
+      const r1 = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 1. Bölge", "İstanbul");
+      expect(r1?.volleybox_url).toContain("women-stanbul-1-ligi-u18-2026-27-o50866");
+
+      const r2 = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 2. Bölge", "İstanbul");
+      expect(r2?.volleybox_url).toContain("women-stanbul-ligi-2-bolge-u18-2026-27-o50867");
+
+      const r3 = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 3. Bölge", "İstanbul");
+      expect(r3?.volleybox_url).toContain("women-stanbul-ligi-3-bolge-u18-2026-27-o50868");
+
+      const r4 = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 4. Bölge", "İstanbul");
+      expect(r4?.volleybox_url).toContain("women-stanbul-ligi-4-bolge-u18-2026-27-o50869");
+
+      const r5 = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 5. Bölge", "İstanbul");
+      expect(r5?.volleybox_url).toContain("women-stanbul-ligi-5-bolge-u18-2026-27-o50894");
+
+      // With (U18) age code appended
+      const r5WithAge = getVolleyboxLeagueMapping("Genç Kızlar 1. Lig 5. Bölge (U18)", "İstanbul");
+      expect(r5WithAge?.volleybox_url).toContain("women-stanbul-ligi-5-bolge-u18-2026-27-o50894");
+    });
+
+    it("returns correct tournament mapping for Denizli U18 and U16 2026/27", () => {
+      const denizliU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Denizli");
+      expect(denizliU18).toBeDefined();
+      expect(denizliU18?.volleybox_url).toContain("women-denizli-super-ligi-u18-2026-27-o51580");
+      expect(denizliU18?.age_category).toBe("U18");
+      expect(denizliU18?.season).toBe("2026/27");
+
+      const denizliU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Denizli");
+      expect(denizliU16).toBeDefined();
+      expect(denizliU16?.volleybox_url).toContain("women-denizli-super-ligi-u16-2026-27-o51581");
+      expect(denizliU16?.age_category).toBe("U16");
+      expect(denizliU16?.season).toBe("2026/27");
+    });
+
+    it("returns correct tournament mapping for Eskişehir Genç Kızlar Süper Lig (U18)", () => {
+      const mapping = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Eskişehir");
+      expect(mapping).toBeDefined();
+      expect(mapping?.volleybox_url).toContain("women-eskisehir-super-ligi-u18-2026-27-o51045");
+      expect(mapping?.age_category).toBe("U18");
+    });
+
+    it("returns correct tournament mappings for Afyonkarahisar U18 and U16", () => {
+      const afyonU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Afyonkarahisar");
+      expect(afyonU18).toBeDefined();
+      expect(afyonU18?.volleybox_url).toContain("women-afyonkarahisar-super-ligi-u18-2026-27-o51459");
+      expect(afyonU18?.age_category).toBe("U18");
+
+      const afyonU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "afyon");
+      expect(afyonU16).toBeDefined();
+      expect(afyonU16?.volleybox_url).toContain("women-afyonkarahisar-super-ligi-u16-2026-27-o51460");
+      expect(afyonU16?.age_category).toBe("U16");
+    });
+
+    it("returns correct tournament mapping for Bilecik U18", () => {
+      const bilecikU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Bilecik");
+      expect(bilecikU18).toBeDefined();
+      expect(bilecikU18?.volleybox_url).toContain("women-bilecik-super-ligi-u18-2026-27-o51461");
+      expect(bilecikU18?.age_category).toBe("U18");
+    });
+
+    it("returns correct tournament mapping for Gaziantep U18 and U16 2026/27", () => {
+      const gaziantepU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Gaziantep");
+      expect(gaziantepU18).toBeDefined();
+      expect(gaziantepU18?.volleybox_url).toContain("women-gaziantep-super-ligi-u18-2026-27-o51462");
+      expect(gaziantepU18?.age_category).toBe("U18");
+      expect(gaziantepU18?.season).toBe("2026/27");
+
+      const gaziantepU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Gaziantep");
+      expect(gaziantepU16).toBeDefined();
+      expect(gaziantepU16?.volleybox_url).toContain("women-gaziantep-super-ligi-u16-2026-27-o51463");
+      expect(gaziantepU16?.age_category).toBe("U16");
+      expect(gaziantepU16?.season).toBe("2026/27");
+    });
+
+    it("returns correct tournament mapping for Kahramanmaraş U18 and Kocaeli U18 2026/27", () => {
+      const kmarasU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Kahramanmaraş");
+      expect(kmarasU18).toBeDefined();
+      expect(kmarasU18?.volleybox_url).toContain("women-kahramanmaras-super-ligi-u18-2026-27-o51184");
+      expect(kmarasU18?.age_category).toBe("U18");
+      expect(kmarasU18?.season).toBe("2026/27");
+
+      const kocaeliU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Kocaeli");
+      expect(kocaeliU18).toBeDefined();
+      expect(kocaeliU18?.volleybox_url).toContain("women-kocaeli-super-ligi-u18-2026-27-o51464");
+      expect(kocaeliU18?.age_category).toBe("U18");
+      expect(kocaeliU18?.season).toBe("2026/27");
+
+      const kutahyaU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Kütahya");
+      expect(kutahyaU18).toBeDefined();
+      expect(kutahyaU18?.volleybox_url).toContain("women-kutahya-super-ligi-u18-2026-27-o51465");
+      expect(kutahyaU18?.age_category).toBe("U18");
+      expect(kutahyaU18?.season).toBe("2026/27");
+
+      const muglaU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Muğla");
+      expect(muglaU18).toBeDefined();
+      expect(muglaU18?.volleybox_url).toContain("women-mugla-super-ligi-u18-2026-27-o51468");
+      expect(muglaU18?.age_category).toBe("U18");
+      expect(muglaU18?.season).toBe("2026/27");
+
+      const muglaU16 = getVolleyboxLeagueMapping("Yıldız Kızlar Süper Lig", "Muğla");
+      expect(muglaU16).toBeDefined();
+      expect(muglaU16?.volleybox_url).toContain("women-mugla-super-ligi-u16-2026-27-o51469");
+      expect(muglaU16?.age_category).toBe("U16");
+      expect(muglaU16?.season).toBe("2026/27");
+
+      const sakaryaU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Sakarya");
+      expect(sakaryaU18).toBeDefined();
+      expect(sakaryaU18?.volleybox_url).toContain("women-sakarya-super-ligi-u18-2026-27-o51470");
+      expect(sakaryaU18?.age_category).toBe("U18");
+      expect(sakaryaU18?.season).toBe("2026/27");
+
+      const trabzonU18 = getVolleyboxLeagueMapping("Genç Kızlar Süper Lig", "Trabzon");
+      expect(trabzonU18).toBeDefined();
+      expect(trabzonU18?.volleybox_url).toContain("women-trabzon-super-ligi-u18-2026-27-o51471");
+      expect(trabzonU18?.age_category).toBe("U18");
+      expect(trabzonU18?.season).toBe("2026/27");
+    });
+
+    it("resolves Kahramanmaraş U18 teams correctly in Genç Kızlar 1. Ligi", () => {
+      const bbskB = getVolleyboxMapping("Büyükşehir Belediye Sk (B)", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(bbskB).toBeDefined();
+      expect(bbskB?.matched_as).toBe("Kahramanmaraş Büyükşehir Belediye Spor Kulübü - B U18");
+      expect(bbskB?.volleybox_url).toContain("t54650");
+
+      const genclik = getVolleyboxMapping("GENÇLİK SK", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(genclik).toBeDefined();
+      expect(genclik?.matched_as).toBe("Kahramanmaraş Gençlikspor U18");
+      expect(genclik?.volleybox_url).toContain("t43447");
+
+      const elbistan = getVolleyboxMapping("ELBİSTAN ALTINIŞIK SK", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(elbistan).toBeDefined();
+      expect(elbistan?.matched_as).toBe("Elbistan Altınışık Spor Kulübü U18");
+      expect(elbistan?.volleybox_url).toContain("t54651");
+
+      const turkoglu = getVolleyboxMapping("TÜRKOĞLU 20 NİSAN SK", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(turkoglu).toBeDefined();
+      expect(turkoglu?.matched_as).toBe("Türkoğlu 20 Nisan Spor Kulübü U18");
+      expect(turkoglu?.volleybox_url).toContain("t54652");
+
+      const vestaA = getVolleyboxMapping("Vesta SK (A)", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(vestaA).toBeDefined();
+      expect(vestaA?.matched_as).toBe("Vesta Spor Kulübü U18");
+      expect(vestaA?.volleybox_url).toContain("t54653");
+
+      const bbskA = getVolleyboxMapping("BÜYÜKŞEHİR BELEDİYE SK (A)", "Genç Kızlar 1. Ligi", undefined, "Kahramanmaraş");
+      expect(bbskA).toBeDefined();
+      expect(bbskA?.matched_as).toBe("Kahramanmaraş Büyükşehir Belediye Spor Kulübü U18");
+      expect(bbskA?.volleybox_url).toContain("t54649");
+    });
+
+    it("resolves Kocaeli U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const vkAkademi = getVolleyboxMapping("Kocaeli Voleybol Akademi Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Kocaeli");
+      expect(vkAkademi).toBeDefined();
+      expect(vkAkademi?.matched_as).toBe("Kocaeli Voleybol Akademi Spor Kulübü U18");
+      expect(vkAkademi?.volleybox_url).toContain("t41399");
+
+      const izmitspor = getVolleyboxMapping("İzmitspor", "Genç Kızlar Süper Lig", undefined, "Kocaeli");
+      expect(izmitspor).toBeDefined();
+      expect(izmitspor?.matched_as).toBe("İzmit Spor U18");
+      expect(izmitspor?.volleybox_url).toContain("t41969");
+
+      const cayirova = getVolleyboxMapping("Çayırova Belediyesi", "Genç Kızlar Süper Lig", undefined, "Kocaeli");
+      expect(cayirova).toBeDefined();
+      expect(cayirova?.matched_as).toBe("Çayırova Belediyesi Eğitim SK U18");
+      expect(cayirova?.volleybox_url).toContain("t41973");
+
+      const besrenk = getVolleyboxMapping("Beşrenk Spor", "Genç Kızlar Süper Lig", undefined, "Kocaeli");
+      expect(besrenk).toBeDefined();
+      expect(besrenk?.matched_as).toBe("5 Renk Spor Kulübü U18");
+      expect(besrenk?.volleybox_url).toContain("t55235");
+
+      const siyahKugular = getVolleyboxMapping("Siyah Kuğular", "Genç Kızlar Süper Lig", undefined, "Kocaeli");
+      expect(siyahKugular).toBeDefined();
+      expect(siyahKugular?.matched_as).toBe("Siyah Kuğular Spor Kulübü U18");
+      expect(siyahKugular?.volleybox_url).toContain("t55234");
+    });
+
+    it("resolves Kütahya U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const kBelediyeA = getVolleyboxMapping("Kütahya Belediye Spor Kulübü (A)", "Genç Kızlar Süper Lig", undefined, "Kütahya");
+      expect(kBelediyeA).toBeDefined();
+      expect(kBelediyeA?.matched_as).toBe("Kütahya Belediyespor U18");
+      expect(kBelediyeA?.volleybox_url).toContain("t44209");
+
+      const kBelediyeB = getVolleyboxMapping("Kütahya Belediye Spor Kulübü (B)", "Genç Kızlar Süper Lig", undefined, "Kütahya");
+      expect(kBelediyeB).toBeDefined();
+      expect(kBelediyeB?.matched_as).toBe("Kütahya Belediyespor - B U18");
+      expect(kBelediyeB?.volleybox_url).toContain("t55243");
+
+      const kDemir = getVolleyboxMapping("Kütahya Demirspor", "Genç Kızlar Süper Lig", undefined, "Kütahya");
+      expect(kDemir).toBeDefined();
+      expect(kDemir?.matched_as).toBe("Kütahya Demirspor U18");
+      expect(kDemir?.volleybox_url).toContain("t55238");
+
+      const tavsanliA = getVolleyboxMapping("Tavşanlı Belediye Spor Kulübü (A)", "Genç Kızlar Süper Lig", undefined, "Kütahya");
+      expect(tavsanliA).toBeDefined();
+      expect(tavsanliA?.matched_as).toBe("Tavşanlı Belediyesi Spor Kulübü U18");
+      expect(tavsanliA?.volleybox_url).toContain("t55239");
+
+      const simav = getVolleyboxMapping("Simav Şeref Koleji Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Kütahya");
+      expect(simav).toBeDefined();
+      expect(simav?.matched_as).toBe("Simav Şeref Koleji Spor Kulübü U18");
+      expect(simav?.volleybox_url).toContain("t55245");
+    });
+
+    it("resolves Muğla U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const bodrumIhtisasA = getVolleyboxMapping("BODRUM İHTİSAS SPOR KULÜBÜ A", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(bodrumIhtisasA).toBeDefined();
+      expect(bodrumIhtisasA?.matched_as).toBe("Bodrum İhtisasspor U18");
+      expect(bodrumIhtisasA?.volleybox_url).toContain("t42479");
+
+      const bodrumIhtisasB = getVolleyboxMapping("BODRUM İHTİSAS SPOR KULÜBÜ B", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(bodrumIhtisasB).toBeDefined();
+      expect(bodrumIhtisasB?.matched_as).toBe("Bodrum İhtisasspor - B U18");
+      expect(bodrumIhtisasB?.volleybox_url).toContain("t55248");
+
+      const bodrumDogus = getVolleyboxMapping("BODRUM DOĞUŞ SPOR KULÜBÜ", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(bodrumDogus).toBeDefined();
+      expect(bodrumDogus?.matched_as).toBe("Bodrum Doğuş Spor U18");
+      expect(bodrumDogus?.volleybox_url).toContain("t49198");
+
+      const marmarisBld = getVolleyboxMapping("MARMARİS BELEDİYE GENÇLİK VE SPOR KULÜBÜ", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(marmarisBld).toBeDefined();
+      expect(marmarisBld?.matched_as).toBe("Marmaris Belediyesi GSK U18");
+      expect(marmarisBld?.volleybox_url).toContain("t42486");
+
+      const muglaBsb = getVolleyboxMapping("MUĞLA BÜYÜKŞEHİR BELEDİYESİ SPOR KULÜBÜ", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(muglaBsb).toBeDefined();
+      expect(muglaBsb?.matched_as).toBe("Muğla Büyükşehir Belediyesi Spor Kulübü U18");
+      expect(muglaBsb?.volleybox_url).toContain("t42478");
+
+      const fethiyeVoleybol = getVolleyboxMapping("FETHİYE VOLEYBOL SPOR", "Genç Kızlar Süper Lig", undefined, "Muğla");
+      expect(fethiyeVoleybol).toBeDefined();
+      expect(fethiyeVoleybol?.matched_as).toBe("Fethiye Voleybol Spor Kulübü U18");
+      expect(fethiyeVoleybol?.volleybox_url).toContain("t42489");
+    });
+
+    it("resolves Sakarya U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const alaagac = getVolleyboxMapping("Alaağaçspor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(alaagac).toBeDefined();
+      expect(alaagac?.matched_as).toBe("Alaağaç Spor U18");
+      expect(alaagac?.volleybox_url).toContain("t55260");
+
+      const asas = getVolleyboxMapping("Asaş Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(asas).toBeDefined();
+      expect(asas?.matched_as).toBe("Asaş Spor Kulübü U18");
+      expect(asas?.volleybox_url).toContain("t55263");
+
+      const erenler = getVolleyboxMapping("Erenler Anadolu Voleybol S.K", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(erenler).toBeDefined();
+      expect(erenler?.matched_as).toBe("Erenler Anadolu Voleybol Spor Kulübü U18");
+      expect(erenler?.volleybox_url).toContain("t42555");
+
+      const fener = getVolleyboxMapping("Fener Akademi Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(fener).toBeDefined();
+      expect(fener?.matched_as).toBe("Fener Akademi Spor Kulübü U18");
+      expect(fener?.volleybox_url).toContain("t55261");
+
+      const gelisim = getVolleyboxMapping("Sakarya Gelişim Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(gelisim).toBeDefined();
+      expect(gelisim?.matched_as).toBe("Sakarya Gelişim Spor Kulübü U18");
+      expect(gelisim?.volleybox_url).toContain("t42559");
+
+      const sakaryaVoleybol = getVolleyboxMapping("Sakarya Voleybol Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(sakaryaVoleybol).toBeDefined();
+      expect(sakaryaVoleybol?.matched_as).toBe("Sakarya Voleybol SK U18");
+      expect(sakaryaVoleybol?.volleybox_url).toContain("t41619");
+
+      const sapanca = getVolleyboxMapping("Sapanca Ayyıldız Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(sapanca).toBeDefined();
+      expect(sapanca?.matched_as).toBe("Sapanca Ayyıldız Spor Kulübü U18");
+      expect(sapanca?.volleybox_url).toContain("t55264");
+
+      const sarachane = getVolleyboxMapping("Saraçhane 54 Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(sarachane).toBeDefined();
+      expect(sarachane?.matched_as).toBe("Saraçhane 54 Spor Kulübü U18");
+      expect(sarachane?.volleybox_url).toContain("t55262");
+
+      const serdivan = getVolleyboxMapping("Serdivan Belediyesi Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Sakarya");
+      expect(serdivan).toBeDefined();
+      expect(serdivan?.matched_as).toBe("Serdivan Belediyesi Spor Kulübü U18");
+      expect(serdivan?.volleybox_url).toContain("t42562");
+    });
+
+    it("resolves Trabzon U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const iskofyaA = getVolleyboxMapping("İSKOFYA S.K. A", "Genç Kızlar Süper Lig", undefined, "Trabzon");
+      expect(iskofyaA).toBeDefined();
+      expect(iskofyaA?.matched_as).toBe("İskofya Spor Kulübü U18");
+      expect(iskofyaA?.volleybox_url).toContain("t41294");
+
+      const iskofyaB = getVolleyboxMapping("İSKOFYA S.K. B", "Genç Kızlar Süper Lig", undefined, "Trabzon");
+      expect(iskofyaB).toBeDefined();
+      expect(iskofyaB?.matched_as).toBe("İskofya Spor Kulübü - B U18");
+      expect(iskofyaB?.volleybox_url).toContain("t55265");
+
+      const akcaabat = getVolleyboxMapping("AKÇAABAT BELEDİYESİ S.K.", "Genç Kızlar Süper Lig", undefined, "Trabzon");
+      expect(akcaabat).toBeDefined();
+      expect(akcaabat?.matched_as).toBe("Akçaabat Belediyesi SK U18");
+      expect(akcaabat?.volleybox_url).toContain("t42827");
+
+      const revup = getVolleyboxMapping("REVUP", "Genç Kızlar Süper Lig", undefined, "Trabzon");
+      expect(revup).toBeDefined();
+      expect(revup?.matched_as).toBe("REVUP Spor Kulübü U18");
+      expect(revup?.volleybox_url).toContain("t55266");
+    });
+
+    it("resolves Denizli U18 teams correctly in Genç Kızlar Süper Lig", () => {
+      const bbsk = getVolleyboxMapping("Denizli Büyükşehir Belediye S.K.", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(bbsk).toBeDefined();
+      expect(bbsk?.matched_as).toBe("Denizli Büyükşehir Belediyespor U18");
+      expect(bbsk?.volleybox_url).toContain("t42634");
+
+      const pars = getVolleyboxMapping("Anadolu Pars Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(pars).toBeDefined();
+      expect(pars?.matched_as).toBe("Denizli Anadolu Pars GSK U18");
+      expect(pars?.volleybox_url).toContain("t42636");
+
+      const damla = getVolleyboxMapping("Damla Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(damla).toBeDefined();
+      expect(damla?.matched_as).toBe("Denizli Damlaspor Kulübü U18");
+      expect(damla?.volleybox_url).toContain("t43518");
+
+      const hierapolis = getVolleyboxMapping("Hierapolis Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(hierapolis).toBeDefined();
+      expect(hierapolis?.matched_as).toBe("Hierapolis Spor Kulübü U18");
+      expect(hierapolis?.volleybox_url).toContain("t42195");
+
+      const merkez = getVolleyboxMapping("Merkez Akademi Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(merkez).toBeDefined();
+      expect(merkez?.matched_as).toBe("Denizli Merkez Akademi Spor Kulübü U18");
+      expect(merkez?.volleybox_url).toContain("t55358");
+
+      const tutku = getVolleyboxMapping("Tutku Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(tutku).toBeDefined();
+      expect(tutku?.matched_as).toBe("Denizli Tutku GSK U18");
+      expect(tutku?.volleybox_url).toContain("t42635");
+
+      const civril = getVolleyboxMapping("Yeşil Çivril Belediye Spor Kulübü", "Genç Kızlar Süper Lig", undefined, "Denizli");
+      expect(civril).toBeDefined();
+      expect(civril?.matched_as).toBe("Yeşil Çivril Belediyespor U18");
+      expect(civril?.volleybox_url).toContain("t42641");
+    });
+
+    it("resolves Ankara U16 PTT Spor U16 to PTT Spor U16", () => {
+      const pttU16 = getVolleyboxMapping("PTT Spor U16", "Yıldız Kızlar Süper Lig", undefined, "Ankara");
+      expect(pttU16).toBeDefined();
+      expect(pttU16?.matched_as).toBe("PTT Spor U16");
+      expect(pttU16?.volleybox_url).toBe("https://women.volleybox.net/ptt-spor-u16-t41422");
+
+      const pttII = getVolleyboxMapping("PTT Spor II", "Yıldız Kızlar Süper Lig", undefined, "Ankara");
+      expect(pttII).toBeDefined();
+      expect(pttII?.matched_as).toBe("PTT Spor U16");
+      expect(pttII?.volleybox_url).toBe("https://women.volleybox.net/ptt-spor-u16-t41422");
+    });
+
+    it("resolves İzmir 1. Lig U18 Volkan Güç B U18 to Volkan Güç Spor Kulübü - B U18", () => {
+      const volkanB = getVolleyboxMapping("Volkan Güç B U18", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(volkanB).toBeDefined();
+      expect(volkanB?.matched_as).toBe("Volkan Güç Spor Kulübü - B U18");
+      expect(volkanB?.volleybox_url).toBe("https://women.volleybox.net/volkan-guc-spor-kulubu-u18-t53592");
+
+      const volkanAlias = getVolleyboxMapping("Volkan Güç Spor Kulübü U18", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(volkanAlias).toBeDefined();
+      expect(volkanAlias?.matched_as).toBe("Volkan Güç Spor Kulübü - B U18");
+      expect(volkanAlias?.volleybox_url).toBe("https://women.volleybox.net/volkan-guc-spor-kulubu-u18-t53592");
+    });
+
+    it("resolves İzmir 1. Lig U18 Arkas Spor B U18 to Arkas Spor Kulübü - B U18", () => {
+      const arkasB = getVolleyboxMapping("Arkas Spor B U18", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(arkasB).toBeDefined();
+      expect(arkasB?.matched_as).toBe("Arkas Spor Kulübü - B U18");
+      expect(arkasB?.volleybox_url).toContain("t53580");
+
+      const arkasAlias = getVolleyboxMapping("Arkas Spor Kulübü U18", "Genç Kızlar 1. Ligi", undefined, "İzmir");
+      expect(arkasAlias).toBeDefined();
+      expect(arkasAlias?.matched_as).toBe("Arkas Spor Kulübü - B U18");
+      expect(arkasAlias?.volleybox_url).toContain("t53580");
+    });
+
+    it("resolves Ankara 1. Lig U18 Eryaman Gençlik to Eryaman Gelişim SK - B U18", () => {
+      const eryaman1 = getVolleyboxMapping("Eryaman Gençlik", "Genç Kızlar 1. Ligi", undefined, "Ankara");
+      expect(eryaman1).toBeDefined();
+      expect(eryaman1?.matched_as).toBe("Eryaman Gelişim SK - B U18");
+      expect(eryaman1?.volleybox_url).toBe("https://women.volleybox.net/eryaman-gelisim-sk-b-u18-t41729");
+
+      const eryaman2 = getVolleyboxMapping("Eryaman Gençlik SK", "Genç Kızlar 1. Ligi", undefined, "Ankara");
+      expect(eryaman2).toBeDefined();
+      expect(eryaman2?.matched_as).toBe("Eryaman Gelişim SK - B U18");
+      expect(eryaman2?.volleybox_url).toBe("https://women.volleybox.net/eryaman-gelisim-sk-b-u18-t41729");
+    });
+  });
+});
+
+
+

@@ -1,0 +1,786 @@
+"use client";
+
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import Link from "next/link";
+import { Match, StandingItem } from "@/types/fixture";
+import { TeamBadge } from "@/components/TeamBadge";
+import { SetScoreMatrix } from "./SetScoreMatrix";
+import { ShareMatchCardModal } from "./ShareMatchCardModal";
+import {
+  Trophy,
+  MapPin,
+  Calendar,
+  Clock,
+  Star,
+  ExternalLink,
+  BarChart3,
+  Flame,
+  Navigation,
+  X,
+  Swords,
+  UserCheck,
+  CalendarPlus,
+  Copy,
+  Check,
+  Link2,
+  Share2,
+  ChevronRight,
+} from "lucide-react";
+import { getHallNavigationUrl } from "@/utils/halls";
+import { generateMatchIcs, downloadIcsFile } from "@/utils/ics";
+import { slugify } from "@/utils/slugify";
+import { triggerHaptic } from "@/utils/haptics";
+import { getVolleyboxMapping } from "@/utils/volleybox";
+import { formatLeagueCategoryTitle, formatGroupName } from "@/utils/grouping";
+import { trLower } from "@/utils/turkishLocale";
+
+import { EmptyState } from "@/components/arc/empty-state/empty-state";
+import { Badge } from "@/components/arc/badge/badge";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+
+export interface MatchInspectorPanelProps {
+  match: Match | null;
+  allMatches?: Match[];
+  standings?: Record<string, StandingItem[]>;
+  onClose?: () => void;
+  onToggleFavorite?: (matchId: string) => void;
+  isFavorite?: boolean;
+  isLoading?: boolean;
+  className?: string;
+}
+
+export const MatchInspectorPanel: React.FC<MatchInspectorPanelProps> = (props) => {
+  const { match, className = "", isLoading = false } = props;
+
+  if (isLoading) {
+    return (
+      <div
+        role="status"
+        aria-label="Maç detayları yükleniyor"
+        className={`flex h-full flex-col gap-3 overflow-hidden bg-canvas p-3 ${className}`}
+      >
+        <div className="h-6 w-48 shrink-0 animate-pulse rounded bg-surface-muted" />
+        <div className="h-28 w-full shrink-0 animate-pulse rounded-lg bg-surface-muted/60" />
+        <div className="space-y-2">
+          <div className="h-8 w-full animate-pulse rounded bg-surface-muted/60" />
+          <div className="h-8 w-full animate-pulse rounded bg-surface-muted/60" />
+        </div>
+        <div className="h-28 w-full animate-pulse rounded-lg bg-surface-muted/40" />
+      </div>
+    );
+  }
+
+  if (!match) {
+    return (
+      <div className={`flex flex-col items-center justify-center h-full p-6 text-center bg-canvas ${className}`}>
+        <EmptyState
+          icon={<BarChart3 size={28} className="text-primary" />}
+          title="Detayları görüntülemek için bir maç seçin"
+          description="Skorboard, set sayıları dökümü, salon konumu, H2H form analizi ve mini puan durumunu anlık olarak inceleyin."
+        />
+        <div className="inline-flex items-center gap-1.5 text-[10px] text-ink-2 bg-surface px-3 py-1 rounded-full border border-line/70 font-medium mt-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          Sofascore Maç Merkezi
+        </div>
+      </div>
+    );
+  }
+
+  return <MatchInspectorPanelContent key={match.id} {...props} match={match} />;
+};
+
+const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match"> & { match: Match }> = ({
+  match,
+  allMatches = [],
+  standings = {},
+  onClose,
+  onToggleFavorite,
+  isFavorite = false,
+  className = "",
+}) => {
+  const [activeTab, setActiveTab] = useState<"overview" | "h2h" | "standings">("overview");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<{
+    action: "text" | "link";
+    status: "success" | "error";
+  } | null>(null);
+  const copyFeedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyFeedbackTimeout.current) clearTimeout(copyFeedbackTimeout.current);
+    };
+  }, []);
+
+  const isLive = match.status === "live";
+  const isFinished =
+    match.status === "finished" ||
+    (match.home_score !== null &&
+      match.home_score !== undefined &&
+      match.away_score !== null &&
+      match.away_score !== undefined);
+  const homeScore = match.home_score ?? 0;
+  const awayScore = match.away_score ?? 0;
+  const effectiveCity = match.city || "İstanbul";
+
+  const homeWon = isFinished && homeScore > awayScore;
+  const awayWon = isFinished && awayScore > homeScore;
+
+  const getStatusLabel = () => {
+    if (isLive) {
+      const setsPlayed = match.set_scores ? match.set_scores.length : 0;
+      return `Set ${setsPlayed + 1} Oynanıyor`;
+    }
+    if (isFinished) return "Maç Tamamlandı";
+    if (match.status === "postponed") return "Ertelendi";
+    return match.time || "Program";
+  };
+
+  const statusLabel = getStatusLabel();
+
+  const homeMapping = getVolleyboxMapping(match.home_team, match.category, undefined, effectiveCity);
+  const awayMapping = getVolleyboxMapping(match.away_team, match.category, undefined, effectiveCity);
+  const homeLogo = homeMapping?.local_logo || homeMapping?.logo_url;
+  const awayLogo = awayMapping?.local_logo || awayMapping?.logo_url;
+  const homeSlug = slugify(homeMapping?.matched_as || match.home_team);
+  const awaySlug = slugify(awayMapping?.matched_as || match.away_team);
+
+  const homeFormMatches = useMemo(() => {
+    return allMatches
+      .filter(
+        (m) =>
+          (m.home_team === match.home_team || m.away_team === match.home_team) &&
+          (m.status === "finished" || (m.home_score !== null && m.away_score !== null)) &&
+          m.id !== match.id
+      )
+      .slice(0, 5)
+      .map((m) => {
+        const isHome = m.home_team === match.home_team;
+        const hScore = m.home_score ?? 0;
+        const aScore = m.away_score ?? 0;
+        const won = isHome ? hScore > aScore : aScore > hScore;
+        const opponent = isHome ? m.away_team : m.home_team;
+        const resultScore = isHome ? `${hScore}-${aScore}` : `${aScore}-${hScore}`;
+        return { won, opponent, resultScore, date: m.date };
+      });
+  }, [allMatches, match.home_team, match.id]);
+
+  const awayFormMatches = useMemo(() => {
+    return allMatches
+      .filter(
+        (m) =>
+          (m.home_team === match.away_team || m.away_team === match.away_team) &&
+          (m.status === "finished" || (m.home_score !== null && m.away_score !== null)) &&
+          m.id !== match.id
+      )
+      .slice(0, 5)
+      .map((m) => {
+        const isHome = m.home_team === match.away_team;
+        const hScore = m.home_score ?? 0;
+        const aScore = m.away_score ?? 0;
+        const won = isHome ? hScore > aScore : aScore > hScore;
+        const opponent = isHome ? m.away_team : m.home_team;
+        const resultScore = isHome ? `${hScore}-${aScore}` : `${aScore}-${hScore}`;
+        return { won, opponent, resultScore, date: m.date };
+      });
+  }, [allMatches, match.away_team, match.id]);
+
+  const previousH2H = useMemo(() => {
+    return allMatches
+      .filter(
+        (m) =>
+          ((m.home_team === match.home_team && m.away_team === match.away_team) ||
+            (m.home_team === match.away_team && m.away_team === match.home_team)) &&
+          m.id !== match.id &&
+          (m.status === "finished" || (m.home_score !== null && m.away_score !== null))
+      )
+      .slice(0, 5);
+  }, [allMatches, match.home_team, match.away_team, match.id]);
+
+  const groupStandingData = useMemo(() => {
+    if (!standings || Object.keys(standings).length === 0) return null;
+
+    const hTeamNorm = trLower(match.home_team.trim());
+    const aTeamNorm = trLower(match.away_team.trim());
+
+    let bestGroupKey: string | null = null;
+    let bestScore = 0;
+
+    for (const [groupKey, items] of Object.entries(standings)) {
+      if (!Array.isArray(items)) continue;
+
+      let matchCount = 0;
+      for (const item of items) {
+        const tNorm = trLower(item.team.trim());
+        if (tNorm.includes(hTeamNorm) || hTeamNorm.includes(tNorm)) matchCount++;
+        if (tNorm.includes(aTeamNorm) || aTeamNorm.includes(tNorm)) matchCount++;
+      }
+
+      if (matchCount > bestScore) {
+        bestScore = matchCount;
+        bestGroupKey = groupKey;
+      }
+    }
+
+    if (bestGroupKey && bestScore > 0) {
+      return {
+        groupName: bestGroupKey,
+        items: standings[bestGroupKey] || [],
+      };
+    }
+
+    return null;
+  }, [standings, match.home_team, match.away_team]);
+
+  const copyToClipboard = async (value: string, action: "text" | "link") => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyFeedback({ action, status: "success" });
+    } catch {
+      setCopyFeedback({ action, status: "error" });
+    }
+    if (copyFeedbackTimeout.current) clearTimeout(copyFeedbackTimeout.current);
+    copyFeedbackTimeout.current = setTimeout(() => setCopyFeedback(null), 2000);
+  };
+
+  const handleCopy = () => {
+    triggerHaptic("light");
+    const scoreStr = isFinished
+      ? `Skor: ${match.home_score}-${match.away_score} (${(match.set_scores || []).join(", ")})`
+      : `Tarih/Saat: ${match.date} ${match.time}`;
+    const text = `TVF ${effectiveCity} ${match.category} (${match.group}):\n${match.home_team} vs ${match.away_team}\n${scoreStr}\nSalon: ${match.hall}\nMaç No: #${match.match_no}`;
+    void copyToClipboard(text, "text");
+  };
+
+  const handleCopyLink = () => {
+    triggerHaptic("light");
+    const url = new URL(window.location.href);
+    url.searchParams.set("match", match.id);
+    void copyToClipboard(url.toString(), "link");
+  };
+
+  const handleDownloadIcs = () => {
+    triggerHaptic("medium");
+    if (!match.date || match.date === "TBD") {
+      alert("Bu maçın tarihi henüz açıklanmadığı için takvime eklenemez.");
+      return;
+    }
+    const ics = generateMatchIcs(match);
+    if (ics) {
+      downloadIcsFile(`mac-${match.home_team}-${match.away_team}-${match.date}.ics`, ics);
+    }
+  };
+
+  return (
+    <div className={`flex flex-col h-full bg-canvas text-xs motion-reduce:animate-none animate-[match-panel-fade_200ms_ease-out] ${className}`}>
+      {/* 1. Üst Bar: Başlık, Favori & Kapat */}
+      <div className="px-3.5 py-2.5 border-b border-line/70 flex items-center justify-between bg-surface shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-1.5 h-3.5 rounded-full bg-primary shrink-0" />
+          <span className="font-semibold text-white text-[12px] truncate">
+            {formatLeagueCategoryTitle(match.category, match.age_group) || "Maç Detayı"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {onToggleFavorite && (
+            <button
+              type="button"
+              onClick={() => onToggleFavorite(match.id)}
+              className="p-1.5 rounded-lg text-ink-3 hover:text-amber-400 hover:bg-surface-muted transition-colors cursor-pointer"
+              title="Favoriye Ekle"
+              aria-label="Favoriye Ekle"
+            >
+              <Star size={14} className={isFavorite ? "fill-amber-400 text-amber-400" : ""} />
+            </button>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-ink-3 hover:text-white hover:bg-surface-muted transition-colors cursor-pointer"
+              title="Kapat"
+              aria-label="Kapat"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Kaydırılabilir Gövde */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+        {/* Üst Bilgi Kartı: Lig, Tarih, Salon */}
+        <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-2">
+          <div className="flex items-center justify-between text-[11px] text-ink-2">
+            <span className="font-semibold text-white truncate">
+              {match.category} {match.group ? `• ${formatGroupName(match.group)}` : ""}
+            </span>
+            <span className="text-[10px] text-ink-3 font-mono tabular-nums shrink-0">
+              #{match.match_no}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-[10px] text-ink-2 pt-1.5 border-t border-line/50">
+            <div className="flex items-center gap-1.5 truncate">
+              <Calendar size={12} className="text-ink-3 shrink-0" />
+              <span className="truncate font-mono tabular-nums">{match.date}</span>
+            </div>
+            <div className="flex items-center gap-1.5 truncate">
+              <Clock size={12} className="text-ink-3 shrink-0" />
+              <span className="truncate font-mono tabular-nums">{match.time || "Program"}</span>
+            </div>
+            <div className="col-span-2 flex items-center gap-1.5 text-ink">
+              <MapPin size={12} className="text-ink-3 shrink-0" />
+              <span className="truncate">{match.hall || "Salon Açıklanacak"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Skorboard Başlığı (FotMob / Apple Sports Mat Yüzey) */}
+        <div className="bg-surface rounded-2xl border border-line/80 p-4 space-y-3">
+          {/* Maç Durumu Rozeti */}
+          <div className="flex items-center justify-center">
+            {isLive ? (
+              <Badge tone="danger" size="sm" icon={<Flame size={12} className="text-live" />}>
+                {statusLabel}
+              </Badge>
+            ) : isFinished ? (
+              <Badge tone="success" size="sm">
+                {statusLabel}
+              </Badge>
+            ) : (
+              <Badge tone="warning" size="sm" icon={<Clock size={11} className="text-amber-400" />}>
+                {statusLabel}
+              </Badge>
+            )}
+          </div>
+
+          {/* Takımlar ve Skor Alanı */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 pt-1">
+            {/* Ev Sahibi */}
+            <div className="flex flex-col items-center text-center space-y-1.5 min-w-0">
+              <TeamBadge name={match.home_team} logoUrl={homeLogo} size="md" />
+              <Link
+                prefetch={false}
+                href={`/takim/${homeSlug}`}
+                className={`text-[11px] sm:text-xs transition-colors line-clamp-2 leading-tight ${
+                  homeWon ? "font-bold text-white" : "font-medium text-ink-2 hover:text-white"
+                }`}
+                title={match.home_team}
+              >
+                {match.home_team}
+              </Link>
+            </div>
+
+            {/* Skor / VS */}
+            <div className="flex flex-col items-center justify-center shrink-0">
+              {isFinished || isLive ? (
+                <div className="px-3.5 py-1.5 rounded-xl bg-surface-muted border border-line/70 text-center font-mono font-scoreboard tabular-nums whitespace-nowrap">
+                  <span className="text-xl sm:text-2xl font-bold tracking-tight whitespace-nowrap flex items-center justify-center gap-1.5">
+                    <span className="sr-only">{homeScore} : {awayScore}</span>
+                    <span className={homeWon ? "text-emerald-400 font-black" : "text-white"}>{homeScore}</span>
+                    <span className="text-ink-3">:</span>
+                    <span className={awayWon ? "text-emerald-400 font-black" : "text-white"}>{awayScore}</span>
+                  </span>
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-surface-muted border border-line/70 flex items-center justify-center font-bold text-ink-2 text-xs font-mono">
+                  VS
+                </div>
+              )}
+            </div>
+
+            {/* Deplasman */}
+            <div className="flex flex-col items-center text-center space-y-1.5 min-w-0">
+              <TeamBadge name={match.away_team} logoUrl={awayLogo} size="md" />
+              <Link
+                prefetch={false}
+                href={`/takim/${awaySlug}`}
+                className={`text-[11px] sm:text-xs transition-colors line-clamp-2 leading-tight ${
+                  awayWon ? "font-bold text-white" : "font-medium text-ink-2 hover:text-white"
+                }`}
+                title={match.away_team}
+              >
+                {match.away_team}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Voleybol Set Matrisi Tablosu & Momentum Çubuğu */}
+        <SetScoreMatrix match={match} />
+
+        {/* 4. Bağlamsal Sekmeler (Tabs) */}
+        <div className="space-y-3">
+          <SegmentedControl
+            options={[
+              { value: "overview", label: "Genel Bakış" },
+              { value: "h2h", label: "H2H & Form" },
+              { value: "standings", label: "Grup Durumu" },
+            ]}
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as "overview" | "h2h" | "standings")}
+          />
+
+          {/* Sekme 1: Genel Bakış */}
+          {activeTab === "overview" && (
+            <div className="space-y-2.5">
+              {/* Salon Konumu & Yol Tarifi */}
+              <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-white">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin size={13} className="text-ink-3" />
+                    <span>Müsabaka Salonu</span>
+                  </span>
+                  <span className="text-[10px] text-ink-3 font-normal">
+                    {effectiveCity}
+                  </span>
+                </div>
+                <p className="text-[11px] text-ink-2 font-medium leading-relaxed">
+                  {match.hall || "Salon bilgisi sisteme girilmemiştir."}
+                </p>
+                {match.hall && match.hall !== "TBD" && (
+                  <a
+                    href={getHallNavigationUrl(match.hall, effectiveCity)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-muted hover:bg-panel border border-line/70 text-[11px] text-primary hover:text-primary-hover font-semibold transition-all group"
+                  >
+                    <Navigation size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                    <span>Google Haritalarda Aç</span>
+                    <ExternalLink size={10} className="text-ink-3" />
+                  </a>
+                )}
+              </div>
+
+              {/* Maç Hakemleri */}
+              <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-2">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-white">
+                  <UserCheck size={13} className="text-emerald-400" />
+                  <span>Maç Hakemleri</span>
+                </div>
+                {match.referee_1 || match.referee_2 ? (
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    {match.referee_1 && (
+                      <div className="bg-surface-muted/60 p-2 rounded-lg border border-line/60">
+                        <span className="text-ink-3 block text-[9px] uppercase font-semibold">
+                          1. Hakem
+                        </span>
+                        <span className="text-white font-semibold truncate block mt-0.5">
+                          {match.referee_1}
+                        </span>
+                      </div>
+                    )}
+                    {match.referee_2 && (
+                      <div className="bg-surface-muted/60 p-2 rounded-lg border border-line/60">
+                        <span className="text-ink-3 block text-[9px] uppercase font-semibold">
+                          2. Hakem
+                        </span>
+                        <span className="text-white font-semibold truncate block mt-0.5">
+                          {match.referee_2}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-ink-3 bg-surface-muted/40 p-2 rounded-lg border border-line/50">
+                    Hakem ataması TVF bülteninde henüz açıklanmadı.
+                  </p>
+                )}
+              </div>
+
+              {/* Volleybox Maç Bağlantısı */}
+              {match.volleybox?.url && (
+                <a
+                  href={match.volleybox.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-surface hover:bg-surface-muted border border-line/70 text-[11px] text-white transition-all group"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="font-semibold">Volleybox Maç Raporu</span>
+                  </span>
+                  <ExternalLink size={12} className="text-ink-3 group-hover:text-white" />
+                </a>
+              )}
+
+              {/* Hızlı Aksiyonlar (2x2 Grid: Skor Kartı Paylaş, Takvime Ekle, Metni Kopyala, Bağlantıyı Kopyala) */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-primary/15 hover:bg-primary/25 text-primary text-[10px] font-semibold border border-primary/30 transition-colors cursor-pointer"
+                >
+                  <Share2 size={12} />
+                  <span>Skor Kartı Paylaş</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadIcs}
+                  className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-surface hover:bg-surface-muted text-ink text-[10px] font-semibold border border-line/70 transition-colors cursor-pointer"
+                >
+                  <CalendarPlus size={12} className="text-amber-400" />
+                  <span>Takvime Ekle</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-surface hover:bg-surface-muted text-[10px] font-semibold border border-line/70 transition-colors cursor-pointer ${copyFeedback?.action === "text" && copyFeedback.status === "success" ? "text-emerald-400" : "text-ink"}`}
+                >
+                  {copyFeedback?.action === "text" ? (
+                    copyFeedback.status === "success" ? (
+                      <>
+                        <Check size={12} className="text-emerald-400" />
+                        <span>Kopyalandı! ✓</span>
+                      </>
+                    ) : (
+                      <span className="text-live">Kopyalanamadı</span>
+                    )
+                  ) : (
+                    <>
+                      <Copy size={12} className="text-ink-2" />
+                      <span>Metni Kopyala</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-surface hover:bg-surface-muted text-[10px] font-semibold border border-line/70 transition-colors cursor-pointer ${copyFeedback?.action === "link" && copyFeedback.status === "success" ? "text-emerald-400" : "text-ink"}`}
+                >
+                  {copyFeedback?.action === "link" ? (
+                    copyFeedback.status === "success" ? (
+                      <>
+                        <Check size={12} className="text-emerald-400" />
+                        <span>Kopyalandı! ✓</span>
+                      </>
+                    ) : (
+                      <span className="text-live">Kopyalanamadı</span>
+                    )
+                  ) : (
+                    <>
+                      <Link2 size={12} className="text-ink-2" />
+                      <span>Bağlantıyı Kopyala</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Sekme 2: H2H & Form */}
+          {activeTab === "h2h" && (
+            <div className="space-y-2.5">
+              {/* Takımların Form Grafiği (Son 5 Maç) */}
+              <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-3">
+                <div className="text-[11px] font-semibold text-white flex items-center gap-1.5">
+                  <BarChart3 size={13} className="text-primary" />
+                  <span>Son 5 Maç Formu</span>
+                </div>
+
+                {/* Ev Sahibi Formu */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-ink font-semibold truncate max-w-[180px]">
+                      {match.home_team}
+                    </span>
+                    <span className="text-ink-3 font-mono tabular-nums">
+                      {homeFormMatches.filter((f) => f.won).length}G -{" "}
+                      {homeFormMatches.filter((f) => !f.won).length}M
+                    </span>
+                  </div>
+                  {homeFormMatches.length > 0 ? (
+                    <div className="flex items-center gap-1.5">
+                      {homeFormMatches.map((f, i) => (
+                        <span
+                          key={i}
+                          title={`${f.date}: ${f.resultScore} vs ${f.opponent}`}
+                          className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold font-mono transition-colors ${
+                            f.won
+                              ? "bg-done/10 text-done border border-done/40"
+                              : "bg-form-loss/10 text-form-loss border border-form-loss/40"
+                          }`}
+                        >
+                          {f.won ? "G" : "M"}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-ink-3">Önceki maç kaydı bulunamadı.</div>
+                  )}
+                </div>
+
+                {/* Deplasman Formu */}
+                <div className="space-y-1.5 pt-2 border-t border-line/50">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-ink font-semibold truncate max-w-[180px]">
+                      {match.away_team}
+                    </span>
+                    <span className="text-ink-3 font-mono tabular-nums">
+                      {awayFormMatches.filter((f) => f.won).length}G -{" "}
+                      {awayFormMatches.filter((f) => !f.won).length}M
+                    </span>
+                  </div>
+                  {awayFormMatches.length > 0 ? (
+                    <div className="flex items-center gap-1.5">
+                      {awayFormMatches.map((f, i) => (
+                        <span
+                          key={i}
+                          title={`${f.date}: ${f.resultScore} vs ${f.opponent}`}
+                          className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold font-mono transition-colors ${
+                            f.won
+                              ? "bg-done/10 text-done border border-done/40"
+                              : "bg-form-loss/10 text-form-loss border border-form-loss/40"
+                          }`}
+                        >
+                          {f.won ? "G" : "M"}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-ink-3">Önceki maç kaydı bulunamadı.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Önceki Karşılaşmalar (H2H) */}
+              <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-white">
+                  <span className="flex items-center gap-1.5">
+                    <Swords size={13} className="text-primary" />
+                    <span>Önceki Karşılaşmalar</span>
+                  </span>
+                  <Link
+                    prefetch={false}
+                    href={`/karsilastir?takim1=${homeSlug}&takim2=${awaySlug}`}
+                    className="text-[10px] text-primary hover:text-primary-hover font-semibold inline-flex items-center gap-1"
+                  >
+                    <span>Analiz</span>
+                    <ChevronRight size={11} />
+                  </Link>
+                </div>
+
+                {previousH2H.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {previousH2H.map((prevMatch) => (
+                      <div
+                        key={prevMatch.id}
+                        className="bg-surface-muted/60 p-2 rounded-lg border border-line/60 flex items-center justify-between text-[10px]"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="text-ink-3 block text-[9px] font-mono tabular-nums">{prevMatch.date}</span>
+                          <span className="text-white font-medium truncate block">
+                            {prevMatch.home_team} - {prevMatch.away_team}
+                          </span>
+                        </div>
+                        <span className="font-mono font-scoreboard tabular-nums font-bold text-white px-2 py-0.5 rounded bg-canvas border border-line/70 shrink-0">
+                          {prevMatch.home_score ?? 0} : {prevMatch.away_score ?? 0}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-ink-3 bg-surface-muted/40 p-2 rounded-lg border border-line/50">
+                    Bu sezon iki takım arasında daha önce oynanmış müsabaka bulunmamaktadır.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Sekme 3: Grup Durumu (Mini Puan Durumu) */}
+          {activeTab === "standings" && (
+            <div className="bg-surface rounded-xl border border-line/70 overflow-hidden space-y-2">
+              <div className="p-3 pb-0 flex items-center justify-between text-[11px] font-semibold text-white">
+                <span className="flex items-center gap-1.5">
+                  <Trophy size={13} className="text-primary" />
+                  <span className="truncate max-w-[200px]">
+                    {groupStandingData ? formatGroupName(groupStandingData.groupName) : "Grup Puan Durumu"}
+                  </span>
+                </span>
+                <span className="text-[9px] text-ink-3 font-mono uppercase tracking-wider">
+                  Mini Tablo
+                </span>
+              </div>
+
+              {groupStandingData && groupStandingData.items.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-muted/70 text-ink-3 text-[10px] border-y border-line/60 font-semibold uppercase">
+                        <th className="py-1.5 px-2 text-center w-6">#</th>
+                        <th className="py-1.5 px-2 text-left">Takım</th>
+                        <th className="py-1.5 px-1.5 text-center font-mono w-7" title="Oynanan Maç">O</th>
+                        <th className="py-1.5 px-1.5 text-center font-mono w-7" title="Galibiyet">G</th>
+                        <th className="py-1.5 px-1.5 text-center font-mono w-7" title="Mağlubiyet">M</th>
+                        <th className="py-1.5 px-2 text-center font-mono text-white font-bold w-9" title="Puan">P</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line/40">
+                      {groupStandingData.items.map((item, idx) => {
+                        const isSelectedTeam =
+                          trLower(item.team).includes(trLower(match.home_team)) ||
+                          trLower(match.home_team).includes(trLower(item.team)) ||
+                          trLower(item.team).includes(trLower(match.away_team)) ||
+                          trLower(match.away_team).includes(trLower(item.team));
+
+                        return (
+                          <tr
+                            key={idx}
+                            className={`transition-colors ${
+                              isSelectedTeam
+                                ? "bg-primary/10 font-semibold text-white"
+                                : "hover:bg-surface-muted/40 text-ink-2"
+                            }`}
+                          >
+                            <td className="py-1.5 px-2 text-center font-mono tabular-nums text-[10px] text-ink-3">
+                              {item.rank || idx + 1}
+                            </td>
+                            <td className="py-1.5 px-2">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <TeamBadge name={item.team} size="xs" />
+                                <span className="truncate max-w-[130px]" title={item.team}>
+                                  {item.team}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-1.5 px-1.5 text-center font-mono tabular-nums text-[10px] text-ink-2">
+                              {item.played}
+                            </td>
+                            <td className="py-1.5 px-1.5 text-center font-mono tabular-nums text-[10px] text-done">
+                              {item.won}
+                            </td>
+                            <td className="py-1.5 px-1.5 text-center font-mono tabular-nums text-[10px] text-form-loss">
+                              {item.lost}
+                            </td>
+                            <td className="py-1.5 px-2 text-center font-mono tabular-nums font-bold text-white text-[11px] bg-surface-muted/30">
+                              {item.points}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-3 text-center text-[10px] text-ink-3">
+                  Bu maçtaki takımlara ait grup puan durumu henüz bültende yer almamaktadır.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Paylaşılabilir Skor Kartı Modalı */}
+      <ShareMatchCardModal
+        match={match}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        homeLogo={homeLogo}
+        awayLogo={awayLogo}
+      />
+    </div>
+  );
+};

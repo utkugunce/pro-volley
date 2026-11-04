@@ -1,0 +1,395 @@
+import mappingsJson from "../../data/volleybox-mappings.json";
+import {
+  VolleyboxMapping,
+  VolleyboxLeagueMapping,
+  VolleyboxMappingsFile,
+} from "@/types/fixture";
+
+/**
+ * Normalizes a string for dictionary indexing (lowercased and trimmed).
+ */
+export function normalizeKey(text: string): string {
+  return text.trim().toLocaleLowerCase("tr-TR");
+}
+
+/**
+ * Extracts category classification into "u18", "u16", or undefined.
+ */
+export function extractAgeGroup(category?: string): "u18" | "u16" | undefined {
+  if (!category) return undefined;
+  const lower = category.toLowerCase();
+  if (lower.includes("genç") || lower.includes("u18") || lower.includes("genc")) {
+    return "u18";
+  }
+  if (lower.includes("yıldız") || lower.includes("u16") || lower.includes("yildiz")) {
+    return "u16";
+  }
+  return undefined;
+}
+
+/**
+ * Normalizes Turkish city name to a standard slug for indexing.
+ */
+export function normalizeCitySlug(city?: string): string {
+  if (!city) return "";
+  return city
+    .toLowerCase()
+    .trim()
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Builds an index Map from mappings data.
+ * Keys stored:
+ * - `team::category` (exact)
+ * - `team::ageGroup` (e.g. team::u18 or team::u16)
+ * - `team` (general fallback)
+ */
+function shouldReplaceMapping(existing: VolleyboxMapping | undefined, candidate: VolleyboxMapping): boolean {
+  if (!existing) return true;
+
+  const priority: Record<string, number> = {
+    broken: 0,
+    unverified: 1,
+    likely: 2,
+    verified: 3,
+  };
+
+  const candidatePriority = priority[candidate.confidence] ?? 0;
+  const existingPriority = priority[existing.confidence] ?? 0;
+
+  if (candidatePriority !== existingPriority) {
+    return candidatePriority > existingPriority;
+  }
+
+  const agePriority = (value?: string): number => {
+    const normalized = (value || "").toUpperCase();
+    if (normalized.includes("U18") || normalized.includes("GENC") || normalized.includes("YOUNG")) return 2;
+    if (normalized.includes("U16") || normalized.includes("YILDIZ")) return 1;
+    return 0;
+  };
+
+  const candidateAge = agePriority(candidate.age_category || extractAgeGroup(candidate.internal_category) || undefined);
+  const existingAge = agePriority(existing.age_category || extractAgeGroup(existing.internal_category) || undefined);
+
+  if (candidateAge !== existingAge) {
+    return candidateAge > existingAge;
+  }
+
+  const specificity = (item: VolleyboxMapping): number => {
+    const values = [
+      item.internal_name,
+      item.matched_as,
+      ...(item.aliases || []),
+      ...(item.synonyms || []),
+    ].filter(Boolean) as string[];
+
+    const combined = values.join(" ").toLowerCase();
+    let score = 0;
+
+    if (/(?:^|[\s-])b(?:\s|$)/.test(combined) || /\(b\)/.test(combined)) score += 3;
+    if (/(?:^|[\s-])a(?:\s|$)/.test(combined) || /\(a\)/.test(combined)) score += 2;
+    if (combined.includes("u16") || combined.includes("u18")) score += 1;
+    if (combined.includes(" - ")) score += 1;
+
+    return score;
+  };
+
+  return specificity(candidate) > specificity(existing);
+}
+
+export function buildVolleyboxMap(
+  data: VolleyboxMappingsFile = mappingsJson as unknown as VolleyboxMappingsFile
+): Map<string, VolleyboxMapping> {
+  const map = new Map<string, VolleyboxMapping>();
+
+  for (const item of data.mappings || []) {
+    // Kırık linkler kullanıcıya gösterilmez
+    if (item.confidence === "broken") continue;
+
+    const catKey = normalizeKey(item.internal_category);
+    const citySlug = normalizeCitySlug(item.city || item.city_slug);
+    const age = extractAgeGroup(item.internal_category) || (item.age_category?.toLowerCase() as "u18" | "u16");
+
+    const allNames = [
+      item.internal_name,
+      item.matched_as,
+      ...(item.aliases || []),
+      ...(item.synonyms || []),
+    ].filter(Boolean);
+    for (const name of allNames) {
+      if (!name) continue;
+      const teamKey = normalizeKey(name);
+
+      // Şehir spesifik indeksler
+      if (citySlug) {
+        const cityCatKey = `${teamKey}::${catKey}::${citySlug}`;
+        if (shouldReplaceMapping(map.get(cityCatKey), item)) {
+          map.set(cityCatKey, item);
+        }
+
+        if (age) {
+          const cityAgeKey = `${teamKey}::${age}::${citySlug}`;
+          if (shouldReplaceMapping(map.get(cityAgeKey), item)) {
+            map.set(cityAgeKey, item);
+          }
+        }
+
+        const cityKey = `${teamKey}::${citySlug}`;
+        if (shouldReplaceMapping(map.get(cityKey), item)) {
+          map.set(cityKey, item);
+        }
+      }
+
+      // Genel indeksler (şehir verilmediğinde veya genel fallback)
+      const generalCatKey = `${teamKey}::${catKey}`;
+      if (shouldReplaceMapping(map.get(generalCatKey), item)) {
+        map.set(generalCatKey, item);
+      }
+
+      if (age) {
+        const generalAgeKey = `${teamKey}::${age}`;
+        if (shouldReplaceMapping(map.get(generalAgeKey), item)) {
+          map.set(generalAgeKey, item);
+        }
+      }
+
+      // Genel takım adı fallback (verified olan önceliklidir)
+      if (shouldReplaceMapping(map.get(teamKey), item)) {
+        map.set(teamKey, item);
+      }
+    }
+  }
+
+  return map;
+}
+
+// Module-level cached instance for teams
+let cachedMap: Map<string, VolleyboxMapping> | null = null;
+
+export function getDefaultVolleyboxMap(): Map<string, VolleyboxMapping> {
+  if (!cachedMap) {
+    cachedMap = buildVolleyboxMap();
+  }
+  return cachedMap;
+}
+
+/**
+ * Retrieves the Volleybox profile mapping for a given team name, category and optional city.
+ * Returns undefined if no mapping exists or if marked broken.
+ */
+export function getVolleyboxMapping(
+  teamName: string,
+  category?: string,
+  customMap?: Map<string, VolleyboxMapping>,
+  city?: string
+): VolleyboxMapping | undefined {
+  if (!teamName || !teamName.trim()) {
+    return undefined;
+  }
+
+  const map = customMap || getDefaultVolleyboxMap();
+  const teamKey = normalizeKey(teamName);
+  const citySlug = normalizeCitySlug(city);
+
+  if (category) {
+    const rawCat = normalizeKey(category);
+    const leaguePart = rawCat.split(" - ")[0].trim();
+    const age = extractAgeGroup(category);
+
+    // 1. Şehir + Kategori / Yaş grubu spesifik eşleşmeler
+    if (citySlug) {
+      const matchCityCat = map.get(`${teamKey}::${rawCat}::${citySlug}`);
+      if (matchCityCat) return matchCityCat;
+
+      if (leaguePart) {
+        const matchCityLeague = map.get(`${teamKey}::${leaguePart}::${citySlug}`);
+        if (matchCityLeague) return matchCityLeague;
+      }
+
+      if (age) {
+        const matchCityAge = map.get(`${teamKey}::${age}::${citySlug}`);
+        if (matchCityAge) return matchCityAge;
+      }
+    }
+
+    // 2. Kategori bazlı genel eşleşmeler
+    const directMatch = map.get(`${teamKey}::${rawCat}`);
+    if (directMatch) return directMatch;
+
+    if (leaguePart) {
+      const leagueMatch = map.get(`${teamKey}::${leaguePart}`);
+      if (leagueMatch) return leagueMatch;
+    }
+
+    if (age) {
+      const ageMatch = map.get(`${teamKey}::${age}`);
+      if (ageMatch) return ageMatch;
+    }
+
+    // 3. Şehir bazlı genel eşleşme fallback (yaş kategorisi çelişmiyorsa)
+    if (citySlug) {
+      const matchCity = map.get(`${teamKey}::${citySlug}`);
+      if (matchCity) {
+        const candAge = matchCity.age_category?.toLowerCase() || extractAgeGroup(matchCity.internal_category);
+        if (!age || !candAge || age === candAge) {
+          return matchCity;
+        }
+      }
+    }
+  } else if (citySlug) {
+    const matchCity = map.get(`${teamKey}::${citySlug}`);
+    if (matchCity) return matchCity;
+  }
+
+  // 4. Takım adıyla genel eşleşme fallback (yaş kategorisi çelişmiyorsa)
+  const generalMatch = map.get(teamKey);
+  if (generalMatch && category) {
+    const age = extractAgeGroup(category);
+    const candAge = generalMatch.age_category?.toLowerCase() || extractAgeGroup(generalMatch.internal_category);
+    if (!age || !candAge || age === candAge) {
+      return generalMatch;
+    }
+    return undefined;
+  }
+  return generalMatch;
+}
+
+/**
+ * Resolves a team name to its official Volleybox team name (matched_as).
+ * Returns the matched_as name if mapped, or the original team name if unmapped.
+ */
+export function getVolleyboxTeamName(
+  teamName: string,
+  category?: string,
+  customMap?: Map<string, VolleyboxMapping>,
+  city?: string
+): string {
+  if (!teamName || !teamName.trim()) return "";
+  const mapping = getVolleyboxMapping(teamName, category, customMap, city);
+  return mapping?.matched_as?.trim() || teamName.trim();
+}
+
+/**
+ * Builds an index Map from league mappings data.
+ * Keys stored:
+ * - `league::city`
+ * - `ageGroup::city` (e.g. u18::istanbul)
+ * - `ageGroup` (default fallback, e.g. u18)
+ * - `league` (default fallback)
+ */
+export function buildVolleyboxLeagueMap(
+  data: VolleyboxMappingsFile = mappingsJson as unknown as VolleyboxMappingsFile
+): Map<string, VolleyboxLeagueMapping> {
+  const map = new Map<string, VolleyboxLeagueMapping>();
+
+  const leagueItems: VolleyboxLeagueMapping[] = [
+    ...(data.leagues || []),
+    ...((data.mappings || []).filter(
+      (m) => m.volleybox_url && m.volleybox_url.includes("-o")
+    ) as unknown as VolleyboxLeagueMapping[]),
+  ];
+
+  for (const item of leagueItems) {
+    if (item.confidence === "broken") continue;
+    // Sezon kontrolü: Sadece güncel sezona (2026/27) ait turnuva profilleri indekslenir
+    if (item.season && item.season !== "2026/27") continue;
+
+    const leagueKey = normalizeKey(item.internal_name);
+    const slugs = new Set<string>();
+    if (item.city_slug) slugs.add(normalizeCitySlug(item.city_slug));
+    if (item.city) slugs.add(normalizeCitySlug(item.city));
+    const age = item.age_category?.toLowerCase() || extractAgeGroup(item.internal_name);
+
+    for (const citySlug of slugs) {
+      if (citySlug) {
+        map.set(`${leagueKey}::${citySlug}`, item);
+        if (age) {
+          const ageCityKey = `${age}::${citySlug}`;
+          if (!map.has(ageCityKey) || leagueKey.includes("süper")) {
+            map.set(ageCityKey, item);
+          }
+        }
+      }
+    }
+
+    // İstanbul veya ilk gelen kayıt genel varsayılan (fallback) olur
+    if (!map.has(leagueKey) || slugs.has("istanbul")) {
+      map.set(leagueKey, item);
+      if (age) {
+        map.set(age, item);
+      }
+    }
+  }
+
+  return map;
+}
+
+// Module-level cached instance for leagues
+let cachedLeagueMap: Map<string, VolleyboxLeagueMapping> | null = null;
+
+export function getDefaultVolleyboxLeagueMap(): Map<string, VolleyboxLeagueMapping> {
+  if (!cachedLeagueMap) {
+    cachedLeagueMap = buildVolleyboxLeagueMap();
+  }
+  return cachedLeagueMap;
+}
+
+/**
+ * Retrieves the Volleybox tournament profile for a given league name and city.
+ */
+export function getVolleyboxLeagueMapping(
+  leagueName: string,
+  city?: string,
+  customMap?: Map<string, VolleyboxLeagueMapping>
+): VolleyboxLeagueMapping | undefined {
+  if (!leagueName || !leagueName.trim()) {
+    return undefined;
+  }
+
+  const map = customMap || getDefaultVolleyboxLeagueMap();
+  const rawLeague = normalizeKey(leagueName);
+  const leagueClean = rawLeague.split("·")[0].split(" - ")[0].trim();
+  const leagueBase = leagueClean.replace(/\s*\([uU]\d+\)/g, "").trim();
+  const citySlug = normalizeCitySlug(city);
+  const age = extractAgeGroup(leagueName);
+
+  // 1. Şehir ve tam lig adı
+  if (citySlug) {
+    const candidateSlugs = [citySlug];
+    if (citySlug === "afyon") candidateSlugs.push("afyonkarahisar");
+    if (citySlug === "afyonkarahisar") candidateSlugs.push("afyon");
+
+    for (const cSlug of candidateSlugs) {
+      const directCityMatch = map.get(`${leagueClean}::${cSlug}`) || map.get(`${leagueBase}::${cSlug}`);
+      if (directCityMatch) return directCityMatch;
+
+      if (age) {
+        const ageCityMatch = map.get(`${age}::${cSlug}`);
+        if (ageCityMatch) return ageCityMatch;
+      }
+    }
+
+    // Belirli bir il belirtildiyse ve o ilde turnuva bulunamadıysa (veya eski sezonsa),
+    // asla başka bir ilin (örn. İstanbul) turnuvasına sessizce fallback yapma!
+    return undefined;
+  }
+
+  // 2. Şehir belirtilmediyse genel lig adı veya yaş grubu
+  const directMatch = map.get(leagueClean) || map.get(leagueBase);
+  if (directMatch) return directMatch;
+
+  if (age) {
+    const ageMatch = map.get(age);
+    if (ageMatch) return ageMatch;
+  }
+
+  return undefined;
+}
+

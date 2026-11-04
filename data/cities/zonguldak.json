@@ -1,0 +1,279 @@
+{
+  "updated_at": "2026-11-04T10:04:21.194845+03:00",
+  "city": "Zonguldak",
+  "slug": "zonguldak",
+  "title": "TVF Zonguldak Genç & Yıldız Kızlar Süper Lig",
+  "total_matches": 2,
+  "source": "https://zonguldak.voleyboliltemsilciligi.com",
+  "filters": {
+    "categories": [
+      "Tümü",
+      "Genç Kızlar Süper Lig",
+      "Genç Kızlar 1. Ligi",
+      "Yıldız Kızlar Süper Lig"
+    ],
+    "age_groups": [
+      "Tümü",
+      "Genç",
+      "Yıldız"
+    ],
+    "genders": [
+      "Kız"
+    ],
+    "halls": [
+      "Tümü",
+      "Kdz.Ereğli",
+      "Kozlu Ss"
+    ]
+  },
+  "standings": {
+    "Genç Kızlar Süper Lig - A Grubu": [
+      {
+        "rank": 1,
+        "team": "Karadeniz Ereğli Voleybol Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Karadeniz Ereğli Voleybol Spor Kulübü - B U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "KYAL Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ],
+    "Genç Kızlar Süper Lig - B Grubu": [
+      {
+        "rank": 1,
+        "team": "Çaycuma Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Devrek MSA Voleybol Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "TOGA Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ],
+    "Genç Kızlar Süper Lig - C Grubu": [
+      {
+        "rank": 1,
+        "team": "Zonguldak As Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Zonguldak GSİM Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "MEC Spor Kulübü U18",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ],
+    "Yıldız Kızlar Süper Lig - 1. Grup": [
+      {
+        "rank": 1,
+        "team": "Merkez Topbaşı Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Zonguldak As Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "Zonguldak GSİM Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 4,
+        "team": "Zonguldak GSİM Spor Kulübü - B U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 5,
+        "team": "MEC Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ]
+  },
+  "matches": [
+    {
+      "id": "zonguldak-20261107-001",
+      "city": "Zonguldak",
+      "date": "2026-11-07",
+      "time": "14:00",
+      "hall": "Kdz.Ereğli",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "A Grubu",
+      "match_no": "1",
+      "home_team": "Karadeniz Ereğli Voleybol Spor Kulübü - B U18",
+      "away_team": "KYAL Spor Kulübü U18",
+      "score": "- : -",
+      "home_score": null,
+      "away_score": null,
+      "set_scores": [],
+      "status": "upcoming",
+      "volleybox": {
+        "synced": true,
+        "match_id": "413307",
+        "url": "https://women.volleybox.net/tr/karadeniz-eregli-voleybol-spor-kulubu-b-u18-kyal-spor-kulubu-u18-c413307",
+        "host_name": "Karadeniz Ereğli Voleybol Spor Kulübü - B U18",
+        "guest_name": "KYAL Spor Kulübü U18",
+        "score": null,
+        "has_score": false,
+        "vb_date": "2026-11-07",
+        "vb_time": "14:00",
+        "vb_hall": "Ereğli Atatürk Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-11-07",
+          "vb_time": "14:00",
+          "vb_hall": "Ereğli Atatürk Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "zonguldak-20261107-002",
+      "city": "Zonguldak",
+      "date": "2026-11-07",
+      "time": "14:00",
+      "hall": "Kozlu Ss",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "C Grubu",
+      "match_no": "1",
+      "home_team": "MEC Spor Kulübü U18",
+      "away_team": "Zonguldak As Spor Kulübü U18",
+      "score": "- : -",
+      "home_score": null,
+      "away_score": null,
+      "set_scores": [],
+      "status": "upcoming",
+      "volleybox": {
+        "synced": true,
+        "match_id": "413308",
+        "url": "https://women.volleybox.net/tr/mec-spor-kulubu-u18-zonguldak-as-spor-kulubu-u18-c413308",
+        "host_name": "MEC Spor Kulübü U18",
+        "guest_name": "Zonguldak As Spor Kulübü U18",
+        "score": null,
+        "has_score": false,
+        "vb_date": "2026-11-07",
+        "vb_time": "14:00",
+        "vb_hall": "Kozlu Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-11-07",
+          "vb_time": "14:00",
+          "vb_hall": "Kozlu Spor Salonu",
+          "details": null
+        }
+      }
+    }
+  ],
+  "volleybox_synced_matches": 2,
+  "volleybox_sync_updated_at": "2026-11-04T10:05:27.245279"
+}

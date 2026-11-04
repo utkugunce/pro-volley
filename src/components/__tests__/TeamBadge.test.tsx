@@ -1,0 +1,125 @@
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { TeamBadge, getTeamColor } from "../TeamBadge";
+
+// Fileönü: rozet metni her zaman text-ink; zemin koyu yüzey tonu (marka rengi yalnız halka).
+const lin = (c: number) => {
+  const s = c / 255;
+  return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+const lum = (hex: string) => {
+  const n = parseInt(hex.slice(1), 16);
+  return 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+};
+const cr = (a: string, b: string) => {
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+// tailwind.config.ts ile aynı değerler
+const BG: Record<string, string> = {
+  "bg-surface-raised": "#13293F",
+  "bg-blue-950": "#132335",
+  "bg-teal-950": "#0B262F",
+  "bg-purple-950": "#192135",
+};
+const INK = "#EAF6FA";
+
+describe("TeamBadge marka renkleri (Fileönü)", () => {
+  const names = ["Galatasaray", "Eczacıbaşı", "Fenerbahçe", "VakıfBank", "Beşiktaş", "THY", "Rastgele Spor Kulübü", "Ankara BŞB", "İzmir Bld", "Bursa X"];
+
+  it.each(names)("%s: metin text-ink ve zemin kontrastı ≥ 4.5", (n) => {
+    const p = getTeamColor(n);
+    expect(p.text).toBe("text-ink");
+    expect(BG[p.bg]).toBeDefined();
+    expect(cr(INK, BG[p.bg])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("kırmızı ve kehribar genel (hash) paletlerde kullanılmaz (anlam kuralı)", () => {
+    for (let i = 0; i < 200; i++) {
+      const p = getTeamColor(`Takım ${i} xq`);
+      expect(p.border).not.toMatch(/red|rose|amber|yellow|orange/);
+      expect(p.bg).not.toMatch(/red|rose|amber|yellow|orange/);
+    }
+  });
+
+  it("her zaman hafif vektörel harf arması çizer", () => {
+    render(<TeamBadge name="Galatasaray" logoUrl="/x.png" size="md" />);
+    expect(screen.getByLabelText("Galatasaray rozeti")).toBeInTheDocument();
+  });
+
+  it("rozet takım baş harfleriyle spor kısaltması gösterir", () => {
+    render(<TeamBadge name="Eczacıbaşı Spor" />);
+    expect(screen.getByLabelText("Eczacıbaşı Spor rozeti")).toBeInTheDocument();
+  });
+
+  it("taranan logolardan gelen kulüp renklerini rozet stiline yansıtır", () => {
+    const zeren = getTeamColor("Zeren Spor");
+    expect(zeren.borderColor).toBe("#a855f7");
+    expect(zeren.bg).toBe("bg-purple-950");
+
+    const fb = getTeamColor("Fenerbahçe");
+    expect(fb.borderColor).toBe("#fbee00");
+    expect(fb.bg).toBe("bg-blue-950");
+
+    const anka = getTeamColor("07 Anka Spor Kulübü");
+    expect(anka.borderColor).toBeDefined();
+    expect(anka.bg).toBe("bg-teal-950");
+
+    render(<TeamBadge name="Zeren Spor" />);
+    const badge = screen.getByLabelText("Zeren Spor rozeti");
+    expect(badge).toHaveStyle({ borderColor: "#a855f7" });
+  });
+
+  it("colorIdx, color veya palette prop verildiğinde harita araması atlanır", () => {
+    const customPalette = {
+      bg: "bg-surface-raised",
+      border: "border-emerald-400",
+      borderColor: "#34d399",
+      text: "text-ink",
+      plate: false,
+    };
+    render(<TeamBadge name="Özel Takım" palette={customPalette} />);
+    expect(screen.getByLabelText("Özel Takım rozeti")).toHaveStyle({ borderColor: "#34d399" });
+
+    render(<TeamBadge name="İndeksli Takım" colorIdx={0} />);
+    expect(screen.getByLabelText("İndeksli Takım rozeti")).toBeInTheDocument();
+  });
+
+  it("BEKÇİ: hiçbir use client modülü team-color-index.json veya team-colors.json statik import etmez", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const root = process.cwd();
+
+    function scanDir(dir: string): string[] {
+      const results: string[] = [];
+      for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
+        const rel = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === "__tests__" || entry.name === "node_modules") continue;
+          results.push(...scanDir(rel));
+        } else if (/\.(tsx?|jsx?)$/.test(entry.name)) {
+          results.push(rel);
+        }
+      }
+      return results;
+    }
+
+    const srcFiles = scanDir("src");
+    const violations: string[] = [];
+
+    for (const file of srcFiles) {
+      const content = fs.readFileSync(path.join(root, file), "utf-8");
+      if (content.includes('"use client"') || content.includes("'use client'")) {
+        // Statik import kuralı: import ... from ".*team-color-index.json" veya ".*team-colors.json"
+        if (/import\s+.*from\s+["'].*team-color-index\.json["']/.test(content)) {
+          violations.push(`${file} statik olarak team-color-index.json import ediyor!`);
+        }
+        if (/import\s+.*from\s+["'].*team-colors\.json["']/.test(content)) {
+          violations.push(`${file} statik olarak team-colors.json import ediyor!`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+});

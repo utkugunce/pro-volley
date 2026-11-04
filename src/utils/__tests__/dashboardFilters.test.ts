@@ -1,0 +1,251 @@
+import { describe, it, expect } from "vitest";
+import { filterResultMatches, filterFixtureMatches, computeVolleyboxStats } from "../dashboardFilters";
+import type { Match } from "@/types/fixture";
+
+describe("filterResultMatches", () => {
+  const yesterdayStr = "2026-10-12";
+  const todayStr = "2026-10-13";
+  const pastStr = "2026-10-10";
+
+  const scoredYesterdayMatch: Match = {
+    id: "m-1",
+    match_no: "101",
+    category: "Genç Kızlar Süper Lig",
+    age_group: "Genç",
+    gender: "Kız",
+    group: "A Grubu",
+    date: yesterdayStr,
+    time: "14:00",
+    hall: "TVF 50. Yıl",
+    home_team: "Eczacıbaşı",
+    away_team: "Fenerbahçe",
+    home_score: 3,
+    away_score: 1,
+    status: "finished",
+    set_scores: ["25-20", "23-25", "25-18", "25-22"],
+  };
+
+  const unscoredYesterdayMatch: Match = {
+    id: "m-2",
+    match_no: "102",
+    category: "Genç Kızlar Süper Lig",
+    age_group: "Genç",
+    gender: "Kız",
+    group: "A Grubu",
+    date: yesterdayStr,
+    time: "16:00",
+    hall: "TVF 50. Yıl",
+    home_team: "VakıfBank",
+    away_team: "Galatasaray",
+    home_score: null,
+    away_score: null,
+    status: "upcoming",
+  };
+
+  const scoredPastMatch: Match = {
+    id: "m-3",
+    match_no: "103",
+    category: "Genç Kızlar Süper Lig",
+    age_group: "Genç",
+    gender: "Kız",
+    group: "A Grubu",
+    date: pastStr,
+    time: "18:00",
+    hall: "Burhan Felek",
+    home_team: "Beşiktaş",
+    away_team: "Sarıyer Bld.",
+    home_score: 3,
+    away_score: 0,
+    status: "finished",
+    set_scores: ["25-15", "25-18", "25-20"],
+  };
+
+  const unscoredPastMatch: Match = {
+    id: "m-4",
+    match_no: "104",
+    category: "Genç Kızlar Süper Lig",
+    age_group: "Genç",
+    gender: "Kız",
+    group: "A Grubu",
+    date: pastStr,
+    time: "12:00",
+    hall: "Burhan Felek",
+    home_team: "Türk Hava Yolları",
+    away_team: "Kuzeyboru",
+    home_score: null,
+    away_score: null,
+    status: "upcoming",
+  };
+
+  const matches = [scoredYesterdayMatch, unscoredYesterdayMatch, scoredPastMatch, unscoredPastMatch];
+
+  const defaultOpts = {
+    selectedResultDate: "all",
+    resultsSubTab: "all" as const,
+    yesterdayStr,
+    showOnlyFavorites: false,
+    favorites: [],
+    selectedCategory: "Tümü",
+    selectedHall: "Tümü",
+    searchQuery: "",
+    volleyboxFilter: "all" as const,
+  };
+
+  it("dünün sonuçları alt sekmesi seçildiğinde oynanmış ama skoru olmayan maçları da dahil eder", () => {
+    const results = filterResultMatches(matches, {
+      ...defaultOpts,
+      resultsSubTab: "yesterday",
+      selectedResultDate: yesterdayStr,
+    });
+
+    expect(results).toHaveLength(2);
+    expect(results.map((m) => m.id)).toEqual(["m-1", "m-2"]);
+    // Skorsuz maç m-2 başarıyla listede
+    const unscored = results.find((m) => m.id === "m-2");
+    expect(unscored).toBeDefined();
+    expect(unscored?.home_score).toBeNull();
+  });
+
+  it("tarih şeridinden dün seçildiğinde (selectedResultDate === yesterdayStr) skorsuz maçları da dahil eder", () => {
+    const results = filterResultMatches(matches, {
+      ...defaultOpts,
+      selectedResultDate: yesterdayStr,
+      resultsSubTab: "all",
+    });
+
+    expect(results).toHaveLength(2);
+    expect(results.map((m) => m.id)).toContain("m-2");
+  });
+
+  it("tüm sonuçlar sekmesinde (all) oynanmış veya skoru olan maçları listeler, gelecekteki maçları filtreler", () => {
+    const futureMatch: Match = {
+      id: "m-future",
+      match_no: "105",
+      category: "Genç Kızlar Süper Lig",
+      age_group: "Genç",
+      gender: "Kız",
+      group: "A Grubu",
+      date: "2026-10-30",
+      time: "14:00",
+      hall: "TVF 50. Yıl",
+      home_team: "Eczacıbaşı",
+      away_team: "VakıfBank",
+      home_score: null,
+      away_score: null,
+      status: "upcoming",
+    };
+
+    const results = filterResultMatches([...matches, futureMatch], {
+      ...defaultOpts,
+      selectedResultDate: "all",
+      resultsSubTab: "all",
+      todayStr,
+    });
+
+    // m-1, m-2 (dün), m-3, m-4 (geçmiş) oynandığı için sonuçlarda listelenir; m-future (gelecek) elenir
+    expect(results).toHaveLength(4);
+    expect(results.map((m) => m.id)).toEqual(["m-1", "m-2", "m-3", "m-4"]);
+    expect(results.some((m) => m.id === "m-future")).toBe(false);
+  });
+
+  it("dün dışındaki geçmiş bir tarih seçildiğinde (selectedResultDate === pastStr) de skorsuz maçları dahil eder", () => {
+    const results = filterResultMatches(matches, {
+      ...defaultOpts,
+      selectedResultDate: pastStr,
+      resultsSubTab: "all",
+    });
+
+    expect(results).toHaveLength(2);
+    expect(results.map((m) => m.id)).toEqual(["m-3", "m-4"]);
+    expect(results.find((m) => m.id === "m-4")?.home_score).toBeNull();
+  });
+});
+
+describe("filterFixtureMatches & computeVolleyboxStats discrepancy filtering", () => {
+  const matchWithScoreAndDiscrepancy: Match = {
+    id: "m-disc-finished",
+    match_no: "201",
+    category: "Yıldız Kızlar Süper Lig",
+    age_group: "Yıldız",
+    gender: "Kız",
+    group: "B Grubu",
+    date: "2026-10-16",
+    time: "20:00",
+    hall: "Çekirge",
+    home_team: "Bursa Fethiye",
+    away_team: "Bursa Genç Saray",
+    home_score: 3,
+    away_score: 0,
+    status: "finished",
+    score: "3 - 0",
+    volleybox: {
+      synced: true,
+      has_score: true,
+      score: "3 - 0",
+      vb_date: "2026-10-16",
+      vb_time: "18:00",
+      discrepancy: {
+        has_diff: true,
+        date_diff: false,
+        time_diff: true,
+        hall_diff: false,
+        vb_time: "18:00",
+      },
+    },
+  };
+
+  const upcomingMatchWithDiscrepancy: Match = {
+    id: "m-disc-upcoming",
+    match_no: "202",
+    category: "Yıldız Kızlar Süper Lig",
+    age_group: "Yıldız",
+    gender: "Kız",
+    group: "B Grubu",
+    date: "2026-10-25",
+    time: "16:00",
+    hall: "Çekirge",
+    home_team: "Bursa Fethiye",
+    away_team: "Nilüfer",
+    home_score: null,
+    away_score: null,
+    status: "upcoming",
+    volleybox: {
+      synced: true,
+      has_score: false,
+      vb_date: "2026-10-25",
+      vb_time: "14:00",
+      discrepancy: {
+        has_diff: true,
+        date_diff: false,
+        time_diff: true,
+        hall_diff: false,
+        vb_time: "14:00",
+      },
+    },
+  };
+
+  const matches = [matchWithScoreAndDiscrepancy, upcomingMatchWithDiscrepancy];
+
+  it("computeVolleyboxStats skoru veya bitti durumu olan maçları değişenler (discrepancy) sayısına dahil etmez", () => {
+    const stats = computeVolleyboxStats(matches, "2026-10-21");
+    // Sadece gelecek olan m-disc-upcoming sayılmalı
+    expect(stats.discrepancy).toBe(1);
+  });
+
+  it("filterFixtureMatches volleyboxFilter === 'discrepancy' seçildiğinde skoru/sonucu olan maçı filtreler, sadece oynanmamış olanı gösterir", () => {
+    const filtered = filterFixtureMatches(matches, {
+      showOnlyFavorites: false,
+      favorites: [],
+      selectedCategory: "Tümü",
+      selectedDate: "all",
+      statusFilter: "all",
+      selectedHall: "Tümü",
+      searchQuery: "",
+      volleyboxFilter: "discrepancy",
+      todayStr: "2026-10-21",
+    });
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].id).toBe("m-disc-upcoming");
+  });
+});

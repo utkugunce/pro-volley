@@ -1,0 +1,313 @@
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import { applyOverridesToMatches, applyOverridesToMatchesAsync } from "@/utils/overrides";
+import { RateLimiter, getClientIp } from "@/utils/rateLimit";
+import { dispatchScrapeWorkflow, isLocalScrapeAllowed, runLocalScraper } from "@/utils/scrapeTrigger";
+import { requireConfiguredSecret } from "@/utils/apiSecurity";
+import { trLower, trIncludes } from "@/utils/turkishLocale";
+import { isCityHidden } from "@/utils/cityHelper";
+import { getSupabaseFixturesCached } from "@/utils/supabaseFixtures";
+import { getInitialFixtures } from "@/utils/getInitialFixtures";
+import { setActiveDataSource } from "@/utils/supabaseData";
+import { getAuthenticatedUser } from "@/utils/supabaseAuth";
+import type { CityInfo, FixturesData, Match, StandingItem } from "@/types/fixture";
+
+// Max 2 refresh triggers per 2 minutes per IP to prevent GitHub Actions / server load abuse
+const refreshLimiter = new RateLimiter({
+  name: "fixtures-refresh",
+  windowMs: 120 * 1000,
+  maxRequests: 2,
+});
+
+function normalizeCitySlug(str: string): string {
+  return str
+    .replace(/İ/g, "i")
+    .replace(/I/g, "i")
+    .replace(/ı/g, "i")
+    .replace(/Ş/g, "s")
+    .replace(/ş/g, "s")
+    .replace(/Ğ/g, "g")
+    .replace(/ğ/g, "g")
+    .replace(/Ü/g, "u")
+    .replace(/ü/g, "u")
+    .replace(/Ö/g, "o")
+    .replace(/ö/g, "o")
+    .replace(/Ç/g, "c")
+    .replace(/ç/g, "c")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const rawCity = searchParams.get("city") || "istanbul";
+    const citySlug = normalizeCitySlug(rawCity);
+    const refresh = searchParams.get("refresh");
+    const category = searchParams.get("category");
+    const ageGroup = searchParams.get("age_group");
+    const gender = searchParams.get("gender");
+    const hall = searchParams.get("hall");
+    const search = searchParams.get("q")?.toLowerCase();
+    const status = searchParams.get("status");
+    const date = searchParams.get("date");
+
+    let syncMeta:
+      | { attempted: boolean; success: boolean; mode: string; message: string }
+      | undefined;
+
+    if (refresh === "1") {
+      const secretAuthError = requireConfiguredSecret(request, "ADMIN_TOKEN");
+      let isAdminAuthorized = secretAuthError === null;
+      if (!isAdminAuthorized) {
+        const authUser = await getAuthenticatedUser(request);
+        isAdminAuthorized = Boolean(authUser && (authUser.role === "admin" || authUser.role === "editor"));
+      }
+      if (!isAdminAuthorized) {
+        syncMeta = {
+          attempted: false,
+          success: true,
+          mode: "cached",
+          message: "Canlı tarama tetikleme yetkisi yönetici paneli ile sınırlandırılmıştır.",
+        };
+      } else {
+        const clientIp = getClientIp(request);
+        const limitCheck = await refreshLimiter.check(clientIp);
+
+        if (!limitCheck.allowed) {
+          syncMeta = {
+            attempted: false,
+            success: true,
+            mode: "rate_limited",
+            message: `Fikstür yenileme isteği yakın zamanda tetiklendi. Lütfen ${limitCheck.retryAfterSeconds || 60} saniye sonra tekrar deneyin. Önbellekteki güncel veriler gösteriliyor.`,
+          };
+        } else if (isLocalScrapeAllowed()) {
+          // Yalnızca yerel geliştirmede: Python scraper'ı event loop'u bloklamadan çalıştır.
+          try {
+            // Kullanıcı tam tarama talep ettiği için her yenilemede 81 ilin tamamı ve Volleybox tam taranır
+            await runLocalScraper("scripts/scrape_all_provinces.py", 120000);
+
+            syncMeta = {
+              attempted: true,
+              success: true,
+              mode: "local_python",
+              message: "81 ilin bülteni ve Volleybox verileri tam tarama ile başarıyla senkronize edildi.",
+            };
+          } catch (err) {
+            syncMeta = {
+              attempted: true,
+              success: false,
+              mode: "local_python",
+              message: "Tam tarama sırasında bağlantı hatası oluştu, önbellekteki veriler gösteriliyor.",
+            };
+            console.warn("Live scraper refresh warning (falling back to cached data):", err);
+          }
+        } else {
+          // Üretimde istek içinde senkron Python çalıştırılmaz; tarama GitHub Actions'a devredilir.
+          const dispatch = await dispatchScrapeWorkflow();
+          if (dispatch.status === "dispatched") {
+            syncMeta = {
+              attempted: true,
+              success: true,
+              mode: "github_actions_dispatch",
+              message:
+                "Canlı tarama GitHub Actions üzerinde başlatıldı! Yaklaşık 1-2 dakika içinde bülten ve Volleybox verileri güncellenecektir.",
+            };
+          } else if (dispatch.status === "failed") {
+            syncMeta = {
+              attempted: true,
+              success: false,
+              mode: "github_actions_dispatch",
+              message: dispatch.httpStatus
+                ? `Canlı tarama tetiklenemedi (Durum kodu: ${dispatch.httpStatus}). Lütfen daha sonra tekrar deneyin.`
+                : "Canlı tarama servisine bağlanırken bir hata oluştu.",
+            };
+          } else {
+            syncMeta = {
+              attempted: true,
+              success: false,
+              mode: "github_actions_cron",
+              message:
+                "Bulut ortamında canlı fikstür ve Volleybox taraması GitHub Actions ile periyodik çalışmaktadır.",
+            };
+          }
+        }
+      }
+    }
+
+    // Doğru resmi il ismini bul (cities.json üzerinden)
+    let officialCityName = citySlug;
+    let globalScanTime: string | null = null;
+    try {
+      const citiesIndexPath = path.join(process.cwd(), "data", "cities.json");
+      if (fs.existsSync(citiesIndexPath)) {
+        const citiesData = JSON.parse(fs.readFileSync(citiesIndexPath, "utf-8"));
+        if (citiesData?.updated_at) {
+          globalScanTime = citiesData.updated_at;
+        }
+        const found = (citiesData.cities || []).find(
+          (c: CityInfo) => c.slug === citySlug || c.ilid === rawCity || c.slug === rawCity.toLowerCase()
+        );
+        if (found) {
+          officialCityName = found.name;
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    let data: FixturesData;
+
+    const isBypassCache = refresh === "1" || searchParams.has("_t") || searchParams.has("t") || request.headers.get("cache-control")?.includes("no-cache");
+    if (isBypassCache) {
+      const { clearSupabaseFixturesCache } = await import("@/utils/supabaseFixtures");
+      clearSupabaseFixturesCache();
+    }
+    const supabaseData = await getSupabaseFixturesCached(citySlug);
+
+    if (supabaseData && Array.isArray(supabaseData.matches) && supabaseData.matches.length > 0) {
+      setActiveDataSource("supabase");
+      data = supabaseData;
+    } else if (citySlug === "all" || citySlug === "tumu" || citySlug === "turkiye") {
+      setActiveDataSource("json-fallback");
+      data = getInitialFixtures("all");
+    } else {
+      setActiveDataSource("json-fallback");
+      if (isCityHidden(citySlug)) {
+        return NextResponse.json(
+          { error: "Bu il için fikstür bulunamadı." },
+          { status: 404 }
+        );
+      }
+
+      let filePath = path.join(process.cwd(), "data", "fixtures.json");
+      if (citySlug && citySlug !== "istanbul") {
+        const citySpecificPath = path.join(process.cwd(), "data", "cities", `${citySlug}.json`);
+        if (fs.existsSync(citySpecificPath)) {
+          filePath = citySpecificPath;
+        } else {
+          // İlgili ilde henüz fikstür açıklanmamış
+          return NextResponse.json({
+            city: officialCityName,
+            slug: citySlug,
+            title: `TVF ${officialCityName} Genç & Yıldız Kızlar Süper Lig`,
+            updated_at: new Date().toISOString(),
+            total_matches: 0,
+            unfiltered_total: 0,
+            source: `https://${citySlug}.voleyboliltemsilciligi.com`,
+            filters: {
+              categories: ["Tümü", "Genç Kızlar Süper Lig", "Genç Kızlar 1. Ligi", "Yıldız Kızlar Süper Lig"],
+              age_groups: ["Tümü", "Genç", "Yıldız"],
+              genders: ["Kız"],
+              halls: ["Tümü"],
+            },
+            matches: [],
+            standings: {},
+            note: "Bu ilin TVF temsilciliği yeni sezon bültenini henüz girmemiştir.",
+            sync: syncMeta,
+          });
+        }
+      }
+
+      if (!fs.existsSync(filePath)) {
+        const fallback = getInitialFixtures(citySlug);
+        if (fallback && Array.isArray(fallback.matches) && fallback.matches.length > 0) {
+          data = fallback;
+        } else {
+          return NextResponse.json(
+            {
+              error: "fixtures.json bulunamadı. Lütfen önce scraper'ı çalıştırın.",
+              matches: [],
+              total_matches: 0,
+            },
+            { status: 404 }
+          );
+        }
+      } else {
+        const fileContent = fs.readFileSync(filePath, "utf-8");
+        data = JSON.parse(fileContent);
+        if (globalScanTime && (!data.updated_at || new Date(globalScanTime) > new Date(data.updated_at))) {
+          data.updated_at = globalScanTime;
+        }
+      }
+    }
+
+    let rawMatches = data.matches || [];
+    let matches = await applyOverridesToMatchesAsync(rawMatches);
+
+    if (category && category !== "Tümü") {
+      matches = matches.filter((m) => m.category === category);
+    }
+
+    if (ageGroup && ageGroup !== "Tümü") {
+      matches = matches.filter((m) => m.age_group === ageGroup);
+    }
+
+    if (gender && gender !== "Tümü") {
+      matches = matches.filter((m) => m.gender === gender);
+    }
+
+    if (hall && hall !== "Tümü") {
+      matches = matches.filter((m) => m.hall === hall);
+    }
+
+    if (status && status !== "Tümü") {
+      matches = matches.filter((m) => m.status === status);
+    }
+
+    if (date) {
+      matches = matches.filter((m) => m.date === date);
+    }
+
+    if (search) {
+      const q = trLower(search).trim();
+      matches = matches.filter((m) => {
+        const home = m.home_team || "";
+        const away = m.away_team || "";
+        const hallName = m.hall || "";
+        const cat = m.category || "";
+        return (
+          trIncludes(home, q) ||
+          trIncludes(away, q) ||
+          trIncludes(hallName, q) ||
+          trIncludes(cat, q)
+        );
+      });
+    }
+
+    const headers: Record<string, string> = {};
+    if (refresh === "1" || searchParams.has("_t") || searchParams.has("t") || request.headers.get("cache-control")?.includes("no-cache")) {
+      headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+    } else {
+      // Bu rota maçları ve puan durumunu deploy beklemeden Supabase'den (ve admin override'larından) okur,
+      // bu yüzden 24 saatlik CDN önbelleği deploy'suz importları ve elle düzeltmeleri gizliyordu.
+      // s-maxage=270 + instance içi 30 sn paylaşım = yeni skorlar en geç ~5 dakikada görünür.
+      headers["Cache-Control"] = "public, s-maxage=270, stale-while-revalidate=600";
+    }
+
+    return NextResponse.json(
+      {
+        city: data.city || "İstanbul",
+        title: data.title || "TVF İstanbul Genç & Yıldız Kızlar Süper Lig",
+        updated_at: data.updated_at,
+        total_matches: matches.length,
+        unfiltered_total: data.total_matches,
+        source: data.source,
+        filters: data.filters,
+        matches,
+        standings: data.standings || {},
+        sync: syncMeta,
+      },
+      { headers }
+    );
+  } catch (error) {
+    console.error("API Error:", error);
+    return NextResponse.json(
+      { error: "Fikstür verisi okunurken hata oluştu." },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+}

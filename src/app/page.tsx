@@ -1,0 +1,37 @@
+import { DashboardClient } from "@/components/DashboardClient";
+import { getInitialHomeFixtures } from "@/utils/getInitialFixtures";
+
+export const revalidate = 900;
+
+export function generateMetadata(): import("next").Metadata {
+  const title = "Altyapı Voleybol — TVF Fikstür ve Puan Durumu";
+  const description = "Türkiye Voleybol Federasyonu 81 İl Temsilciliği Genç ve Yıldız Kızlar Süper Lig haftalık maç bülteni, puan durumu ve fikstür.";
+
+  return {
+    title: {
+      absolute: title,
+    },
+    description,
+    alternates: {
+      canonical: "https://altyapivoleybol.com.tr",
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: "tr_TR",
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, type: "image/png", alt: "Altyapı Voleybol" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/opengraph-image"],
+    },
+  };
+}
+
+export default function Page() {
+  const initialData = getInitialHomeFixtures();
+  return <DashboardClient initialData={initialData} initialTab="home" initialCity="all" initialDataPartial={true} />;
+}

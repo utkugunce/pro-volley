@@ -1,0 +1,445 @@
+{
+  "updated_at": "2026-11-04T10:04:21.194845+03:00",
+  "city": "Düzce",
+  "slug": "duzce",
+  "title": "TVF Düzce Genç & Yıldız Kızlar Süper Lig",
+  "total_matches": 6,
+  "source": "https://duzce.voleyboliltemsilciligi.com",
+  "filters": {
+    "categories": [
+      "Tümü",
+      "Genç Kızlar Süper Lig",
+      "Genç Kızlar 1. Ligi",
+      "Yıldız Kızlar Süper Lig"
+    ],
+    "age_groups": [
+      "Tümü",
+      "Genç",
+      "Yıldız"
+    ],
+    "genders": [
+      "Kız"
+    ],
+    "halls": [
+      "Tümü",
+      "Bahçeşehir S.S."
+    ]
+  },
+  "standings": {
+    "Genç Kızlar Süper Lig - 1. Grup": [
+      {
+        "rank": 1,
+        "team": "Düzce Voleybol SK - A U18",
+        "played": 3,
+        "won": 3,
+        "lost": 0,
+        "points": 8,
+        "sets_won": 9,
+        "sets_lost": 2,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Düzce 1907 Spor Kulübü U18",
+        "played": 3,
+        "won": 2,
+        "lost": 1,
+        "points": 7,
+        "sets_won": 8,
+        "sets_lost": 3,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "Düzce UltrAslan Spor Kulübü U18",
+        "played": 3,
+        "won": 1,
+        "lost": 2,
+        "points": 3,
+        "sets_won": 3,
+        "sets_lost": 7,
+        "form": []
+      },
+      {
+        "rank": 4,
+        "team": "Düzce Atletik Spor Kulübü U18",
+        "played": 3,
+        "won": 0,
+        "lost": 3,
+        "points": 0,
+        "sets_won": 1,
+        "sets_lost": 9,
+        "form": []
+      }
+    ],
+    "Yıldız Kızlar Süper Lig - A Grubu": [
+      {
+        "rank": 1,
+        "team": "Akçakoca Orhan Özdemir Fen Lisesi Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Düzce Ay Spor U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "Düzce Can Sportif Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 4,
+        "team": "Düzce UltrAslan Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ],
+    "Yıldız Kızlar Süper Lig - B Grubu": [
+      {
+        "rank": 1,
+        "team": "Düzce 1907 Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 2,
+        "team": "Düzce Atletik Spor Kulübü U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 3,
+        "team": "Düzce Gençlik Spor U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      },
+      {
+        "rank": 4,
+        "team": "Düzce Voleybol SK - A U16",
+        "played": 0,
+        "won": 0,
+        "lost": 0,
+        "points": 0,
+        "sets_won": 0,
+        "sets_lost": 0,
+        "form": []
+      }
+    ]
+  },
+  "matches": [
+    {
+      "id": "duzce-20261007-001",
+      "city": "Düzce",
+      "date": "2026-10-07",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "1",
+      "home_team": "Düzce Voleybol SK - A U18",
+      "away_team": "Düzce 1907 Spor Kulübü U18",
+      "score": "3 - 2",
+      "home_score": 3,
+      "away_score": 2,
+      "set_scores": [
+        "24-26",
+        "25-21",
+        "23-25",
+        "27-25",
+        "15-9"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404256",
+        "url": "https://women.volleybox.net/tr/duzce-voleybol-sk-u18-duzce-1907-spor-kulubu-u18-c404256",
+        "host_name": "Düzce Voleybol SK U18",
+        "guest_name": "Düzce 1907 Spor Kulübü U18",
+        "score": "3 - 2",
+        "has_score": true,
+        "vb_date": "2026-10-07",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-07",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "duzce-20261008-002",
+      "city": "Düzce",
+      "date": "2026-10-08",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "2",
+      "home_team": "Düzce UltrAslan Spor Kulübü U18",
+      "away_team": "Düzce Atletik Spor Kulübü U18",
+      "score": "3 - 1",
+      "home_score": 3,
+      "away_score": 1,
+      "set_scores": [
+        "25-22",
+        "23-25",
+        "25-18",
+        "25-23"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404257",
+        "url": "https://women.volleybox.net/tr/duzce-ultraslan-spor-kulubu-u18-duzce-atletik-spor-kulubu-u18-c404257",
+        "host_name": "Düzce UltrAslan Spor Kulübü U18",
+        "guest_name": "Düzce Atletik Spor Kulübü U18",
+        "score": "3 - 1",
+        "has_score": true,
+        "vb_date": "2026-10-08",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-08",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "duzce-20261009-003",
+      "city": "Düzce",
+      "date": "2026-10-09",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "3",
+      "home_team": "Düzce 1907 Spor Kulübü U18",
+      "away_team": "Düzce UltrAslan Spor Kulübü U18",
+      "score": "3 - 0",
+      "home_score": 3,
+      "away_score": 0,
+      "set_scores": [
+        "25-9",
+        "25-17",
+        "25-15"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404258",
+        "url": "https://women.volleybox.net/tr/duzce-1907-spor-kulubu-u18-duzce-ultraslan-spor-kulubu-u18-c404258",
+        "host_name": "Düzce 1907 Spor Kulübü U18",
+        "guest_name": "Düzce UltrAslan Spor Kulübü U18",
+        "score": "3 - 0",
+        "has_score": true,
+        "vb_date": "2026-10-09",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-09",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "duzce-20261012-004",
+      "city": "Düzce",
+      "date": "2026-10-12",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "4",
+      "home_team": "Düzce Atletik Spor Kulübü U18",
+      "away_team": "Düzce Voleybol SK - A U18",
+      "score": "0 - 3",
+      "home_score": 0,
+      "away_score": 3,
+      "set_scores": [
+        "7-25",
+        "10-25",
+        "21-25"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404260",
+        "url": "https://women.volleybox.net/tr/duzce-atletik-spor-kulubu-u18-duzce-voleybol-sk-u18-c404260",
+        "host_name": "Düzce Atletik Spor Kulübü U18",
+        "guest_name": "Düzce Voleybol SK U18",
+        "score": "0 - 3",
+        "has_score": true,
+        "vb_date": "2026-10-12",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-12",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "duzce-20261013-005",
+      "city": "Düzce",
+      "date": "2026-10-13",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "5",
+      "home_team": "Düzce Voleybol SK - A U18",
+      "away_team": "Düzce UltrAslan Spor Kulübü U18",
+      "score": "3 - 0",
+      "home_score": 3,
+      "away_score": 0,
+      "set_scores": [
+        "25-10",
+        "25-17",
+        "25-7"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404261",
+        "url": "https://women.volleybox.net/tr/duzce-voleybol-sk-u18-duzce-ultraslan-spor-kulubu-u18-c404261",
+        "host_name": "Düzce Voleybol SK U18",
+        "guest_name": "Düzce UltrAslan Spor Kulübü U18",
+        "score": "3 - 0",
+        "has_score": true,
+        "vb_date": "2026-10-13",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-13",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    },
+    {
+      "id": "duzce-20261014-006",
+      "city": "Düzce",
+      "date": "2026-10-14",
+      "time": "19:30",
+      "hall": "Bahçeşehir S.S.",
+      "category": "Genç Kızlar Süper Lig",
+      "age_group": "Genç",
+      "gender": "Kız",
+      "group": "1. Grup",
+      "match_no": "6",
+      "home_team": "Düzce Atletik Spor Kulübü U18",
+      "away_team": "Düzce 1907 Spor Kulübü U18",
+      "score": "0 - 3",
+      "home_score": 0,
+      "away_score": 3,
+      "set_scores": [
+        "12-25",
+        "13-25",
+        "23-25"
+      ],
+      "status": "finished",
+      "volleybox": {
+        "synced": true,
+        "match_id": "404263",
+        "url": "https://women.volleybox.net/tr/duzce-atletik-spor-kulubu-u18-duzce-1907-spor-kulubu-u18-c404263",
+        "host_name": "Düzce Atletik Spor Kulübü U18",
+        "guest_name": "Düzce 1907 Spor Kulübü U18",
+        "score": "0 - 3",
+        "has_score": true,
+        "vb_date": "2026-10-14",
+        "vb_time": "19:30",
+        "vb_hall": "Bahçeşehir Spor Salonu",
+        "discrepancy": {
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-10-14",
+          "vb_time": "19:30",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
+        }
+      }
+    }
+  ],
+  "volleybox_synced_matches": 6,
+  "volleybox_sync_updated_at": "2026-11-04T10:05:26.960312"
+}

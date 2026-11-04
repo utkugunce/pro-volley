@@ -1,0 +1,52 @@
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import { isCityHidden } from "@/utils/cityHelper";
+import { loadCitiesWithFallback } from "@/utils/supabaseData";
+
+/** data/cities.json içindeki il kaydından bu rotanın okuduğu alanlar. */
+interface CityListEntry {
+  slug: string;
+  has_matches?: boolean;
+  matches_count?: number;
+}
+
+export async function GET() {
+  try {
+    const fallbackCities = await loadCitiesWithFallback();
+    const filePath = path.join(process.cwd(), "data", "cities.json");
+    let data: { cities?: CityListEntry[]; updated_at?: string } = { cities: fallbackCities };
+    if (fs.existsSync(filePath)) {
+      try {
+        const fileContent = fs.readFileSync(filePath, "utf-8");
+        data = JSON.parse(fileContent);
+      } catch {
+        // fallbackCities kullanılır
+      }
+    }
+
+    // Canlıda gizlenen illeri filtrele
+    const filteredCities = (data.cities || []).filter((c: CityListEntry) => !isCityHidden(c.slug));
+    const activeCount = filteredCities.filter((c: CityListEntry) => c.has_matches || (c.matches_count && c.matches_count > 0)).length;
+
+    const sanitizedData = {
+      ...data,
+      total_cities: filteredCities.length,
+      active_cities: activeCount,
+      cities: filteredCities,
+    };
+
+    return NextResponse.json(sanitizedData, {
+      headers: {
+        // Veri yalnızca deploy ile değişir; uzun CDN önbelleği Fast Origin Transfer kotasını korur.
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
+  } catch (error) {
+    console.error("Cities API Error:", error);
+    return NextResponse.json(
+      { error: "Şehir listesi yüklenirken hata oluştu." },
+      { status: 500 }
+    );
+  }
+}

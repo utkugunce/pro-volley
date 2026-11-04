@@ -1,0 +1,317 @@
+import { describe, it, expect } from "vitest";
+import { formatGroupName, formatLeagueCategoryTitle, groupResultsByCityAndLeague, getLeagueDisplayTitle } from "../grouping";
+import { Match } from "@/types/fixture";
+
+describe("Grouping & Group Name Formatting Utilities", () => {
+  describe("getLeagueDisplayTitle", () => {
+    it("cleans redundant season strings from league title (e.g. Aydın)", () => {
+      expect(
+        getLeagueDisplayTitle("Genç Kızlar 1. Ligi", "2026 - 2027 Voleybol Sezonu Genç Kızlar Ligi")
+      ).toBe("Genç Kızlar 1. Ligi");
+    });
+
+    it("cleans repeated category names (e.g. Yalova / Bilecik)", () => {
+      expect(
+        getLeagueDisplayTitle("Genç Kızlar Süper Lig", "Genç Kızlar Süper Ligi")
+      ).toBe("Genç Kızlar Süper Lig");
+    });
+
+    it("preserves legitimate group subtitles", () => {
+      expect(
+        getLeagueDisplayTitle("Genç Kızlar Süper Lig", "A Grubu")
+      ).toBe("Genç Kızlar Süper Lig · A Grubu");
+
+      expect(
+        getLeagueDisplayTitle("Genç Kızlar 1. Ligi", "1. Grup")
+      ).toBe("Genç Kızlar 1. Ligi · 1. Grup");
+    });
+
+    it("correctly handles raw dash groups like - A, - D, - E (e.g. Bursa)", () => {
+      expect(getLeagueDisplayTitle("Yıldız Kızlar Süper Lig", "- A")).toBe("Yıldız Kızlar Süper Lig · A Grubu");
+      expect(getLeagueDisplayTitle("Yıldız Kızlar Süper Lig", "- B")).toBe("Yıldız Kızlar Süper Lig · B Grubu");
+      expect(getLeagueDisplayTitle("Yıldız Kızlar Süper Lig", "- C")).toBe("Yıldız Kızlar Süper Lig · C Grubu");
+      expect(getLeagueDisplayTitle("Yıldız Kızlar Süper Lig", "- D")).toBe("Yıldız Kızlar Süper Lig · D Grubu");
+      expect(getLeagueDisplayTitle("Yıldız Kızlar Süper Lig", "- E")).toBe("Yıldız Kızlar Süper Lig · E Grubu");
+    });
+
+    it("handles missing subtitle gracefully", () => {
+      expect(getLeagueDisplayTitle("Genç Kızlar Süper Lig", "")).toBe("Genç Kızlar Süper Lig");
+      expect(getLeagueDisplayTitle("Genç Kızlar Süper Lig", undefined)).toBe("Genç Kızlar Süper Lig");
+    });
+  });
+
+  describe("formatGroupName", () => {
+    it("cleans and normalizes dash-separated group abbreviations", () => {
+      expect(formatGroupName("Genç Kız - A Gr")).toBe("A Grubu");
+      expect(formatGroupName("Genç Kız - D Gr")).toBe("D Grubu");
+      expect(formatGroupName("Yıldız Kızlar - A Gr")).toBe("A Grubu");
+      expect(formatGroupName("Yıldız Kızlar - C Gr")).toBe("C Grubu");
+    });
+
+    it("cleans league prefix from full group names", () => {
+      expect(formatGroupName("Yıldız Kızlar B Grubu")).toBe("B Grubu");
+      expect(formatGroupName("Yıldız Kızlar Doğu Grubu")).toBe("C Grubu");
+      expect(formatGroupName("Doğu Grubu")).toBe("C Grubu");
+      expect(formatGroupName("Doğu")).toBe("C Grubu");
+      expect(formatGroupName("Genç Kızlar A Grubu")).toBe("A Grubu");
+    });
+
+    it("handles typos, abbreviations, and numeric groups", () => {
+      expect(formatGroupName("A Grb.")).toBe("A Grubu");
+      expect(formatGroupName("A Gurubu")).toBe("A Grubu");
+      expect(formatGroupName("Grup A")).toBe("A Grubu");
+      expect(formatGroupName("1. Grup")).toBe("1. Grup");
+      expect(formatGroupName("2.Grup")).toBe("2. Grup");
+      expect(formatGroupName("4. Grup")).toBe("4. Grup");
+    });
+
+    it("preserves already clean group names", () => {
+      expect(formatGroupName("A Grubu")).toBe("A Grubu");
+      expect(formatGroupName("Final Grubu")).toBe("Final Grubu");
+      expect(formatGroupName("Tek Grup")).toBe("Tek Grup");
+      expect(formatGroupName("")).toBe("Tek Grup");
+    });
+
+    it("handles provincial and city-specific group formats (e.g. Samsun, Kocaeli, Balıkesir)", () => {
+      expect(formatGroupName("Samsun Genç Kadınlar İl Birinciliği A Grubu")).toBe("A Grubu");
+      expect(formatGroupName("Samsun Genç Kadınlar İl Birinciliği B Grubu")).toBe("B Grubu");
+      expect(formatGroupName("Gebze Grubu")).toBe("A Grubu");
+      expect(formatGroupName("İzmit Grubu")).toBe("B Grubu");
+      expect(formatGroupName("Körfez Grubu")).toBe("B Grubu");
+      expect(formatGroupName("D Grubu ( Körfez )")).toBe("D Grubu");
+      expect(formatGroupName("C Grubu ( Körfez )")).toBe("C Grubu");
+      expect(formatGroupName("A Grubu ( Merkez )")).toBe("A Grubu");
+      expect(formatGroupName("E Grubu ( Marmara )")).toBe("E Grubu");
+      expect(formatGroupName("Ereğli Grubu")).toBe("A Grubu");
+      expect(formatGroupName("Ereğli")).toBe("A Grubu");
+      expect(formatGroupName("Çaycuma Grubu")).toBe("B Grubu");
+      expect(formatGroupName("Çaycuma")).toBe("B Grubu");
+      expect(formatGroupName("Merkez Grubu")).toBe("C Grubu");
+      expect(formatGroupName("Merkez")).toBe("C Grubu");
+      // Kırklareli istisnası: tek grup olmasına rağmen 1. Grup yazılmıştır
+      expect(formatGroupName("1. Grup", "Kırklareli")).toBe("Tek Grup");
+      expect(formatGroupName("1.Grup", "kirklareli")).toBe("Tek Grup");
+    });
+  });
+
+  describe("formatLeagueCategoryTitle", () => {
+    it("adds age group code (U18, U16, U14) to league titles", () => {
+      expect(formatLeagueCategoryTitle("Genç Kızlar Süper Lig")).toBe("Genç Kızlar Süper Lig (U18)");
+      expect(formatLeagueCategoryTitle("Yıldız Kızlar Süper Lig")).toBe("Yıldız Kızlar Süper Lig (U16)");
+      expect(formatLeagueCategoryTitle("Küçük Kızlar")).toBe("Küçük Kızlar (U14)");
+    });
+
+    it("normalizes non-special cities to Süper Lig (U18/U16)", () => {
+      expect(formatLeagueCategoryTitle("Genç Kızlar 1. Ligi", "Genç", "Samsun")).toBe("Genç Kızlar Süper Lig (U18)");
+      expect(formatLeagueCategoryTitle("Genç Kızlar 1. Ligi", "Genç", "Burdur")).toBe("Genç Kızlar Süper Lig (U18)");
+      expect(formatLeagueCategoryTitle("Yıldız Kızlar Ligi", "Yıldız", "Afyon")).toBe("Yıldız Kızlar Süper Lig (U16)");
+    });
+
+    it("preserves 1. Lig for special cities (Ankara, İzmir, İstanbul)", () => {
+      expect(formatLeagueCategoryTitle("Genç Kızlar 1. Ligi", "Genç", "Ankara")).toBe("Genç Kızlar 1. Ligi (U18)");
+      expect(formatLeagueCategoryTitle("Genç Kızlar 1. Ligi", "Genç", "İzmir")).toBe("Genç Kızlar 1. Ligi (U18)");
+      expect(formatLeagueCategoryTitle("Genç Kızlar 1. Lig 1. Bölge", "Genç", "İstanbul")).toBe("Genç Kızlar 1. Lig 1. Bölge (U18)");
+      expect(formatLeagueCategoryTitle("Genç Kızlar Süper Lig", "Genç", "İstanbul")).toBe("Genç Kızlar Süper Lig (U18)");
+    });
+
+    it("does not duplicate age group code if already present", () => {
+      expect(formatLeagueCategoryTitle("Voleybol U18 Ligi")).toBe("Voleybol U18 Ligi");
+      expect(formatLeagueCategoryTitle("U16 Gelişim Ligi")).toBe("U16 Gelişim Ligi");
+    });
+  });
+
+  describe("groupResultsByCityAndLeague", () => {
+    it("groups matches under their respective city and splits every group (A Grubu, B Grubu etc.) into its own section", () => {
+      const sampleMatches: Match[] = [
+        {
+          id: "m-izmir-1",
+          city: "İzmir",
+          date: "2026-09-19",
+          time: "14:00",
+          hall: "Halkapınar",
+          category: "Genç Kızlar Süper Lig",
+          age_group: "Genç",
+          gender: "Kız",
+          match_no: "1",
+          group: "Genç Kız - A Gr",
+          home_team: "Göztepe SK - A U18",
+          away_team: "Volkan Güç Spor Kulübü - B U18",
+          score: "3 - 0",
+          status: "finished",
+        },
+        {
+          id: "m-izmir-2",
+          city: "İzmir",
+          date: "2026-09-19",
+          time: "16:30",
+          hall: "Menemen",
+          category: "Genç Kızlar Süper Lig",
+          age_group: "Genç",
+          gender: "Kız",
+          match_no: "2",
+          group: "Genç Kız - D Gr",
+          home_team: "Mavişehir Spor Kulübü U18",
+          away_team: "Dost Spor U18",
+          score: "3 - 0",
+          status: "finished",
+        },
+        {
+          id: "m-izmir-3",
+          city: "İzmir",
+          date: "2026-09-19",
+          time: "11:00",
+          hall: "Gaziemir",
+          category: "Yıldız Kızlar Süper Lig",
+          age_group: "Yıldız",
+          gender: "Kız",
+          match_no: "3",
+          group: "Yıldız Kızlar - A Gr",
+          home_team: "AB Voleybol Akademi U16",
+          away_team: "Vakıfbank İzmir U16",
+          score: "3 - 0",
+          status: "finished",
+        },
+        {
+          id: "m-izmir-4",
+          city: "İzmir",
+          date: "2026-09-19",
+          time: "13:00",
+          hall: "Gaziemir",
+          category: "Yıldız Kızlar Süper Lig",
+          age_group: "Yıldız",
+          gender: "Kız",
+          match_no: "4",
+          group: "Yıldız Kızlar - C Gr",
+          home_team: "Parla Voleybol Kulübü - B U16",
+          away_team: "Göksu Atletik Spor Kulübü U16",
+          score: "3 - 0",
+          status: "finished",
+        },
+        {
+          id: "m-antalya-1",
+          city: "Antalya",
+          date: "2026-09-19",
+          time: "15:00",
+          hall: "Antalya Spor Salonu",
+          category: "Yıldız Kızlar Süper Lig",
+          age_group: "Yıldız",
+          gender: "Kız",
+          match_no: "5",
+          group: "Yıldız Kızlar B Grubu",
+          home_team: "Antalya DSİ Spor Kulübü U16",
+          away_team: "07 Zenit Spor Kulübü U16",
+          score: "3 - 1",
+          status: "finished",
+        },
+      ];
+
+      const grouped = groupResultsByCityAndLeague(sampleMatches);
+
+      // Should produce 2 cities: Antalya and İzmir
+      expect(grouped).toHaveLength(2);
+
+      const antalya = grouped.find((c) => c.city === "Antalya");
+      expect(antalya).toBeDefined();
+      expect(antalya?.totalMatches).toBe(1);
+      expect(antalya?.leagues).toHaveLength(1);
+      expect(antalya?.leagues[0].title).toBe("Yıldız Kızlar Süper Lig (U16)");
+      expect(getLeagueDisplayTitle(antalya!.leagues[0].title, antalya!.leagues[0].subTitle)).toBe(
+        "Yıldız Kızlar Süper Lig (U16)"
+      );
+
+      const izmir = grouped.find((c) => c.city === "İzmir");
+      expect(izmir).toBeDefined();
+      expect(izmir?.totalMatches).toBe(4);
+      // Under İzmir, matches are grouped strictly by category: U18 and U16 (groups A and D merged into U18, A and C merged into U16)
+      expect(izmir?.leagues).toHaveLength(2);
+
+      const gencLig = izmir?.leagues.find((l) => l.rawCategory === "Genç Kızlar Süper Lig");
+      expect(gencLig).toBeDefined();
+      expect(gencLig?.title).toBe("Genç Kızlar Süper Lig (U18)");
+      expect(gencLig?.matches).toHaveLength(2);
+      // Sorted by time: 14:00 before 16:30
+      expect(gencLig?.matches[0].time).toBe("14:00");
+      expect(gencLig?.matches[1].time).toBe("16:30");
+
+      const yildizLig = izmir?.leagues.find((l) => l.rawCategory === "Yıldız Kızlar Süper Lig");
+      expect(yildizLig).toBeDefined();
+      expect(yildizLig?.title).toBe("Yıldız Kızlar Süper Lig (U16)");
+      expect(yildizLig?.matches).toHaveLength(2);
+      // Sorted by time: 11:00 before 13:00
+      expect(yildizLig?.matches[0].time).toBe("11:00");
+      expect(yildizLig?.matches[1].time).toBe("13:00");
+    });
+
+    it("groups leagues with regional subdivisions per region (e.g. Istanbul 1. Bölge vs 4. Bölge)", () => {
+      const istanbulMatches: Match[] = [
+        {
+          id: "m-ist-1",
+          city: "İstanbul",
+          date: "2026-09-27",
+          time: "19:30",
+          hall: "Çengelköy",
+          category: "Genç Kızlar 1. Ligi",
+          age_group: "Genç",
+          gender: "Kız",
+          match_no: "1",
+          group: "1. Bölge A Grubu",
+          home_team: "Çengelköy Voleybol Kulübü U18",
+          away_team: "İstanbul Anka Spor U18",
+          score: "3 - 0",
+          status: "finished",
+        },
+        {
+          id: "m-ist-2",
+          city: "İstanbul",
+          date: "2026-09-27",
+          time: "18:00",
+          hall: "Bahçeşehir",
+          category: "Genç Kızlar 1. Ligi",
+          age_group: "Genç",
+          gender: "Kız",
+          match_no: "2",
+          group: "4. Bölge B Grubu",
+          home_team: "Bahçeşehir Avrupa Gelişim Spor Kulübü U18",
+          away_team: "Başakşehir Voleybol Kulübü U18",
+          score: "1 - 3",
+          status: "finished",
+        },
+        {
+          id: "m-ist-3",
+          city: "İstanbul",
+          date: "2026-09-27",
+          time: "16:00",
+          hall: "Çengelköy",
+          category: "Genç Kızlar 1. Ligi",
+          age_group: "Genç",
+          gender: "Kız",
+          match_no: "3",
+          group: "1. Bölge B Grubu",
+          home_team: "Beylerbeyi Voleybol Kulübü U18",
+          away_team: "Kuzey Marmara Spor U18",
+          score: "3 - 2",
+          status: "finished",
+        },
+      ];
+
+      const grouped = groupResultsByCityAndLeague(istanbulMatches);
+      expect(grouped).toHaveLength(1);
+      const istanbul = grouped[0];
+      expect(istanbul.city).toBe("İstanbul");
+      // Regional subdivisions 1. Bölge and 4. Bölge: groups A/B in 1. Bölge merged together, sorted by time!
+      expect(istanbul.leagues).toHaveLength(2);
+
+      const b1 = istanbul.leagues.find((l) => l.categoryKey.includes("1. Bölge"));
+      expect(b1).toBeDefined();
+      expect(b1?.title).toContain("1. Bölge");
+      expect(b1?.matches).toHaveLength(2);
+      expect(b1?.matches[0].time).toBe("16:00");
+      expect(b1?.matches[1].time).toBe("19:30");
+
+      const b4 = istanbul.leagues.find((l) => l.categoryKey.includes("4. Bölge"));
+      expect(b4).toBeDefined();
+      expect(b4?.title).toContain("4. Bölge");
+      expect(b4?.matches).toHaveLength(1);
+    });
+  });
+});

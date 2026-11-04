@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate generated data files
+        run: python scripts/validate_data_files.py
+
+      - name: Check data freshness
+        run: python scripts/check_data_freshness.py
+
+      # data/cities.json değiştiyse src/utils/citySlugs.ts (edge 404 allowlist'i)
+      # yeniden üretilmek zorunda; aksi halde geçersiz il adresleri 200 döner (soft 404).
+      - name: Check generated city allowlist is up to date
+        run: python scripts/generate_city_slugs.py --check
+
+      - name: Run lint
+        run: npm run lint
+
+      # next.config.mjs'te typescript.ignoreBuildErrors: true olduğu için tip hatası
+      # ne Vercel'de ne de build adımında yakalanır. Bu adım tek güvenlik ağı.
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
+      - name: Build project
+        run: npm run build
+
+      - name: Check build output
+        run: |
+          if [ -d ".next" ]; then
+            echo "Build successful - .next directory exists"
+            ls -la .next | head -20
+          else
+            echo "Build failed - .next directory not found"
+            exit 1
+          fi
