@@ -83,6 +83,8 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "motion"],
   },
   images: {
+    // Vercel Image Optimization kota asimlarini ve fatura sisirme saldirilarini onlemek icin gorseller dogrudan CDN uzerinden sunulur
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

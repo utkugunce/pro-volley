@@ -20,6 +20,14 @@ import { evaluateCityRoute } from "@/utils/cityRouteGuard";
  */
 
 /** Oturum yenilemenin geçerli olduğu yol önekleri (eski matcher kapsamıyla birebir aynı). */
+/** Bilinen kotu niyetli scraper ve saldiri botlari (Google, Bing vb. arama motoru botlari haric) */
+const BLOCKED_BOT_REGEX = /(?:curl|wget|python-requests|scrapy|nikto|sqlmap|masscan|zgrab|morfeus|fuzz)/i;
+
+function isMaliciousBot(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+  return BLOCKED_BOT_REGEX.test(userAgent);
+}
+
 const SESSION_REFRESH_PREFIXES = ["/panel", "/giris", "/api/panel", "/api/auth"] as const;
 
 function needsSessionRefresh(pathname: string): boolean {
@@ -70,6 +78,11 @@ async function refreshPanelSession(request: NextRequest): Promise<NextResponse> 
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  const userAgent = request.headers.get("user-agent");
+  if (isMaliciousBot(userAgent)) {
+    return new NextResponse("Erisim engellendi.", { status: 403 });
+  }
 
   const decision = evaluateCityRoute(pathname);
   if (decision.blocked) return cityNotFound(request);

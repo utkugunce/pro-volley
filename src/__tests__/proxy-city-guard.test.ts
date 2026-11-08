@@ -135,3 +135,13 @@ describe("proxy — matcher kapsamı", () => {
     }
   });
 });
+
+describe('proxy - bot guard', () => {
+  it('blocks malicious user agents', async () => {
+    const maliciousReq = new NextRequest(new URL('/istanbul', SITE), {
+      headers: { 'user-agent': 'curl/7.68.0' },
+    });
+    const res = await proxy(maliciousReq);
+    expect(res.status).toBe(403);
+  });
+});
