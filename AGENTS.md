@@ -52,92 +52,15 @@ if (!authenticatedUser || authenticatedUser.role !== "admin") {
 
 ---
 
-## �🚨 KURAL: 81 İli Çekme & Senkronizasyon (Scrape 81 Provinces)
+## 🏆 Profesyonel Ligler (Sultanlar Ligi, Kadınlar 1. Lig ve 2. Lig)
 
 > **UYGULAMA PRENSİBİ:**
-> Projede kod yazma, UI/tasarım geliştirme, hata düzeltme (bugfix), veri/script güncellemesi veya doğrudan veri çekme talebi içeren promptların sonunda **EN SON ADIM OLARAK 81 İLİN VERİSİ ÇEKİLMELİDİR**.
-
----
-
-## ⏱️ 1 Saat Minimum Bekleme Sınırı (Cooldown Kuralı)
-
-> **ÖNEMLİ:** 81 ilin taranması işlemlerinde iki çekme arasında **minimum 1 saat (60 dakika)** süre bulunmalıdır.
-
-### 🔒 Kuralın İşleyişi:
-1. **Otomatik Tetiklemelerde:**
-   - Kod, UI veya veri değişikliği sonrası otomatik çalıştırmalarda normal komut (`python scripts/scrape_all_provinces.py`) çalıştırılır.
-   - Script içinde dahili 1 saat (60 dakika) kontrolü bulunur. Son taramadan bu yana 1 saat dolmamışsa tarama yapılmaz; kalan bekleme süresi terminalde gösterilir ve işlem güvenle atlanır.
-   - Agent, otomatik geliştirme adımlarında **kesinlikle `--force` parametresini KULLANMAZ**.
-   - Tarama atlandığında kullanıcıya *"Son tarama X dakika önce yapıldığı için (1 saat bekleme kuralı gereğince) 81 il taraması atlandı."* şeklinde özet geçilir.
-
-2. **İstisna (Kuralın Bozulabileceği Tek Durum):**
-   - Bu kural **YALNIZCA KULLANICI AÇIKÇA MANUEL OLARAK İSTERSE** bozulabilir.
-   - Örnek kullanıcı istekleri: *"1 saati bekleme hemen çek"*, *"30 dakikayı bekleme hemen çek"*, *"zorla güncelle"*, *"verileri yine de çek"*, *"force scrape"*, *"81 ili şimdi çek"*.
-   - Yalnızca bu durumda `--force` parametresi kullanılır:
-     ```powershell
-     python scripts/scrape_all_provinces.py --force
-     ```
-
----
-
-### ⛔ Tetiklenmeyecek (İstisna) Durumlar:
-Aşağıdaki gibi basit ve salt konuşma/danışma odaklı promptlarda **SCRAPER ÇALIŞTIRILMAZ**:
-- **Basit onay ve geri bildirimler:** "tamam", "teşekkürler", "anladım", "harika" vb.
-- **Fikir alışverişi ve danışma soruları:** "şu nasıl?", "bunu sence nasıl yapmalıyız?", "fikrin ne?" vb.
-- **Açıklama ve bilgi talepleri:** "bu fonksiyon ne yapıyor?", "bu dosya nerede?" gibi projede kod/veri değişikliği yapılmayan salt sorular.
-- **Kural ve konfigürasyon istişareleri.**
-
-### ✅ Tetiklenecek Durumlar:
-- Kod veya stil (TSX, CSS, Python vb.) üzerinde değişiklik/ekleme yapıldığında.
-- Yeni bir özellik veya sayfa/bileşen geliştirildiğinde.
-- Hata düzeltme veya refactoring yapıldığında.
-- Kullanıcı doğrudan "verileri çek", "senkronize et", "81 ili güncelle" gibi bir talepte bulunduğunda (kullanıcı açıkça manuel talep ettiğinde `--force` parametresi kullanılabilir).
-
-### ❓ Tereddüt & Belirsizlik Durumu:
-- Bir promptun veri çekmeyi gerektirip gerektirmediği konusunda herhangi bir şüphe veya belirsizlik yaşanırsa varsayımda bulunulmamalı, **doğrudan kullanıcıya sorulmalıdır** (*"81 il verilerini de güncelleyeyim mi?"*).
-
----
-
-### Çalıştırılacak Komutlar:
-
-- **Standart / Otomatik Komut (1 saat kontrolü devrededir):**
-```powershell
-python scripts/scrape_all_provinces.py
-```
-*(veya sanal ortam için: `.venv\Scripts\python.exe scripts/scrape_all_provinces.py`)*
-
-- **Manuel İstek Üzerine Zorlayarak Çalıştırma (1 saat kuralını atlar):**
-```powershell
-python scripts/scrape_all_provinces.py --force
-```
-
-### Detaylar:
-- **Altyapı (81 İl) Taraması:** Bu komut 81 ilin TVF bültenlerini eşzamanlı (multi-threaded) olarak tarar. `data/cities/*.json`, `data/cities.json` ve `data/fixtures.json` dosyalarını günceller.
-- **TVF Kadınlar 2. Ligi (Ayrı / Bağımsız Scraper):** Kadınlar 2. Ligi verilerini bağımsız çekmek için:
-  ```powershell
-  python scripts/scrape_kadinlar_2_lig.py
-  ```
-  `data/kadinlar_2_lig.json` ve ilgili Volleybox eşleşmelerini bağımsız olarak günceller.
-- **TVF Vodafone Sultanlar Ligi:** Sultanlar Ligi verilerini bağımsız çekmek için:
-  ```powershell
-  python scripts/scrape_sultanlar_ligi.py
-  ```
-  `data/sultanlar_ligi.json` ve Volleybox maçlarını günceller.
-- **TVF Arabica Coffee House Kadınlar Voleybol 1. Ligi:** Kadınlar 1. Ligi verilerini bağımsız çekmek için:
-  ```powershell
-  python scripts/scrape_kadinlar_1_lig.py
-  ```
-  `data/kadinlar_1_lig.json` ve Volleybox maçlarını günceller.
-- **Profesyonel Ligler (Birleşik Çalıştırıcı):** Sultanlar Ligi ve Kadınlar 1. Ligi'ni (veya `--all` ile 2. Lig dahil) birlikte çekmek için:
-  ```powershell
-  python scripts/scrape_pro_leagues.py
-  # veya npm komutları:
-  npm run scrape:pro
-  npm run scrape:sultanlar-ligi
-  npm run scrape:kadinlar-1-lig
-  ```
-- Tüm scriptler kendi Volleybox maç senkronizasyonunu (`scripts/sync_volleybox_matches.py`) güvenli şekilde tamamlar.
-- Script tamamlandıktan sonra özet kullanıcıya bildirilir.
+> Bu uygulama öncelikli olarak **Vodafone Sultanlar Ligi**, **Kadınlar 1. Ligi** ve **Kadınlar 2. Ligi** profesyonel liglerine odaklıdır.
+> Otomatik 81 il altyapı taraması varsayılan olarak ÇALIŞTIRILMAZ.
+> Lig verileri ihtiyaç duyulduğunda manuel veya profesyonel lig scraper'ı ile güncellenir:
+> `powershell
+> python scripts/scrape_pro_leagues.py --all
+> `
 
 ## 🏙️ KURAL: Şehir Allowlist'i (`src/utils/citySlugs.ts`)
 

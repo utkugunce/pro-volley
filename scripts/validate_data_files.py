@@ -93,7 +93,6 @@ def main():
         print_validation_summary(label, result)
 
     freshness_files = [
-        "data/cities.json",
         "data/kadinlar_2_lig.json",
         "data/sultanlar_ligi.json",
         "data/kadinlar_1_lig.json",
