@@ -28,6 +28,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+# Windows kullanici adinda Turkce/ASCII-disi karakterler oldugunda curl_cffi CA yolunu okuyamayabilir (curl error 77).
+try:
+    import certifi, tempfile, shutil
+    _ca_orig = certifi.where()
+    _tmp_ca = os.path.join(tempfile.gettempdir(), 'cacert_ascii.pem')
+    if not os.path.exists(_tmp_ca):
+        shutil.copy(_ca_orig, _tmp_ca)
+    os.environ.setdefault('CURL_CA_BUNDLE', _tmp_ca)
+    os.environ.setdefault('SSL_CERT_FILE', _tmp_ca)
+except Exception:
+    pass
+
 from scripts.scrape_sultanlar_ligi import main as run_sultanlar
 from scripts.scrape_kadinlar_1_lig import main as run_kadinlar_1
 from scripts.scrape_kadinlar_2_lig import main as run_kadinlar_2
