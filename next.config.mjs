@@ -55,6 +55,8 @@ const nextConfig = {
     "/**/*": [
       "./data/cities.json",
       "./data/fixtures.json",
+      "./data/sultanlar_ligi.json",
+      "./data/kadinlar_1_lig.json",
       "./data/kadinlar_2_lig.json",
       "./data/manual-overrides.json",
       "./data/cities/**/*",
