@@ -94,6 +94,7 @@ WITHDRAWN_TEAMS = {
     "KAVAK SPOR",  # Grup 11: TVF "ligden çekildi ve mağlubiyetle düştü"
     "KARTAL ANADOLU",  # Grup 4: TVF "ligden çekildi ve mahalli lige düştü"
     "YALOVA ÇİFTLİKKÖY BLD. SPOR",  # Grup 9: TVF "ligden çekildi ve mahalli lige düştü"
+    "SİVEREK BELEDİYE SPOR",  # Grup 16: TVF / Volleybox ligden çekildi
 }
 
 def extract_standings_from_snapshot(snap_dict):
@@ -236,7 +237,7 @@ KNOWN_2_LIG_ALIASES = {
 }
 
 KNOWN_2_LIG_PROFILE_OVERRIDES = {
-    "alpspor": ("https://women.volleybox.net/tr/stanbul-alp-spor-t36171", "Alp Voleybol Kulübü"),
+    "alpspor": ("https://women.volleybox.net/tr/stanbul-alp-spor-t36171", "İstanbul Alp Spor Kulübü"),
     "asyakartallarikamarinspor": ("https://women.volleybox.net/tr/kamarin-spor-kulubu-t36145", "Kamarin Asya Kartalları SK"),
     "muglaturkfethiyezirve": ("https://women.volleybox.net/tr/fethiye-zirve-spor-kulubu-t19942", "Fethiye Zirve Spor Kulübü"),
     "ptt": ("https://women.volleybox.net/tr/ptt-spor-ii-t9985", "PTT Spor II"),
@@ -248,7 +249,6 @@ KNOWN_2_LIG_PROFILE_OVERRIDES = {
     "mardinderikrota": ("https://women.volleybox.net/tr/derik-rota-spor-kulubu-t45209", "Derik Rota Spor Kulübü"),
     "duzcevoleybol": ("https://women.volleybox.net/tr/duzce-voleybol-sk-t21292", "Düzce Voleybol SK"),
     "msefiloelazigekolspor": ("https://women.volleybox.net/tr/elazg-ekol-spor-t36123", "MSE Filo Elazığ Ekol Spor Kulübü"),
-    "siverekbelediyespor": ("https://women.volleybox.net/tr/siverek-belediye-spor-kulubu-t45575", "Siverek Voleybol Spor Kulübü"),
     "adanabsehirbelediyespor": ("https://women.volleybox.net/tr/adana-bsehir-bld-t13590", "Adana Büyükşehir Belediyespor Kulübü"),
 }
 

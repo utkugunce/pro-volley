@@ -39,6 +39,7 @@ WITHDRAWN_TEAMS = {
     "kavak spor", "kavak spor kulübü",
     "kartal anadolu",
     "YALOVA ÇİFTLİKKÖY BLD. SPOR".lower(),
+    "siverek belediye spor", "siverek voleybol spor kulübü", "siverek belediyespor",
 }
 
 def _ordered_union(existing, extra):

@@ -16344,30 +16344,6 @@
       "local_logo": "/logos/silopi-gelisim-faaliyetleri-t20790.png"
     },
     {
-      "internal_name": "SİVEREK BELEDİYE SPOR",
-      "internal_category": "Kadınlar 2. Ligi",
-      "city": "Şanliurfa",
-      "city_slug": "sanliurfa",
-      "matched_as": "Siverek Voleybol Spor Kulübü",
-      "volleybox_url": "https://women.volleybox.net/tr/siverek-belediye-spor-kulubu-t45575",
-      "age_category": "A Takım",
-      "confidence": "verified",
-      "note": "Grup 16",
-      "verified_at": "2026-09-25",
-      "aliases": [
-        "Siverek Voleybol Spor Kulübü",
-        "Siverek Voleybol SK",
-        "Siverek Belediye Spor Kulübü",
-        "Siverek Kadın Voleybol Takımı",
-        "SİVEREK BELEDİYE SPOR KULÜBÜ",
-        "SİVEREK BELEDİYE SPOR",
-        "Siverek Belediye Spor",
-        "Siverek Belediyespor"
-      ],
-      "logo_url": "/logos/siverek-belediye-spor-kulubu-t45575.png",
-      "local_logo": "/logos/siverek-belediye-spor-kulubu-t45575.png"
-    },
-    {
       "internal_name": "ÇANAKKALE ONSEKİZ MART ÜNİVERSİTESİ",
       "internal_category": "Kadınlar 2. Ligi",
       "city": "Balikesi̇r",
@@ -16434,13 +16410,14 @@
       "internal_category": "Kadınlar 2. Ligi",
       "city": "İstanbul",
       "city_slug": "i-stanbul",
-      "matched_as": "Alp Voleybol Kulübü",
+      "matched_as": "İstanbul Alp Spor Kulübü",
       "volleybox_url": "https://women.volleybox.net/tr/stanbul-alp-spor-t36171",
       "age_category": "A Takım",
       "confidence": "verified",
       "note": "Grup 4",
       "verified_at": "2026-09-25",
       "aliases": [
+        "İstanbul Alp Spor Kulübü",
         "Alp Voleybol Kulübü",
         "ALP SPOR KULÜBÜ"
       ],
