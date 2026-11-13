@@ -3,7 +3,7 @@
     "lig_adi": "Arabica Coffee House Kadınlar Voleybol 1. Ligi",
     "sezon": "2026-2027",
     "kategori": "Kadınlar 1. Ligi",
-    "guncellenme_zamani": "2026-11-13T11:38:00.000000",
+    "guncellenme_zamani": "2026-11-13T16:51:55.650470",
     "toplam_grup_sayisi": 2,
     "toplam_takim_sayisi": 28,
     "toplam_mac_sayisi": 169,
@@ -14,9 +14,7 @@
       "tvf_fsw_portal": "https://tvf.org.tr/lig/kadinlar-1-ligi",
       "volleybox_turnuva": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-1-ligi-2026-27-o45210",
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-1-ligi-2026-27-o45210/matches"
-    },
-    "volleybox_synced_matches": 0,
-    "volleybox_sync_updated_at": "2026-11-13T19:37:32.807879"
+    }
   },
   "gruplar": [
     {
