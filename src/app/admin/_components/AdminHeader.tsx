@@ -50,7 +50,7 @@ export function AdminHeader({ activeTab, auditLogs, handleLogout, handleTriggerL
         </Link>
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-black text-white text-base tracking-tight">Altyapı Voleybol</span>
+            <span className="font-black text-white text-base tracking-tight">Pro Voleybol</span>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
               MANUEL DÜZELTME
             </span>

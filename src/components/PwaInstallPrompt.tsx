@@ -122,7 +122,7 @@ export const PwaInstallPrompt: React.FC = () => {
             size="sm"
             onClick={handleInstallClick}
             className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-ink hover:bg-white/5 cursor-pointer rounded-none border-0"
-            title="Altyapı Voleybol uygulamasını telefonunuza veya bilgisayarınıza yükleyin"
+            title="Pro Voleybol uygulamasını telefonunuza veya bilgisayarınıza yükleyin"
           >
             <Smartphone size={14} className="text-primary mr-1" />
             {/* Buton yükleme sonrası (beforeinstallprompt) görünür; 1400 px altında kısa etiket kullanılır ki

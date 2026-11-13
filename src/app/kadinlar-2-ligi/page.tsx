@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "Türkiye Voleybol Federasyonu Uzman Posta Kadınlar 2. Ligi 16 grup resmi puan cetveli, haftalık maç fikstürleri, salon bilgileri ve Volleybox kadroları.",
   alternates: {
-    canonical: "https://altyapivoleybol.com.tr/kadinlar-2-ligi",
+    canonical: "https://pro-volley.onrender.com/kadinlar-2-ligi",
   },
   openGraph: {
     title: "TVF Kadınlar 2. Ligi — Canlı Puan Durumu & Fikstür",
     description:
       "TVF Kadınlar 2. Ligi 16 grup puan durumu, fikstür, sonuçlar ve Volleybox eşleşmeleri.",
     type: "website",
-    url: "https://altyapivoleybol.com.tr/kadinlar-2-ligi",
+    url: "https://pro-volley.onrender.com/kadinlar-2-ligi",
     images: [{ url: "/icon.svg", width: 512, height: 512, alt: "TVF Kadınlar 2. Ligi" }],
   },
 };

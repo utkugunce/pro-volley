@@ -61,7 +61,7 @@ function generateVEvent(match: Match): string | null {
     `${match.category || "TVF Voleybol Ligi"} - ${match.group || ""}`.trim(),
     match.score && match.score !== "- : -" ? `Skor: ${match.score}` : "",
     match.match_no ? `Maç No: ${match.match_no}` : "",
-    "Kaynak: Altyapı Voleybol",
+    "Kaynak: Pro Voleybol",
   ].filter(Boolean);
 
   const desc = escapeIcsText(descLines.join("\n"));
@@ -112,11 +112,11 @@ export function generateSeasonIcs(matches: Match[], calendarName: string): strin
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//altyapivoleybol.com.tr//TR",
+    "PRODID:-//pro-volley.onrender.com//TR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeIcsText(calendarName)}`,
-    `X-WR-CALDESC:${escapeIcsText(`${calendarName} - Canlı Maç Takvimi (Altyapı Voleybol)`)}`,
+    `X-WR-CALDESC:${escapeIcsText(`${calendarName} - Canlı Maç Takvimi (Pro Voleybol)`)}`,
     "X-WR-TIMEZONE:Europe/Istanbul",
     "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
     "X-PUBLISHED-TTL:PT1H",

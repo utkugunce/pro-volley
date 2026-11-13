@@ -23,7 +23,7 @@ export const DashboardFooter: React.FC<DashboardFooterProps> = ({ city }) => {
     <footer className="py-4 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] sm:pb-4 text-center text-xs text-ink-2 no-print border-t border-line/40 mt-8">
       <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p className="font-semibold text-ink">
-          Altyapı Voleybol • {city || "Türkiye"} Genç & Yıldız Kızlar Süper Lig
+          Pro Voleybol • {city || "Türkiye"} Voleybol Ligleri
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] text-ink-2">
           <span>Fikstür & Puan Durumu</span>

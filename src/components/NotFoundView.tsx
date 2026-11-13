@@ -85,7 +85,7 @@ export function NotFoundView() {
       </div>
 
       <footer className="text-center text-[11px] text-ink-3 pb-4">
-        <p>Altyapı Voleybol • TVF Türkiye Altyapı Ligleri</p>
+        <p>Pro Voleybol • TVF Profesyonel Voleybol Ligleri</p>
       </footer>
     </main>
   );

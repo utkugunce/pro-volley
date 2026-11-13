@@ -246,7 +246,7 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
         }}
         className="text-center text-[11px] text-ink-3 pb-4"
       >
-        <p style={{ margin: 0 }}>Altyapı Voleybol • TVF Türkiye Altyapı Ligleri</p>
+        <p style={{ margin: 0 }}>Pro Voleybol • TVF Profesyonel Voleybol Ligleri</p>
       </footer>
     </main>
   );

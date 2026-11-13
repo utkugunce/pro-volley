@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "Türkiye Voleybol Federasyonu Vodafone Sultanlar Ligi resmi puan cetveli, haftalık maç fikstürleri, salon bilgileri ve Volleybox kadroları.",
   alternates: {
-    canonical: "https://altyapivoleybol.com.tr/sultanlar-ligi",
+    canonical: "https://pro-volley.onrender.com/sultanlar-ligi",
   },
   openGraph: {
     title: "Vodafone Sultanlar Ligi — Canlı Puan Durumu & Fikstür",
     description:
       "TVF Vodafone Sultanlar Ligi puan durumu, fikstür, sonuçlar ve Volleybox eşleşmeleri.",
     type: "website",
-    url: "https://altyapivoleybol.com.tr/sultanlar-ligi",
+    url: "https://pro-volley.onrender.com/sultanlar-ligi",
     images: [{ url: "/icon.svg", width: 512, height: 512, alt: "Vodafone Sultanlar Ligi" }],
   },
 };

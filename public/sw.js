@@ -1,7 +1,7 @@
-// public/sw.js — Altyapı Voleybol Service Worker
-const CACHE_NAME = "altyapi-voleybol-v6";
+// public/sw.js — Pro Voleybol Service Worker
+const CACHE_NAME = "pro-voleybol-v1";
 // Son görülen fikstür/il verisi ayrı bir önbellekte tutulur (çevrimdışıyken gösterilir).
-const DATA_CACHE_NAME = "altyapi-voleybol-data-v2";
+const DATA_CACHE_NAME = "pro-voleybol-data-v1";
 const DATA_CACHE_MAX_ENTRIES = 40;
 const STATIC_CACHE_MAX_ENTRIES = 60;
 const OFFLINE_URL = "/offline.html";
@@ -225,7 +225,7 @@ self.addEventListener("push", (event) => {
 
   try {
     const payload = event.data.json();
-    const title = payload.title || "Altyapı Voleybol";
+    const title = payload.title || "Pro Voleybol";
     const options = {
       body: payload.body || "Favori takımınızın maçı yaklaşıyor!",
       icon: payload.icon || "/icons/icon-192.png",

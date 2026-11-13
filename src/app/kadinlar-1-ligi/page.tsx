@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "Türkiye Voleybol Federasyonu Arabica Coffee House Kadınlar Voleybol 1. Ligi A ve B grubu resmi puan cetveli, haftalık maç fikstürleri, salon bilgileri ve Volleybox kadroları.",
   alternates: {
-    canonical: "https://altyapivoleybol.com.tr/kadinlar-1-ligi",
+    canonical: "https://pro-volley.onrender.com/kadinlar-1-ligi",
   },
   openGraph: {
     title: "Arabica Coffee House Kadınlar Voleybol 1. Ligi — Canlı Puan Durumu & Fikstür",
     description:
       "Arabica Coffee House Kadınlar Voleybol 1. Ligi 2 grup puan durumu, fikstür, sonuçlar ve Volleybox eşleşmeleri.",
     type: "website",
-    url: "https://altyapivoleybol.com.tr/kadinlar-1-ligi",
+    url: "https://pro-volley.onrender.com/kadinlar-1-ligi",
     images: [{ url: "/icon.svg", width: 512, height: 512, alt: "Arabica Coffee House Kadınlar Voleybol 1. Ligi" }],
   },
 };

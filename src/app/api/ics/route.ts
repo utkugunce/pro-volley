@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
   try {
     let matches: Match[] = [];
-    let calendarTitle = "Altyapı Voleybol Maç Takvimi";
+    let calendarTitle = "Pro Voleybol Maç Takvimi";
     let filename = "voleybol-takvim";
 
     if (teamParam) {
