@@ -14,8 +14,11 @@ import { Kadinlar2LigTabType } from "./Kadinlar2LigHeader";
 interface Kadinlar2LigMobileNavProps {
   activeTab: Kadinlar2LigTabType;
   onSelectTab: (tab: Kadinlar2LigTabType) => void;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavorites?: () => void;
+  /** @deprecated Favorites UI removed */
   favoriteCount?: number;
   todayMatchesCount?: number;
   resultsCount?: number;

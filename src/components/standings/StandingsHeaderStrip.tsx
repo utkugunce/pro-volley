@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trophy, Download, Share2 } from "lucide-react";
+import { Trophy, Download, Share2, AlertTriangle } from "lucide-react";
 import type { StandingItem } from "@/types/fixture";
 import { LeagueVolleyboxLink } from "@/components/LeagueVolleyboxLink";
 import { downloadStandingsCsv } from "@/utils/standingsCsv";
@@ -16,22 +16,26 @@ interface StandingsHeaderStripProps {
   items: StandingItem[];
   showSimulator?: boolean;
   onToggleSimulator?: () => void;
+  forfeitCount?: number;
+  discrepancyCount?: number;
 }
 
-/** Başlık Şeridi: lig / grup adı, Paylaş / CSV indirme düğmeleri ve takım sayısı. */
+/** Başlık Şeridi: lig / grup adı, operatör uyarı rozeti, Paylaş / CSV indirme düğmeleri ve takım sayısı. */
 export function StandingsHeaderStrip({
   activeContext,
   city,
   items,
   showSimulator,
   onToggleSimulator,
+  forfeitCount = 0,
+  discrepancyCount = 0,
 }: StandingsHeaderStripProps) {
   const [showShareModal, setShowShareModal] = useState(false);
 
   return (
     <>
       <div className="bg-surface text-ink px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 border-b border-line/70">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-wrap">
           <Trophy size={15} className="text-primary shrink-0" />
           <h2 className="text-xs sm:text-sm font-bold tracking-tight truncate">
             <LeagueVolleyboxLink
@@ -45,6 +49,22 @@ export function StandingsHeaderStrip({
               ? ` • ${activeContext.displayGroup.toLocaleUpperCase("tr-TR")}`
               : ""}
           </h2>
+          {(forfeitCount > 0 || discrepancyCount > 0) && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-500/40 font-scoreboard tabular-nums shrink-0"
+              title="Bu grupta hükmen sonuçlanan maç veya TVF puan/maç sayısı uyuşmazlığı tespit edildi — Volleybox girişinde kontrol edin."
+            >
+              <AlertTriangle size={11} className="text-amber-400 shrink-0" />
+              <span>
+                {[
+                  forfeitCount > 0 ? `Hükmen Maç: ${forfeitCount}` : "",
+                  discrepancyCount > 0 ? `VB Puan Kontrolü (${discrepancyCount})` : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {onToggleSimulator && (

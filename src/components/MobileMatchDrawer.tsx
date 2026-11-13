@@ -10,7 +10,9 @@ export interface MobileMatchDrawerProps {
   onClose: () => void;
   allMatches?: Match[];
   standings?: Record<string, StandingItem[]>;
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
+  /** @deprecated Favorites UI removed */
   isFavorite?: boolean;
 }
 
@@ -20,8 +22,6 @@ export const MobileMatchDrawer: React.FC<MobileMatchDrawerProps> = ({
   onClose,
   allMatches = [],
   standings = {},
-  onToggleFavorite,
-  isFavorite = false,
 }) => {
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -105,8 +105,6 @@ export const MobileMatchDrawer: React.FC<MobileMatchDrawerProps> = ({
             allMatches={allMatches}
             standings={standings}
             onClose={onClose}
-            onToggleFavorite={onToggleFavorite}
-            isFavorite={isFavorite}
           />
         </div>
       </div>

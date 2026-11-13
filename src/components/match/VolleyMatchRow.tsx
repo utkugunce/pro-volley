@@ -1,18 +1,20 @@
 "use client";
 
 import React from "react";
-import { Star, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Match } from "@/types/fixture";
 import { TeamBadge } from "@/components/TeamBadge";
 import { formatDateTurkish, getYesterdayString, isMatchPassed } from "@/utils/calendar";
 import { isMatchScored } from "@/utils/matchScoring";
 import { getMatchForfeitInfo } from "@/utils/forfeit";
-import { getVolleyboxMapping } from "@/utils/volleybox";
+import { resolveVolleyboxTeamMapping } from "@/utils/volleyboxWorkbench";
 
 export interface VolleyMatchRowProps {
   match: Match;
   isSelected?: boolean;
+  /** @deprecated Favorites UI removed */
   isFavorite?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
   onSelectMatch?: (m: Match) => void;
   todayStr?: string;
@@ -20,25 +22,23 @@ export interface VolleyMatchRowProps {
   cityName?: string;
   city?: string;
   leagueLabel?: string;
+  /** @deprecated */
   showHall?: boolean;
+  /** @deprecated */
   showDate?: boolean;
+  /** @deprecated */
   showGroupBadge?: boolean;
 }
 
 export const VolleyMatchRow: React.FC<VolleyMatchRowProps> = ({
   match,
   isSelected = false,
-  isFavorite = false,
-  onToggleFavorite = () => {},
   onSelectMatch = () => {},
   todayStr,
   leagueFallback,
   cityName,
   city,
   leagueLabel,
-  showHall,
-  showDate,
-  showGroupBadge,
 }) => {
   const effectiveCity = cityName || city || match.city;
   const effectiveLeague = leagueLabel || leagueFallback || match.category;
@@ -56,8 +56,8 @@ export const VolleyMatchRow: React.FC<VolleyMatchRowProps> = ({
       : "Program";
 
   const mappingCategory = effectiveLeague;
-  const homeMapping = getVolleyboxMapping(match.home_team, mappingCategory, undefined, effectiveCity);
-  const awayMapping = getVolleyboxMapping(match.away_team, mappingCategory, undefined, effectiveCity);
+  const homeMapping = resolveVolleyboxTeamMapping(match.home_team, mappingCategory, effectiveCity);
+  const awayMapping = resolveVolleyboxTeamMapping(match.away_team, mappingCategory, effectiveCity);
   const homeLogo = homeMapping?.local_logo || homeMapping?.logo_url;
   const awayLogo = awayMapping?.local_logo || awayMapping?.logo_url;
 
@@ -180,7 +180,7 @@ export const VolleyMatchRow: React.FC<VolleyMatchRowProps> = ({
         </div>
       </div>
 
-      {/* 3. Sağ Sütun: Set Sütunları (S1-S5) + Toplam Set Skoru + Favori */}
+      {/* 3. Sağ Sütun: Set Sütunları (S1-S5) + Toplam Set Skoru */}
       <div className="shrink-0 flex items-center gap-2">
         {/* Hizalı Set Sütunları */}
         {parsedSets.length > 0 && (
@@ -227,22 +227,6 @@ export const VolleyMatchRow: React.FC<VolleyMatchRowProps> = ({
             {hasScore && awayScore !== undefined ? awayScore : "-"}
           </span>
         </div>
-
-        {/* Favori Yıldızı */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(match.id);
-          }}
-          className={`p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg transition-colors ${
-            isFavorite ? "text-warn" : "text-ink-3 hover:text-warn"
-          }`}
-          title={isFavorite ? "Favorilerden Çıkar" : "Favoriye Ekle"}
-          aria-label={isFavorite ? "Favorilerden Çıkar" : "Favoriye Ekle"}
-        >
-          <Star size={14} className={isFavorite ? "fill-warn" : ""} />
-        </button>
       </div>
     </div>
   );

@@ -13,8 +13,6 @@ const SpotlightSearchModal = dynamic(
   () => import("@/components/SpotlightSearchModal").then((mod) => mod.SpotlightSearchModal),
   { ssr: false }
 );
-import { useFavorites } from "@/utils/useFavorites";
-import { generateSeasonIcs, downloadIcsFile } from "@/utils/ics";
 import { compareMatchDateTime, isMatchPlayedOrScored } from "@/utils/calendar";
 import { formatGroupName } from "@/utils/grouping";
 import { slugify } from "@/utils/slugify";
@@ -61,8 +59,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
-
-  const { favoriteTeams: favorites, isFavorite, toggleFavorite } = useFavorites();
 
   // Bugün & Dün — yalnızca client tarafında hesaplanır (hydration error #418 önleme)
   const [todayStr, setTodayStr] = useState("");
@@ -244,13 +240,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
     return list;
   }, [league.teams, selectedGroup, teamSearchQuery]);
 
-  // Takvim (.ics) indirme
-  const handleDownloadCalendar = () => {
-    if (league.matches.length === 0) return;
-    const icsContent = generateSeasonIcs(league.matches, league.leagueName);
-    downloadIcsFile(`${slugify(league.leagueName)}-sezon-fikstur.ics`, icsContent);
-  };
-
   // CSV İndirme
   const handleDownloadCsv = () => {
     const allRows = league.groups.flatMap((g) => g.table);
@@ -285,7 +274,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
 
       {/* 2. LİG HERO BİLGİ ALANI */}
       <LeagueHero
-        handleDownloadCalendar={handleDownloadCalendar}
         handleDownloadCsv={handleDownloadCsv}
         league={league}
         progressPercent={progressPercent}
@@ -309,12 +297,10 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
             displayedFinishedMatches={displayedFinishedMatches}
             displayedGroups={displayedGroups}
             displayedUpcomingMatches={displayedUpcomingMatches}
-            favorites={favorites}
             finishedSections={finishedSections}
             league={league}
             setActiveTab={setActiveTab}
             setSelectedMatch={setSelectedMatch}
-            toggleFavorite={toggleFavorite}
             upcomingSections={upcomingSections}
           />
         )}
@@ -323,7 +309,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
         {activeTab === "fixtures" && (
           <LeagueFixturesTab
             displayedUpcomingMatches={displayedUpcomingMatches}
-            favorites={favorites}
             fixtureDateCounts={fixtureDateCounts}
             league={league}
             selectedFixtureDate={selectedFixtureDate}
@@ -332,7 +317,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
             setTeamSearchQuery={setTeamSearchQuery}
             teamSearchQuery={teamSearchQuery}
             todayStr={todayStr}
-            toggleFavorite={toggleFavorite}
             uniqueFixtureDates={uniqueFixtureDates}
             upcomingSections={upcomingSections}
             yesterdayStr={yesterdayStr}
@@ -343,7 +327,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
         {activeTab === "results" && (
           <LeagueResultsTab
             displayedFinishedMatches={displayedFinishedMatches}
-            favorites={favorites}
             finishedSections={finishedSections}
             league={league}
             resultDateCounts={resultDateCounts}
@@ -353,7 +336,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
             setTeamSearchQuery={setTeamSearchQuery}
             teamSearchQuery={teamSearchQuery}
             todayStr={todayStr}
-            toggleFavorite={toggleFavorite}
             uniqueResultDates={uniqueResultDates}
             yesterdayStr={yesterdayStr}
           />
@@ -380,8 +362,6 @@ export const LeagueHubClient: React.FC<LeagueHubClientProps> = ({
         match={selectedMatch}
         onClose={() => setSelectedMatch(null)}
         city={league.city}
-        isFavorite={selectedMatch ? isFavorite(selectedMatch.id) : false}
-        onToggleFavorite={selectedMatch ? () => toggleFavorite(selectedMatch.id) : undefined}
       />
 
       {/* Spotlight Arama Modalı */}

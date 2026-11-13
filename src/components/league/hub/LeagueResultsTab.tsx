@@ -10,7 +10,8 @@ import { LeagueData } from "@/utils/leagueData";
 
 export interface LeagueResultsTabProps {
   displayedFinishedMatches: Match[];
-  favorites: string[];
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
   finishedSections: { title: string; subTitle: string; matches: Match[] }[];
   league: LeagueData;
   resultDateCounts: { [dateStr: string]: number };
@@ -20,14 +21,14 @@ export interface LeagueResultsTabProps {
   setTeamSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   teamSearchQuery: string;
   todayStr: string;
-  toggleFavorite: (teamName: string) => void;
+  /** @deprecated Favorites UI removed */
+  toggleFavorite?: (teamName: string) => void;
   uniqueResultDates: string[];
   yesterdayStr: string;
 }
 
 export function LeagueResultsTab({
   displayedFinishedMatches,
-  favorites,
   finishedSections,
   league,
   resultDateCounts,
@@ -37,7 +38,6 @@ export function LeagueResultsTab({
   setTeamSearchQuery,
   teamSearchQuery,
   todayStr,
-  toggleFavorite,
   uniqueResultDates,
   yesterdayStr,
 }: LeagueResultsTabProps) {
@@ -119,8 +119,6 @@ export function LeagueResultsTab({
               title={sec.title}
               subTitle={sec.subTitle}
               matches={sec.matches}
-              favorites={favorites}
-              onToggleFavorite={toggleFavorite}
               city={league.city}
               showCityBadge={false}
               onSelectMatch={setSelectedMatch}

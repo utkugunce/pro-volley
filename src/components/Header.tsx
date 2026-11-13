@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { Printer, Star, Search, BookOpen } from "lucide-react";
+import { Printer, Search } from "lucide-react";
 import { CitySelector } from "@/components/CitySelector";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
@@ -19,14 +18,17 @@ interface HeaderProps {
   cities?: CityInfo[];
   title?: string;
   updatedAt?: string;
-  /** Verilmezse FİKSTÜR sekmesinde sayı rozeti gösterilmez (ör. /takvim sayfası). */
+  /** Verilmezse FİKSTÜR sekmesinde sayı rozeti gösterilmez. */
   totalMatches?: number;
   todayMatchesCount?: number;
   resultsCount?: number;
-  favoritesCount: number;
-  showOnlyFavorites: boolean;
-  onToggleFavoritesOnly: () => void;
-  /** "calendar": /takvim sayfası (ayrı rota; sekme düğmesi yerine bağlantıdır). */
+  /** @deprecated Favorites UI removed */
+  favoritesCount?: number;
+  /** @deprecated Favorites UI removed */
+  showOnlyFavorites?: boolean;
+  /** @deprecated Favorites UI removed */
+  onToggleFavoritesOnly?: () => void;
+  /** "calendar": /takvim sayfası. */
   activeTab: "home" | "results" | "today" | "fixtures" | "standings" | "group-status" | "calendar";
   onSelectTab: (tab: "home" | "results" | "today" | "fixtures" | "standings" | "group-status") => void;
   isLoading?: boolean;
@@ -42,9 +44,6 @@ export const Header: React.FC<HeaderProps> = ({
   totalMatches,
   todayMatchesCount = 0,
   resultsCount,
-  favoritesCount,
-  showOnlyFavorites,
-  onToggleFavoritesOnly,
   activeTab,
   onSelectTab,
   onOpenSearch,
@@ -54,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-canvas text-white border-b border-line/70 pt-[env(safe-area-inset-top,0px)]">
-      {/* 1. Üst Global Bar: Marka + Bütünleşik Lig Seçici (Altyapı / 2. Lig) + İl Seçici */}
+      {/* 1. Üst Global Bar: Marka + Bütünleşik Lig Seçici (Altyapı / Pro Ligler) + İl Seçici */}
       <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 flex flex-wrap min-[1200px]:flex-nowrap items-center justify-between border-b border-line/50 gap-x-2.5 gap-y-1.5">
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-[1200px]:flex-nowrap min-[1200px]:min-w-0 min-[1200px]:[&>*:not(.hdr-tagline)]:shrink-0">
           <BrandLogo onClick={() => onSelectTab("home")} />
@@ -72,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Sağ Taraf: Arama, Favoriler, Son Çekim, Ayarlar, Yazdır */}
+        {/* Sağ Taraf: Arama, Son Çekim, Ayarlar, Yazdır */}
         <div className="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           {onOpenSearch && (
             <button
@@ -87,32 +86,6 @@ export const Header: React.FC<HeaderProps> = ({
               <kbd className="hidden md:inline-flex items-center text-[9px] font-mono text-ink-3 px-1" aria-hidden="true">
                 ⌘K
               </kbd>
-            </button>
-          )}
-
-          {(activeTab === "fixtures" || activeTab === "home" || activeTab === "today" || activeTab === "results") && (
-            <button
-              type="button"
-              onClick={onToggleFavoritesOnly}
-              aria-label={t("header.favorites")}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors active:scale-[0.98] cursor-pointer ${
-                showOnlyFavorites
-                  ? "bg-warn text-black font-bold"
-                  : "bg-surface text-ink-2 hover:text-white hover:bg-surface-raised border border-line/60"
-              }`}
-              title="Sadece Favori Maçları Göster"
-            >
-              <Star
-                size={13}
-                className={showOnlyFavorites ? "fill-black text-black" : "text-warn"}
-                aria-hidden="true"
-              />
-              <span className="hidden sm:inline">{t("header.favorites")}</span>
-              {favoritesCount > 0 && (
-                <span className="text-[10px] font-mono tabular-nums opacity-85">
-                  {favoritesCount}
-                </span>
-              )}
             </button>
           )}
 
@@ -240,31 +213,6 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <span>{t("nav.groupStatus")}</span>
         </button>
-
-        <Link
-          href="/takvim"
-          prefetch={false}
-          aria-current={activeTab === "calendar" ? "page" : undefined}
-          className={`flex items-center gap-1.5 py-2.5 px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider border-b-2 transition-colors cursor-pointer whitespace-nowrap duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            activeTab === "calendar"
-              ? "border-primary text-white"
-              : "border-transparent text-ink-2 hover:text-white"
-          }`}
-        >
-          <span>{t("nav.calendar")}</span>
-        </Link>
-
-        {/* Voleybol Rehberi & Programmatic SEO (ayrı rota: /rehber) */}
-        <Link
-          href="/rehber"
-          prefetch={false}
-          className="flex items-center gap-1.5 py-2.5 px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider border-b-2 transition-colors cursor-pointer whitespace-nowrap duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] border-transparent text-ink-2 hover:text-white"
-          title="Voleybol Bilgi Bankası, Kurallar ve Statüler Rehberi"
-        >
-          <BookOpen size={13} className="text-ink-3" />
-          <span>{t("nav.guide")}</span>
-        </Link>
-
       </nav>
     </header>
   );

@@ -11,7 +11,6 @@ import {
   MapPin,
   Calendar,
   Clock,
-  Star,
   ExternalLink,
   BarChart3,
   Flame,
@@ -19,7 +18,6 @@ import {
   X,
   Swords,
   UserCheck,
-  CalendarPlus,
   Copy,
   Check,
   Link2,
@@ -27,10 +25,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getHallNavigationUrl } from "@/utils/halls";
-import { generateMatchIcs, downloadIcsFile } from "@/utils/ics";
 import { slugify } from "@/utils/slugify";
 import { triggerHaptic } from "@/utils/haptics";
-import { getVolleyboxMapping } from "@/utils/volleybox";
+import {
+  formatMatchForVolleyboxCopy,
+  formatSetScoresForVolleybox,
+  getResolvedVolleyboxHallName,
+  getResolvedVolleyboxTeamName,
+  getVolleyboxTournamentMatchesUrl,
+  resolveVolleyboxLeagueMapping,
+  resolveVolleyboxTeamMapping,
+} from "@/utils/volleyboxWorkbench";
 import { formatLeagueCategoryTitle, formatGroupName } from "@/utils/grouping";
 import { trLower } from "@/utils/turkishLocale";
 
@@ -43,7 +48,9 @@ export interface MatchInspectorPanelProps {
   allMatches?: Match[];
   standings?: Record<string, StandingItem[]>;
   onClose?: () => void;
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (matchId: string) => void;
+  /** @deprecated Favorites UI removed */
   isFavorite?: boolean;
   isLoading?: boolean;
   className?: string;
@@ -94,14 +101,12 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
   allMatches = [],
   standings = {},
   onClose,
-  onToggleFavorite,
-  isFavorite = false,
   className = "",
 }) => {
   const [activeTab, setActiveTab] = useState<"overview" | "h2h" | "standings">("overview");
   const [showShareModal, setShowShareModal] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<{
-    action: "text" | "link";
+    action: "text" | "link" | "vb-home" | "vb-away" | "vb-sets" | "vb-line" | "vb-date" | "vb-time" | "vb-hall";
     status: "success" | "error";
   } | null>(null);
   const copyFeedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -138,8 +143,15 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
 
   const statusLabel = getStatusLabel();
 
-  const homeMapping = getVolleyboxMapping(match.home_team, match.category, undefined, effectiveCity);
-  const awayMapping = getVolleyboxMapping(match.away_team, match.category, undefined, effectiveCity);
+  const homeMapping = resolveVolleyboxTeamMapping(match.home_team, match.category, effectiveCity);
+  const awayMapping = resolveVolleyboxTeamMapping(match.away_team, match.category, effectiveCity);
+  const leagueVbMapping = resolveVolleyboxLeagueMapping(match.category, effectiveCity);
+  const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(match.category, effectiveCity);
+  const vbHomeName = getResolvedVolleyboxTeamName(match.home_team, match.category, effectiveCity);
+  const vbAwayName = getResolvedVolleyboxTeamName(match.away_team, match.category, effectiveCity);
+  const vbHallName = getResolvedVolleyboxHallName(match.hall, effectiveCity, allMatches, match.volleybox?.vb_hall);
+  const vbSetsText = formatSetScoresForVolleybox(match.set_scores);
+  const vbLineText = formatMatchForVolleyboxCopy(match, effectiveCity, allMatches);
   const homeLogo = homeMapping?.local_logo || homeMapping?.logo_url;
   const awayLogo = awayMapping?.local_logo || awayMapping?.logo_url;
   const homeSlug = slugify(homeMapping?.matched_as || match.home_team);
@@ -232,7 +244,10 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
     return null;
   }, [standings, match.home_team, match.away_team]);
 
-  const copyToClipboard = async (value: string, action: "text" | "link") => {
+  const copyToClipboard = async (
+    value: string,
+    action: "text" | "link" | "vb-home" | "vb-away" | "vb-sets" | "vb-line" | "vb-date" | "vb-time" | "vb-hall"
+  ) => {
     try {
       await navigator.clipboard.writeText(value);
       setCopyFeedback({ action, status: "success" });
@@ -259,21 +274,9 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
     void copyToClipboard(url.toString(), "link");
   };
 
-  const handleDownloadIcs = () => {
-    triggerHaptic("medium");
-    if (!match.date || match.date === "TBD") {
-      alert("Bu maçın tarihi henüz açıklanmadığı için takvime eklenemez.");
-      return;
-    }
-    const ics = generateMatchIcs(match);
-    if (ics) {
-      downloadIcsFile(`mac-${match.home_team}-${match.away_team}-${match.date}.ics`, ics);
-    }
-  };
-
   return (
     <div className={`flex flex-col h-full bg-canvas text-xs motion-reduce:animate-none animate-[match-panel-fade_200ms_ease-out] ${className}`}>
-      {/* 1. Üst Bar: Başlık, Favori & Kapat */}
+      {/* 1. Üst Bar: Başlık & Kapat */}
       <div className="px-3.5 py-2.5 border-b border-line/70 flex items-center justify-between bg-surface shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-1.5 h-3.5 rounded-full bg-primary shrink-0" />
@@ -282,17 +285,6 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {onToggleFavorite && (
-            <button
-              type="button"
-              onClick={() => onToggleFavorite(match.id)}
-              className="p-1.5 rounded-lg text-ink-3 hover:text-amber-400 hover:bg-surface-muted transition-colors cursor-pointer"
-              title="Favoriye Ekle"
-              aria-label="Favoriye Ekle"
-            >
-              <Star size={14} className={isFavorite ? "fill-amber-400 text-amber-400" : ""} />
-            </button>
-          )}
           {onClose && (
             <button
               type="button"
@@ -505,23 +497,196 @@ const MatchInspectorPanelContent: React.FC<Omit<MatchInspectorPanelProps, "match
                 </a>
               )}
 
-              {/* Hızlı Aksiyonlar (2x2 Grid: Skor Kartı Paylaş, Takvime Ekle, Metni Kopyala, Bağlantıyı Kopyala) */}
+              {/* Volleybox Operatör Kısayolları */}
+              <div className="bg-surface rounded-xl border border-line/70 p-3 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-white">
+                  <span>Volleybox Operatör Kısayolları</span>
+                  {(vbMatchesUrl || leagueVbMapping?.volleybox_url) && (
+                    <a
+                      href={vbMatchesUrl || leagueVbMapping?.volleybox_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Volleybox lig maçlar sekmesinde düzenle"
+                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-bold"
+                    >
+                      <span>VB&apos;de Düzenle (Maçlar)</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-1.5 text-[10px]">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {match.date && match.date !== "TBD" && (
+                      <button
+                        type="button"
+                        onClick={() => void copyToClipboard(match.date, "vb-date")}
+                        className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                      >
+                        <span className="truncate font-scoreboard tabular-nums text-ink">
+                          <span className="text-ink-3 font-sans mr-1">Tarih:</span>
+                          <strong className="text-white">{match.date}</strong>
+                        </span>
+                        <span className="shrink-0 font-semibold text-primary">
+                          {copyFeedback?.action === "vb-date" && copyFeedback.status === "success" ? (
+                            <Check size={11} className="text-emerald-400" />
+                          ) : (
+                            <Copy size={11} />
+                          )}
+                        </span>
+                      </button>
+                    )}
+
+                    {match.time && match.time !== "--:--" && (
+                      <button
+                        type="button"
+                        onClick={() => void copyToClipboard(match.time, "vb-time")}
+                        className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                      >
+                        <span className="truncate font-scoreboard tabular-nums text-ink">
+                          <span className="text-ink-3 font-sans mr-1">Saat:</span>
+                          <strong className="text-white">{match.time}</strong>
+                        </span>
+                        <span className="shrink-0 font-semibold text-primary">
+                          {copyFeedback?.action === "vb-time" && copyFeedback.status === "success" ? (
+                            <Check size={11} className="text-emerald-400" />
+                          ) : (
+                            <Copy size={11} />
+                          )}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+
+                  {vbHallName && (
+                    <button
+                      type="button"
+                      onClick={() => void copyToClipboard(vbHallName, "vb-hall")}
+                      className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="truncate text-ink">
+                        <span className="text-ink-3 mr-1">Salon (VB):</span>
+                        <strong className="text-white">{vbHallName}</strong>
+                      </span>
+                      <span className="shrink-0 font-semibold text-primary inline-flex items-center gap-1">
+                        {copyFeedback?.action === "vb-hall" && copyFeedback.status === "success" ? (
+                          <>
+                            <Check size={11} className="text-emerald-400" />
+                            <span className="text-emerald-400">Kopyalandı</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={11} />
+                            <span>Salonu Kopyala</span>
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => void copyToClipboard(vbHomeName, "vb-home")}
+                    className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                  >
+                    <span className="truncate text-ink">
+                      <span className="text-ink-3 mr-1">Ev:</span>
+                      <strong className="text-white">{vbHomeName}</strong>
+                    </span>
+                    <span className="shrink-0 font-semibold text-primary inline-flex items-center gap-1">
+                      {copyFeedback?.action === "vb-home" && copyFeedback.status === "success" ? (
+                        <>
+                          <Check size={11} className="text-emerald-400" />
+                          <span className="text-emerald-400">Kopyalandı</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={11} />
+                          <span>Kopyala</span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => void copyToClipboard(vbAwayName, "vb-away")}
+                    className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                  >
+                    <span className="truncate text-ink">
+                      <span className="text-ink-3 mr-1">Dep:</span>
+                      <strong className="text-white">{vbAwayName}</strong>
+                    </span>
+                    <span className="shrink-0 font-semibold text-primary inline-flex items-center gap-1">
+                      {copyFeedback?.action === "vb-away" && copyFeedback.status === "success" ? (
+                        <>
+                          <Check size={11} className="text-emerald-400" />
+                          <span className="text-emerald-400">Kopyalandı</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={11} />
+                          <span>Kopyala</span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+
+                  {vbSetsText && (
+                    <button
+                      type="button"
+                      onClick={() => void copyToClipboard(vbSetsText, "vb-sets")}
+                      className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted border border-line/60 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="truncate font-scoreboard tabular-nums text-ink">
+                        <span className="text-ink-3 font-sans mr-1">Setler:</span>
+                        <strong className="text-white">{vbSetsText}</strong>
+                      </span>
+                      <span className="shrink-0 font-semibold text-emerald-400 inline-flex items-center gap-1">
+                        {copyFeedback?.action === "vb-sets" && copyFeedback.status === "success" ? (
+                          <>
+                            <Check size={11} />
+                            <span>Kopyalandı</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={11} />
+                            <span>Setleri Kopyala</span>
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => void copyToClipboard(vbLineText, "vb-line")}
+                    className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 font-semibold transition-colors cursor-pointer"
+                  >
+                    {copyFeedback?.action === "vb-line" && copyFeedback.status === "success" ? (
+                      <>
+                        <Check size={11} className="text-emerald-400" />
+                        <span className="text-emerald-400">VB Giriş Satırı Kopyalandı ✓</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={11} />
+                        <span>Volleybox Giriş Satırını Kopyala</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Hızlı Aksiyonlar (Skor Kartı Paylaş, Metni Kopyala, Bağlantıyı Kopyala) */}
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-primary/15 hover:bg-primary/25 text-primary text-[10px] font-semibold border border-primary/30 transition-colors cursor-pointer"
+                  className="col-span-2 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-primary/15 hover:bg-primary/25 text-primary text-[10px] font-semibold border border-primary/30 transition-colors cursor-pointer"
                 >
                   <Share2 size={12} />
                   <span>Skor Kartı Paylaş</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadIcs}
-                  className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-surface hover:bg-surface-muted text-ink text-[10px] font-semibold border border-line/70 transition-colors cursor-pointer"
-                >
-                  <CalendarPlus size={12} className="text-amber-400" />
-                  <span>Takvime Ekle</span>
                 </button>
                 <button
                   type="button"

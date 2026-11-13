@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Calendar, Flame, ArrowRight, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { Calendar, ArrowRight, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { PrintScheduleButton } from "@/components/PrintScheduleButton";
 import type { TodayQuickStatus } from "@/hooks/useTodayMatchesData";
 import type { DashboardKpis } from "@/utils/todayMatches";
@@ -19,7 +19,6 @@ interface TodayHeaderBarProps {
   quickStatus: TodayQuickStatus;
   setQuickStatus: (status: TodayQuickStatus) => void;
   dashboardKpis: DashboardKpis;
-  todayFavoritesCount: number;
 }
 
 /** 3. ANA GÜNÜN MAÇLARI / PROGRAM BAŞLIK ÇUBUĞU */
@@ -33,7 +32,6 @@ export function TodayHeaderBar({
   quickStatus,
   setQuickStatus,
   dashboardKpis,
-  todayFavoritesCount,
 }: TodayHeaderBarProps) {
   return (
     <div className="glass-panel border border-slate-800/90 rounded-2xl p-4 sm:p-4.5 text-white shadow-xl relative overflow-hidden">
@@ -108,7 +106,6 @@ export function TodayHeaderBar({
           quickStatus={quickStatus}
           setQuickStatus={setQuickStatus}
           dashboardKpis={dashboardKpis}
-          todayFavoritesCount={todayFavoritesCount}
         />
       )}
     </div>

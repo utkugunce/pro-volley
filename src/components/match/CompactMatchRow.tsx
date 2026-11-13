@@ -1,10 +1,8 @@
 "use client";
 
 import React from "react";
-import { CalendarPlus, Star } from "lucide-react";
 import { Match } from "@/types/fixture";
 import { TeamVolleyboxLink } from "@/components/TeamVolleyboxLink";
-import { downloadIcsFile, generateMatchIcs } from "@/utils/ics";
 import { isMatchPassed } from "@/utils/calendar";
 import { formatGroupName } from "@/utils/grouping";
 
@@ -31,7 +29,9 @@ interface CompactMatchRowProps {
   match: Match;
   isSelected?: boolean;
   onSelect?: (match: Match) => void;
+  /** @deprecated Favorites UI removed */
   isFavorite?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
   mode?: MatchRowMode;
   showGroupBadge?: boolean;
@@ -41,8 +41,6 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   match,
   isSelected = false,
   onSelect,
-  isFavorite = false,
-  onToggleFavorite,
   mode = "today",
   showGroupBadge = false,
 }) => {
@@ -67,14 +65,6 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       away: Number.isNaN(parts[1]) ? null : parts[1],
     };
   });
-
-  const handleAddToCalendar = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    const ics = generateMatchIcs(match);
-    if (ics) {
-      downloadIcsFile(`mac-${match.home_team}-${match.away_team}-${match.date}.ics`, ics);
-    }
-  };
 
   return (
     <div
@@ -322,37 +312,6 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             {typeof awayScore === "number" ? awayScore : "-"}
           </span>
         </div>
-      </div>
-
-      {/* 3. Sağ Kısım: Favori Yıldızı */}
-      <div className="shrink-0 flex items-center gap-0.5 pl-1.5 pr-0.5">
-        {mode === "fixtures" && (
-          <button
-            type="button"
-            aria-label="Takvime ekle"
-            title="Takvime ekle"
-            disabled={!match.date || match.date === "TBD"}
-            onClick={handleAddToCalendar}
-            className="p-1 rounded-md text-slate-400 hover:text-sky-400 disabled:opacity-30 transition-colors"
-          >
-            <CalendarPlus size={13} />
-          </button>
-        )}
-        <button
-          type="button"
-          aria-label={isFavorite ? "Favorilerden Çıkar" : "Favoriye Ekle"}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite?.(match.id);
-          }}
-          className={`p-1 rounded-md transition-colors ${
-            isFavorite
-              ? "text-amber-400"
-              : "text-ink-2 hover:text-amber-400 opacity-100 sm:opacity-70 sm:group-hover:opacity-100"
-          }`}
-        >
-          <Star size={13} className={isFavorite ? "fill-amber-400" : ""} />
-        </button>
       </div>
     </div>
   );

@@ -13,8 +13,10 @@ interface NextMatchDaySectionProps {
   displayMode: TodayDisplayMode;
   renderMatchCard: (m: Match) => React.ReactNode;
   nextGroupedSections: MatchSection[];
-  favorites: string[];
-  onToggleFavorite: (matchId: string) => void;
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
+  /** @deprecated Favorites UI removed */
+  onToggleFavorite?: (matchId: string) => void;
   city: string;
   onSelectMatch?: (match: Match) => void;
 }
@@ -25,8 +27,6 @@ export function NextMatchDaySection({
   displayMode,
   renderMatchCard,
   nextGroupedSections,
-  favorites,
-  onToggleFavorite,
   city,
   onSelectMatch,
 }: NextMatchDaySectionProps) {
@@ -56,8 +56,6 @@ export function NextMatchDaySection({
       ) : (
         <TodayTableSections
           sections={nextGroupedSections}
-          favorites={favorites}
-          onToggleFavorite={onToggleFavorite}
           city={city}
           onSelectMatch={onSelectMatch}
         />

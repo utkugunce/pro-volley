@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Kadinlar2LigData } from "@/types/kadinlar2Lig";
 import { Match, StandingItem } from "@/types/fixture";
-import { useFavorites } from "@/utils/useFavorites";
 
 const MobileMatchDrawer = dynamic(
   () => import("@/components/MobileMatchDrawer").then((mod) => mod.MobileMatchDrawer),
@@ -15,7 +14,6 @@ const SpotlightSearchModal = dynamic(
   { ssr: false }
 );
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
-import { PrimaryTeamWidget } from "@/components/PrimaryTeamWidget";
 import { slugify } from "@/utils/slugify";
 import { Kadinlar1LigHeader } from "./Kadinlar1LigHeader";
 import { Kadinlar1LigGroupBar } from "./Kadinlar1LigGroupBar";
@@ -31,7 +29,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import {
   convertK2MatchToMatch,
   getKadinlar2LigTeamName,
-  toggleKadinlar2LigMatchFavorite,
 } from "@/utils/kadinlar2LigConverter";
 import {
   expandKadinlar2LigData,
@@ -51,6 +48,8 @@ interface Kadinlar1LigClientProps {
   initialGroup?: number | "all";
 }
 
+const K1_CATEGORY = "Arabica Coffee House Kadınlar Voleybol 1. Ligi";
+
 export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   initialData,
   initialTab,
@@ -66,10 +65,7 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
-
-  const { count: favoritesCount, isFavorite, toggleFavorite } = useFavorites();
 
   const currentGroupData =
     (selectedGroup === "all"
@@ -100,7 +96,7 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   const convertedMatches: Match[] = useMemo(() => {
     return (data.tum_maclar || []).map((m) =>
       convertK2MatchToMatch(m, {
-        category: "Arabica Coffee House Kadınlar Voleybol 1. Ligi",
+        category: K1_CATEGORY,
         age_group: "Büyük Kadınlar",
         gender: "Kadın",
       })
@@ -110,10 +106,11 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   const standingsMap: Record<string, StandingItem[]> = useMemo(() => {
     const res: Record<string, StandingItem[]> = {};
     (data.gruplar || []).forEach((g) => {
-      const key = g.grup_adi || `Grup ${g.grup_no}`;
+      const groupName = g.grup_adi || (g.grup_no === 1 ? "A Grubu" : "B Grubu");
+      const key = `Türkiye - ${K1_CATEGORY} - ${groupName}`;
       res[key] = (g.puan_durumu || []).map((t) => ({
         rank: t.sira,
-        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, "Arabica Coffee House Kadınlar Voleybol 1. Ligi"),
+        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K1_CATEGORY),
         played: t.o,
         won: t.g,
         lost: t.m,
@@ -131,7 +128,13 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   }, [data.gruplar]);
 
   const searchableTeams = useMemo(() => {
-    return (data.tum_takimlar || []).map((t) => t.takim_adi);
+    return Array.from(
+      new Set(
+        (data.tum_takimlar || []).map((t) =>
+          getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K1_CATEGORY)
+        )
+      )
+    );
   }, [data.tum_takimlar]);
 
   const searchableHalls = useMemo(() => {
@@ -148,7 +151,7 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
   }, [data.tum_maclar]);
 
   const searchableCategories = useMemo(() => {
-    return ["Arabica Coffee House Kadınlar Voleybol 1. Ligi"];
+    return [K1_CATEGORY];
   }, []);
 
   // Klavye kısayolu (Cmd+K / Ctrl+K) Spotlight Arama
@@ -216,10 +219,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
     setIsMobileDrawerOpen(false);
   };
 
-  const handleToggleFavoriteMatch = (match: Match) => {
-    toggleKadinlar2LigMatchFavorite(match, isFavorite, toggleFavorite);
-  };
-
   return (
     <AppShell
       section="kadinlar-1-lig"
@@ -234,9 +233,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
           onSearchChange={setSearchQuery}
           todayMatchesCount={todayMatchesCount}
           resultsCount={resultsCount}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onOpenSearch={() => setIsSearchOpen(true)}
         />
       }
@@ -245,9 +241,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
           groups={data.gruplar}
           selectedGroup={selectedGroup}
           activeTab={activeTab}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onSelectGroup={handleSelectGroup}
           onSelectTab={handleSelectTab}
         />
@@ -257,8 +250,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
           <MatchInspectorPanel
             match={selectedMatch}
             onClose={handleCloseInspector}
-            isFavorite={isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)}
-            onToggleFavorite={() => handleToggleFavoriteMatch(selectedMatch)}
             standings={standingsMap}
             allMatches={convertedMatches}
           />
@@ -266,19 +257,12 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
       }
       footer={
         <footer className="px-4 py-4 text-center text-xs text-slate-500 sm:flex sm:items-center sm:justify-between border-t border-line/60 bg-surface/50">
-          <span className="font-semibold text-slate-400">TVF Arabica Coffee House Kadınlar Voleybol 1. Ligi</span>
-          <span className="mt-1 block sm:mt-0 font-mono">2 Grup (A & B) • 28 Kulüp</span>
+          <span className="font-semibold text-slate-400">TVF {K1_CATEGORY}</span>
+          <span className="mt-1 block sm:mt-0 font-mono">2 Grup (A &amp; B) • Volleybox İş İstasyonu</span>
         </footer>
       }
     >
       <div className="flex flex-col space-y-3 px-1 pb-20 sm:space-y-4 sm:px-2 sm:pb-8 lg:px-0">
-        <PrimaryTeamWidget
-          matches={convertedMatches}
-          city="Kadınlar 1. Ligi"
-          onSelectMatch={handleSelectMatch}
-          availableTeams={searchableTeams}
-        />
-
         {/* 2. Grup Seçici Barı (Puan Cetveli veya Fikstür açıkken) */}
         {(activeTab === "standings" || activeTab === "fixtures") && (
           <Kadinlar1LigGroupBar
@@ -300,9 +284,8 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            leagueTitle="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
-            leagueCategory="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
+            leagueTitle={K1_CATEGORY}
+            leagueCategory={K1_CATEGORY}
           />
         )}
 
@@ -313,11 +296,9 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
-            leagueCategory="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
+            leagueTitle={K1_CATEGORY}
+            leagueCategory={K1_CATEGORY}
           />
         )}
 
@@ -328,11 +309,9 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
-            leagueCategory="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
+            leagueTitle={K1_CATEGORY}
+            leagueCategory={K1_CATEGORY}
           />
         )}
 
@@ -342,7 +321,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
             <Kadinlar1LigStandings
               group={currentGroupData}
               searchQuery={searchQuery}
-              showOnlyFavorites={showOnlyFavorites}
               onCompareTeam={() => handleSelectTab("standings")}
             />
 
@@ -354,11 +332,10 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
                 allMatches={data.tum_maclar}
                 isAllGroups={selectedGroup === "all"}
                 searchQuery={searchQuery}
-                showOnlyFavorites={showOnlyFavorites}
                 onSelectMatch={handleSelectMatch}
                 selectedMatchId={selectedMatch?.id || null}
-                leagueTitle="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
-                leagueCategory="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
+                leagueTitle={K1_CATEGORY}
+                leagueCategory={K1_CATEGORY}
               />
             </div>
           </div>
@@ -372,11 +349,10 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
             allMatches={data.tum_maclar}
             isAllGroups={selectedGroup === "all"}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
-            leagueCategory="Arabica Coffee House Kadınlar Voleybol 1. Ligi"
+            leagueTitle={K1_CATEGORY}
+            leagueCategory={K1_CATEGORY}
           />
         )}
 
@@ -384,7 +360,7 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
         {activeTab === "statu" && <Kadinlar1LigStatuView />}
       </div>
 
-      {/* MOBİL ALT MENÜ (SOFASCORE STANDARDI) */}
+      {/* MOBİL ALT MENÜ */}
       <Kadinlar2LigMobileNav
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
@@ -400,11 +376,6 @@ export const Kadinlar1LigClient: React.FC<Kadinlar1LigClientProps> = ({
           onClose={handleCloseMobileDrawer}
           allMatches={convertedMatches}
           standings={standingsMap}
-          onToggleFavorite={(mId) => {
-            const m = convertedMatches.find((x) => x.id === mId);
-            if (m) toggleKadinlar2LigMatchFavorite(m, isFavorite, toggleFavorite);
-          }}
-          isFavorite={isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)}
         />
       )}
 

@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import { getVolleyboxLeagueMapping } from "@/utils/volleybox";
+import { resolveVolleyboxLeagueMapping } from "@/utils/volleyboxWorkbench";
 import { getLeagueRoute } from "@/utils/leagueRoutes";
 
 interface LeagueVolleyboxLinkProps {
@@ -23,7 +23,7 @@ export const LeagueVolleyboxLink: React.FC<LeagueVolleyboxLinkProps> = ({
 }) => {
   const content = children ?? league;
   const internalRoute = getLeagueRoute(league, city);
-  const mapping = getVolleyboxLeagueMapping(league, city);
+  const mapping = resolveVolleyboxLeagueMapping(league, city);
 
   const externalVbLink = showExternalIcon && mapping?.volleybox_url ? (
     <a

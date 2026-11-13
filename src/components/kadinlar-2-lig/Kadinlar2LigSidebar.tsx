@@ -6,7 +6,8 @@ import {
   BarChart3,
   CalendarDays,
   ChevronDown,
-  Star,
+  ClipboardCheck,
+  Globe,
   Trophy,
   PanelLeftClose,
 } from "lucide-react";
@@ -17,8 +18,11 @@ interface Kadinlar2LigSidebarProps {
   groups: Kadinlar2LigGroup[];
   selectedGroup: number | "all";
   activeTab: Kadinlar2LigTabType;
-  favoritesCount: number;
+  /** @deprecated Favorites UI removed */
+  favoritesCount?: number;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavoritesOnly?: () => void;
   onSelectGroup: (groupNo: number | "all") => void;
   onSelectTab: (tab: Kadinlar2LigTabType) => void;
@@ -29,21 +33,17 @@ export const Kadinlar2LigSidebar: React.FC<Kadinlar2LigSidebarProps> = ({
   groups,
   selectedGroup,
   activeTab,
-  favoritesCount,
-  showOnlyFavorites = false,
-  onToggleFavoritesOnly,
   onSelectGroup,
   onSelectTab,
   onToggleCollapse,
 }) => {
-  const totalMatches = groups.reduce((sum, group) => sum + group.mac_sayisi, 0);
   const totalTeams = groups.reduce((sum, group) => sum + group.takim_sayisi, 0);
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
+  const [isQuickLinksOpen, setIsQuickLinksOpen] = useState(true);
   const [isGroupsOpen, setIsGroupsOpen] = useState(true);
 
   return (
     <div className="flex h-full flex-col bg-surface text-xs">
-      {/* 1. Üst Başlık (Altyapı Standart Lig Ağacı) */}
+      {/* 1. Üst Başlık */}
       <div className="sticky top-0 z-10 border-b border-line/60 bg-surface px-3.5 py-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -76,25 +76,37 @@ export const Kadinlar2LigSidebar: React.FC<Kadinlar2LigSidebarProps> = ({
       </div>
 
       <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-2.5">
-        {/* 1. BÖLÜM: HIZLI ERİŞİM & DİĞER LİGLER */}
+        {/* 1. BÖLÜM: KOKPİT & ULUSAL LİGLER */}
         <div className="space-y-1 pb-2 border-b border-line/50">
           <button
             type="button"
-            onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
+            onClick={() => setIsQuickLinksOpen(!isQuickLinksOpen)}
             className="flex w-full items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-ink-3 hover:text-white transition-colors cursor-pointer"
           >
             <span className="flex items-center gap-1.5">
-              <Star size={12} className="text-warn" />
-              <span>Ligler & Rehberler</span>
+              <Globe size={12} className="text-primary" />
+              <span>Kokpit &amp; Ulusal Ligler</span>
             </span>
             <ChevronDown
               size={12}
-              className={`transform transition-transform duration-200 ${isFavoritesOpen ? "rotate-0" : "-rotate-90"}`}
+              className={`transform transition-transform duration-200 ${isQuickLinksOpen ? "rotate-0" : "-rotate-90"}`}
             />
           </button>
 
-          {isFavoritesOpen && (
+          {isQuickLinksOpen && (
             <div className="space-y-0.5 pt-0.5">
+              <Link
+                prefetch={false}
+                href="/volleybox"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 transition-colors group"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <ClipboardCheck size={13} className="text-emerald-400 shrink-0" />
+                  <span className="font-semibold text-[11px] truncate">Volleybox Kokpit</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono shrink-0">İş Kuyruğu →</span>
+              </Link>
+
               <Link
                 prefetch={false}
                 href="/sultanlar-ligi"
@@ -116,42 +128,8 @@ export const Kadinlar2LigSidebar: React.FC<Kadinlar2LigSidebarProps> = ({
                   <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                   <span className="font-medium text-[11px] truncate">Arabica Kadınlar 1. Ligi</span>
                 </span>
-                <span className="text-[10px] text-ink-3 font-mono shrink-0">A & B Grubu →</span>
+                <span className="text-[10px] text-ink-3 font-mono shrink-0">A &amp; B Grubu →</span>
               </Link>
-
-              <Link
-                prefetch={false}
-                href="/takvim"
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <CalendarDays size={13} className="text-primary shrink-0" />
-                  <span className="font-medium text-[11px] truncate">Voleybol Takvimi</span>
-                </span>
-                <span className="text-[10px] text-ink-3 font-mono shrink-0">Ajanda →</span>
-              </Link>
-
-              {/* Favori Filtresi Kısayolu */}
-              {onToggleFavoritesOnly && (
-                <button
-                  type="button"
-                  onClick={() => onToggleFavoritesOnly?.()}
-                  className={`flex w-full items-center justify-between px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    showOnlyFavorites
-                      ? "bg-warn/15 text-warn font-bold"
-                      : "hover:bg-surface-raised/60 text-ink-2 hover:text-white"
-                  }`}
-                  title="Sadece takip ettiğim favori kulüpleri filtrele"
-                >
-                  <span className="flex items-center gap-2">
-                    <Star size={12} className={showOnlyFavorites ? "text-warn fill-warn" : "text-warn"} />
-                    <span className="font-medium text-[11px]">Takip Edilenler</span>
-                  </span>
-                  <span className="font-display text-[10px] font-semibold tabular-nums text-ink-3">
-                    {favoritesCount}
-                  </span>
-                </button>
-              )}
             </div>
           )}
         </div>

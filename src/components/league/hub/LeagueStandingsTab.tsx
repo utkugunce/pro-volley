@@ -12,12 +12,14 @@ export interface LeagueStandingsTabProps {
   displayedFinishedMatches: Match[];
   displayedGroups: LeagueGroupStanding[];
   displayedUpcomingMatches: Match[];
-  favorites: string[];
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
   finishedSections: { title: string; subTitle: string; matches: Match[] }[];
   league: LeagueData;
   setActiveTab: React.Dispatch<React.SetStateAction<LeagueTabType>>;
   setSelectedMatch: React.Dispatch<React.SetStateAction<Match | null>>;
-  toggleFavorite: (teamName: string) => void;
+  /** @deprecated Favorites UI removed */
+  toggleFavorite?: (teamName: string) => void;
   upcomingSections: { title: string; subTitle: string; matches: Match[] }[];
 }
 
@@ -25,12 +27,10 @@ export function LeagueStandingsTab({
   displayedFinishedMatches,
   displayedGroups,
   displayedUpcomingMatches,
-  favorites,
   finishedSections,
   league,
   setActiveTab,
   setSelectedMatch,
-  toggleFavorite,
   upcomingSections,
 }: LeagueStandingsTabProps) {
   return (
@@ -179,8 +179,6 @@ export function LeagueStandingsTab({
                 title={sec.title}
                 subTitle={sec.subTitle}
                 matches={sec.matches}
-                favorites={favorites}
-                onToggleFavorite={toggleFavorite}
                 city={league.city}
                 showCityBadge={false}
                 onSelectMatch={setSelectedMatch}
@@ -216,8 +214,6 @@ export function LeagueStandingsTab({
                 title={sec.title}
                 subTitle={sec.subTitle}
                 matches={sec.matches}
-                favorites={favorites}
-                onToggleFavorite={toggleFavorite}
                 city={league.city}
                 showCityBadge={false}
                 onSelectMatch={setSelectedMatch}

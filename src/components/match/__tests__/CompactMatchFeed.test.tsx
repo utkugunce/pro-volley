@@ -65,8 +65,8 @@ describe("CompactMatchFeed keyboard navigation", () => {
     expect(secondRow).toHaveFocus();
   });
 
-  it("fikstür modunda salon bilgisini ve takvime ekleme aksiyonunu gösterir", () => {
-    const { getAllByText, getAllByRole } = render(
+  it("fikstür modunda salon bilgisini gösterir ve takvim indirme butonu render etmez", () => {
+    const { getAllByText, queryByRole } = render(
       <CompactMatchFeed
         matches={matches}
         todayStr="2026-10-15"
@@ -76,7 +76,7 @@ describe("CompactMatchFeed keyboard navigation", () => {
     );
 
     expect(getAllByText("Salon A")).toHaveLength(2);
-    expect(getAllByRole("button", { name: "Takvime ekle" })).toHaveLength(2);
+    expect(queryByRole("button", { name: "Takvime ekle" })).not.toBeInTheDocument();
   });
 
   it("lig başlığını lig detay sayfasına bağlar", () => {

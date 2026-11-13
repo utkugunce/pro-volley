@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { TeamBadge } from "@/components/TeamBadge";
-import { ExternalLink, Star, Swords } from "lucide-react";
+import { Check, ClipboardCopy, ExternalLink, Swords } from "lucide-react";
 import { Kadinlar2LigTeam } from "@/types/kadinlar2Lig";
 import { slugify } from "@/utils/slugify";
-import { useFavorites } from "@/utils/useFavorites";
 import { triggerHaptic } from "@/utils/haptics";
-import { getVolleyboxMapping } from "@/utils/volleybox";
-import { getKadinlar2LigTeamName, getKadinlar2LigTeamNameVariants, K2_CATEGORY } from "@/utils/kadinlar2LigConverter";
+import { getKadinlar2LigTeamName, K2_CATEGORY } from "@/utils/kadinlar2LigConverter";
+import { resolveVolleyboxTeamMapping } from "@/utils/volleyboxWorkbench";
 import { trIncludes } from "@/utils/turkishLocale";
 
 interface Kadinlar2LigTeamsProps {
@@ -17,8 +16,10 @@ interface Kadinlar2LigTeamsProps {
   onSelectGroup?: (groupNo: number) => void;
   onCompareTeam?: (teamSlug: string) => void;
   searchQuery?: string;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
   compareBasePath?: string;
+  leagueCategory?: string;
 }
 
 export const Kadinlar2LigTeams: React.FC<Kadinlar2LigTeamsProps> = ({
@@ -26,28 +27,44 @@ export const Kadinlar2LigTeams: React.FC<Kadinlar2LigTeamsProps> = ({
   onSelectGroup,
   onCompareTeam,
   searchQuery = "",
-  showOnlyFavorites = false,
   compareBasePath = "/kadinlar-2-ligi/karsilastir",
+  leagueCategory,
 }) => {
   const [filterGroup, setFilterGroup] = useState<number | "all">("all");
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const effectiveCategory = leagueCategory || K2_CATEGORY;
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
-      const displayName = getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name);
-      if (
-        showOnlyFavorites &&
-        !getKadinlar2LigTeamNameVariants(t.takim_adi, t.volleybox_name).some((n) => isFavorite(n))
-      ) {
-        return false;
-      }
+      const displayName = getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, effectiveCategory);
       if (filterGroup !== "all" && t.grup_no !== filterGroup) return false;
       if (searchQuery) {
         if (!trIncludes(t.takim_adi, searchQuery) && !trIncludes(displayName, searchQuery)) return false;
       }
       return true;
     });
-  }, [teams, showOnlyFavorites, filterGroup, searchQuery, isFavorite]);
+  }, [teams, filterGroup, searchQuery, effectiveCategory]);
+
+  const handleCopyTeam = (key: string, name: string) => {
+    if (!name) return;
+    triggerHaptic("selection");
+    try {
+      void navigator.clipboard?.writeText(name);
+      setCopiedKey(key);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedKey(null), 1400);
+    } catch {
+      // Clipboard API unavailable
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -86,15 +103,20 @@ export const Kadinlar2LigTeams: React.FC<Kadinlar2LigTeamsProps> = ({
       {/* 2. Takım Kartları Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {filteredTeams.map((team, idx) => {
-          const vb = getVolleyboxMapping(team.takim_adi, K2_CATEGORY);
-          const displayName = getKadinlar2LigTeamName(team.takim_adi, team.volleybox_name);
+          const vb = resolveVolleyboxTeamMapping(team.takim_adi, effectiveCategory, "Türkiye");
+          const displayName = getKadinlar2LigTeamName(
+            team.takim_adi,
+            team.volleybox_name,
+            effectiveCategory
+          );
           const vbUrl = team.volleybox_url || vb?.volleybox_url;
-          const isFav = isFavorite(displayName) || isFavorite(team.takim_adi);
+          const vbLogo = vb?.local_logo || vb?.logo_url || team.logo;
+          const rowKey = String(team.takim_id || idx);
           const teamSlug = slugify(displayName);
 
           return (
             <div
-              key={team.takim_id || idx}
+              key={rowKey}
               className="bg-surface hover:bg-surface-raised border border-line hover:border-line-strong rounded-xl p-3.5 transition-colors flex flex-col justify-between gap-3 group"
             >
               <div className="flex items-start justify-between gap-3">
@@ -105,7 +127,7 @@ export const Kadinlar2LigTeams: React.FC<Kadinlar2LigTeamsProps> = ({
                     className="shrink-0 hover:opacity-80 transition-opacity"
                     title={`${displayName} Kulüp Profili`}
                   >
-                    <TeamBadge name={displayName} size="md" />
+                    <TeamBadge name={displayName} logoUrl={vbLogo} size="md" />
                   </Link>
 
                   <div className="min-w-0 flex-1">
@@ -124,22 +146,16 @@ export const Kadinlar2LigTeams: React.FC<Kadinlar2LigTeamsProps> = ({
                       </Link>
                       <button
                         type="button"
-                        onClick={() => {
-                          triggerHaptic("selection");
-                          toggleFavorite(displayName);
-                        }}
-                        className="shrink-0 p-1 min-w-[26px] min-h-[26px] flex items-center justify-center text-ink-3 hover:text-primary cursor-pointer"
-                        title={isFav ? "Favorilerden çıkar" : "Favorilere ekle"}
-                        aria-label={isFav ? "Favorilerden çıkar" : "Favorilere ekle"}
+                        onClick={() => handleCopyTeam(rowKey, displayName)}
+                        className="shrink-0 p-1 min-w-[26px] min-h-[26px] flex items-center justify-center rounded text-ink-3 hover:text-primary cursor-pointer"
+                        title={`Volleybox takım adını kopyala: ${displayName}`}
+                        aria-label={`${displayName} adını kopyala`}
                       >
-                        <Star
-                          size={13}
-                          className={
-                            isFav
-                              ? "fill-primary text-primary"
-                              : "text-ink-3 hover:text-primary"
-                          }
-                        />
+                        {copiedKey === rowKey ? (
+                          <Check size={12} className="text-emerald-400" />
+                        ) : (
+                          <ClipboardCopy size={12} />
+                        )}
                       </button>
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 text-[11px] text-ink-3 flex-wrap">

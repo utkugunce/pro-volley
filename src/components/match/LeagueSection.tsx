@@ -17,7 +17,9 @@ interface LeagueSectionProps {
   matches: Match[];
   selectedMatchId?: string | null;
   onSelectMatch?: (match: Match) => void;
+  /** @deprecated Favorites UI removed */
   favorites?: string[];
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
   defaultCollapsed?: boolean;
   isCollapsed?: boolean;
@@ -35,8 +37,6 @@ export const LeagueSection: React.FC<LeagueSectionProps> = ({
   matches,
   selectedMatchId,
   onSelectMatch,
-  favorites = [],
-  onToggleFavorite,
   defaultCollapsed = false,
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
@@ -115,8 +115,6 @@ export const LeagueSection: React.FC<LeagueSectionProps> = ({
               match={m}
               isSelected={selectedMatchId === m.id || selectedMatchId === m.match_no}
               onSelect={onSelectMatch}
-              isFavorite={favorites.includes(m.id)}
-              onToggleFavorite={onToggleFavorite}
               mode={mode}
               showGroupBadge={showGroupBadge}
             />

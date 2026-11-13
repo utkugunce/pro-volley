@@ -20,8 +20,10 @@ interface TodayMatchesViewProps {
   citiesList?: CityInfo[];
   todayStr: string;
   yesterdayStr?: string;
-  favorites: string[];
-  onToggleFavorite: (matchId: string) => void;
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
+  /** @deprecated Favorites UI removed */
+  onToggleFavorite?: (matchId: string) => void;
   onNavigateToFullFixtures?: () => void;
   onSelectMatch?: (match: Match) => void;
 }
@@ -34,8 +36,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
   citiesList = [],
   todayStr,
   yesterdayStr,
-  favorites,
-  onToggleFavorite,
   onNavigateToFullFixtures = () => {},
   onSelectMatch,
 }) => {
@@ -46,8 +46,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
     setQuickStatus,
     effectiveYesterdayStr,
     todayMatches,
-    isMatchFavorite,
-    todayFavoritesCount,
     filteredTodayMatches,
     dashboardKpis,
     nextMatchDay,
@@ -56,7 +54,7 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
     nextGroupedSections,
     formattedToday,
     activeCityCards,
-  } = useTodayMatchesData({ matches, city, citiesList, todayStr, yesterdayStr, favorites });
+  } = useTodayMatchesData({ matches, city, citiesList, todayStr, yesterdayStr });
 
   // Tekil bir maç kartı (Dashboard Match Card)
   const renderDashboardMatchCard = (m: Match) => (
@@ -65,8 +63,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
       match={m}
       city={city}
       effectiveYesterdayStr={effectiveYesterdayStr}
-      isFav={isMatchFavorite(m)}
-      onToggleFavorite={onToggleFavorite}
       onSelectMatch={onSelectMatch}
     />
   );
@@ -97,7 +93,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
         quickStatus={quickStatus}
         setQuickStatus={setQuickStatus}
         dashboardKpis={dashboardKpis}
-        todayFavoritesCount={todayFavoritesCount}
       />
 
       {/* 4. BUGÜNÜN MAÇLARI GÖRÜNÜMÜ */}
@@ -111,8 +106,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
           /* Tablo Görünümü */
           <TodayTableSections
             sections={groupedSections}
-            favorites={favorites}
-            onToggleFavorite={onToggleFavorite}
             city={city}
             onSelectMatch={onSelectMatch}
           />
@@ -135,8 +128,6 @@ export const TodayMatchesView: React.FC<TodayMatchesViewProps> = ({
               displayMode={displayMode}
               renderMatchCard={renderDashboardMatchCard}
               nextGroupedSections={nextGroupedSections}
-              favorites={favorites}
-              onToggleFavorite={onToggleFavorite}
               city={city}
               onSelectMatch={onSelectMatch}
             />

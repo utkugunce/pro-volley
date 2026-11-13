@@ -41,21 +41,20 @@ describe("Kadinlar2LigSidebar Component (Stage 2 Integration)", () => {
     expect(screen.getByText("22 Takım")).toBeDefined();
   });
 
-  it("renders bridge navigation link to Voleybol Takvimi", () => {
+  it("renders bridge navigation link to Volleybox Kokpit", () => {
     render(
       <Kadinlar2LigSidebar
         groups={mockGroups}
         selectedGroup={1}
         activeTab="standings"
-        favoritesCount={2}
         onSelectGroup={vi.fn()}
         onSelectTab={vi.fn()}
       />
     );
 
-    const takvimLink = screen.getByRole("link", { name: /Voleybol Takvimi/i });
-    expect(takvimLink).toBeDefined();
-    expect(takvimLink.getAttribute("href")).toBe("/takvim");
+    const cockpitLink = screen.getByRole("link", { name: /Volleybox Kokpit/i });
+    expect(cockpitLink).toBeDefined();
+    expect(cockpitLink.getAttribute("href")).toBe("/volleybox");
   });
 
   it("renders bridge navigation links to Sultanlar and 1. Lig", () => {

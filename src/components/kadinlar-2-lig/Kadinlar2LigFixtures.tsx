@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Calendar,
-  Star,
-  Download,
-  Printer,
+  ExternalLink,
   AlertTriangle,
   RotateCcw,
   SearchX,
@@ -16,20 +14,17 @@ import { LeagueSection } from "@/components/match/LeagueSection";
 import { DateNavigationRibbon } from "@/components/match/DateNavigationRibbon";
 import {
   convertK2MatchToMatch,
-  isKadinlar2LigMatchFavorite,
   isKadinlar2LigMatchSynced,
+  K2_CATEGORY,
   kadinlar2LigMatchHasTeamQuery,
   normalizeK2Date,
-  toggleKadinlar2LigMatchFavorite,
 } from "@/utils/kadinlar2LigConverter";
-import { generateSeasonIcs, downloadIcsFile } from "@/utils/ics";
-import { useFavorites } from "@/utils/useFavorites";
 import { PrintScheduleButton } from "@/components/PrintScheduleButton";
 import { isMatchOverdueForScore } from "@/utils/calendar";
 import { getKadinlar2LigRoute } from "@/utils/kadinlar2LigRoutes";
 import { kadinlar2LigMatchToUnified } from "@/utils/unifiedAdapters";
+import { getVolleyboxTournamentMatchesUrl } from "@/utils/volleyboxWorkbench";
 import { trIncludes } from "@/utils/turkishLocale";
-import type { UnifiedFixture } from "@/types/unified";
 
 interface Kadinlar2LigFixturesProps {
   group?: Kadinlar2LigGroup;
@@ -38,7 +33,9 @@ interface Kadinlar2LigFixturesProps {
   isAllGroups?: boolean;
   searchQuery?: string;
   onSelectMatch?: (match: Match) => void;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavoritesOnly?: () => void;
   selectedMatchId?: string | null;
   leagueTitle?: string;
@@ -53,14 +50,11 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
   isAllGroups = false,
   searchQuery = "",
   onSelectMatch,
-  showOnlyFavorites = false,
-  onToggleFavoritesOnly,
   selectedMatchId,
   leagueTitle,
   leagueCategory,
   isSingleGroup = false,
 }) => {
-  const { isFavorite, toggleFavorite } = useFavorites();
   const [selectedWeek, setSelectedWeek] = useState<number | "all">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "OYNANACAK" | "BİTTİ" | "CANLI">("all");
   const [volleyboxFilter, setVolleyboxFilter] = useState<
@@ -70,15 +64,20 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
   const [todayIso, setTodayIso] = useState("");
 
   const isAll = Boolean(isAllGroups || !group);
+  const effectiveCategory = leagueCategory || K2_CATEGORY;
+  const vbMatchesUrl = useMemo(
+    () => getVolleyboxTournamentMatchesUrl(effectiveCategory, "Türkiye"),
+    [effectiveCategory]
+  );
 
   const toMatch = useMemo(() => {
     return (m: Kadinlar2LigMatch) =>
       convertK2MatchToMatch(m, {
-        category: leagueCategory || leagueTitle,
+        category: effectiveCategory,
         age_group: "Büyük Kadınlar",
         gender: "Kadın",
       });
-  }, [leagueCategory, leagueTitle]);
+  }, [effectiveCategory]);
 
   useEffect(() => {
     const now = new Date();
@@ -188,7 +187,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
   ) => {
     setVolleyboxFilter(filter);
     if (filter === "discrepancy" || filter === "unsynced") {
-      // Değişenler veya Girilmedi seçildiğinde tarih ve hafta filtrelerini sıfırla ki kullanıcı tüm maçları anında görsün
       setSelectedDate("all");
       setSelectedWeek("all");
     } else if (filter !== "all" && selectedDate !== "all") {
@@ -199,22 +197,13 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
   // Filtrelenmiş maçlar
   const filteredMatches = useMemo(() => {
     return matches.filter((m) => {
-      // Değişenler filtresi etkinse ve belirli bir hafta seçilmediyse veya maç farklı tarihteyse kısıtlamayalım
-      if (volleyboxFilter !== "discrepancy") {
-        if (selectedWeek !== "all" && m.hafta !== selectedWeek) return false;
-        if (selectedDate !== "all" && convertK2MatchToMatch(m).date !== selectedDate) return false;
-      } else {
-        if (selectedWeek !== "all" && m.hafta !== selectedWeek) return false;
-        if (selectedDate !== "all" && convertK2MatchToMatch(m).date !== selectedDate) return false;
-      }
+      if (selectedWeek !== "all" && m.hafta !== selectedWeek) return false;
+      if (selectedDate !== "all" && normalizeK2Date(m.tarih) !== selectedDate) return false;
 
       if (statusFilter === "CANLI") return false;
       if (statusFilter !== "all" && m.durum !== statusFilter) return false;
-      if (showOnlyFavorites) {
-        if (!isKadinlar2LigMatchFavorite(m, isFavorite)) return false;
-      }
       if (searchQuery) {
-        const inTeams = kadinlar2LigMatchHasTeamQuery(m, searchQuery);
+        const inTeams = kadinlar2LigMatchHasTeamQuery(m, searchQuery, effectiveCategory);
         const inCity = trIncludes(m.sehir || "", searchQuery);
         const inHall = trIncludes(m.salon || "", searchQuery);
         const inGroup =
@@ -255,45 +244,11 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
     selectedWeek,
     selectedDate,
     statusFilter,
-    showOnlyFavorites,
     searchQuery,
+    effectiveCategory,
     volleyboxFilter,
-    isFavorite,
     todayIso,
   ]);
-
-  // Sezon Takvimi İndir (.ics)
-  const handleDownloadSeasonIcs = () => {
-    const converted = filteredMatches.map(toMatch);
-    const leagueName = leagueTitle || "Kadınlar 2. Ligi";
-    const title = isSingleGroup
-      ? `${leagueName} Sezon Fikstürü`
-      : isAll
-      ? `${leagueName} Tüm Gruplar Fikstürü`
-      : `${leagueName} ${group?.grup_adi || ""} Fikstürü`;
-    const slug = leagueName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const fileName = isSingleGroup
-      ? `${slug}-fikstur.ics`
-      : isAll
-      ? `${slug}-tum-gruplar-fikstur.ics`
-      : `${slug}-${group?.grup_no || 1}-grup-fikstur.ics`;
-    const ics = generateSeasonIcs(converted, title);
-    downloadIcsFile(fileName, ics);
-  };
-
-  // Favori maç ID'leri
-  const favoriteMatchIds = useMemo(() => {
-    return matches
-      .filter((m) => isKadinlar2LigMatchFavorite(m, isFavorite))
-      .map((m) => m.id);
-  }, [matches, isFavorite]);
-
-  const handleToggleFavorite = (matchId: string) => {
-    const found = matches.find((m) => m.id === matchId);
-    if (found) {
-      toggleKadinlar2LigMatchFavorite(found, isFavorite, toggleFavorite);
-    }
-  };
 
   // Gruplara veya haftalara göre bölümlendirme
   const fixtureSections = useMemo(() => {
@@ -308,7 +263,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
     };
 
     if (isSingleGroup) {
-      // Tek grup (Sultanlar Ligi vb.): Doğrudan haftalara göre listele
       const map = new Map<number, Kadinlar2LigMatch[]>();
       filteredMatches.forEach((m) => {
         const w = m.hafta || 1;
@@ -326,7 +280,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
     }
 
     if (!isAll && group) {
-      // Tek bir grup seçili: Haftalara göre listele
       const map = new Map<number, Kadinlar2LigMatch[]>();
       filteredMatches.forEach((m) => {
         const w = m.hafta || 1;
@@ -343,8 +296,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
         }));
     }
 
-    // Tüm Gruplar seçili:
-    // Eğer belirli bir hafta seçildiyse: Gruplara göre listele (1. Grup · X. Hafta...)
     if (selectedWeek !== "all") {
       const map = new Map<number, Kadinlar2LigMatch[]>();
       filteredMatches.forEach((m) => {
@@ -365,8 +316,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
         });
     }
 
-    // Hem Tüm Gruplar hem Tüm Haftalar seçildiyse:
-    // Gruplara göre listele (1. Grup · Fikstür...)
     const map = new Map<number, Kadinlar2LigMatch[]>();
     filteredMatches.forEach((m) => {
       const g = m.grup_no || 1;
@@ -398,9 +347,9 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
         availableDates={fixtureDates}
       />
 
-      {/* 1. Üst Filtre ve Kontrol Barı (Altyapı ile Birebir) */}
+      {/* 1. Üst Filtre ve Kontrol Barı */}
       <div className="glass-panel border border-slate-800/80 rounded-2xl p-3 sm:p-4 shadow-card space-y-3">
-        {/* Üst Satır: Hafta Seçici & Aksiyonlar */}
+        {/* Üst Satır: Hafta Seçici & Operatör Aksiyonları */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
           {/* Hafta Butonları */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
@@ -447,46 +396,27 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
             })}
           </div>
 
-          {/* Sağ Aksiyon Butonları (ICS İndir, Yazdır, Favoriler) */}
+          {/* Sağ Aksiyon Butonları (VB Maçlar Sekmesi, Yazdır) */}
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-            {onToggleFavoritesOnly && (
-              <button
-                type="button"
-                onClick={onToggleFavoritesOnly}
-                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                  showOnlyFavorites
-                    ? "bg-warn text-black shadow-glow-amber font-bold border-amber-400"
-                    : "bg-slate-800/80 text-slate-300 hover:text-white border-slate-700/60 hover:bg-slate-700/80"
-                }`}
-                title="Sadece takip ettiğim kulüplerin maçlarını listele"
+            {vbMatchesUrl && (
+              <a
+                href={vbMatchesUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-primary text-primary-fg hover:bg-primary-hover transition-colors"
+                title="Volleybox turnuvasının Maçlar sekmesini aç"
               >
-                <Star
-                  size={12}
-                  className={showOnlyFavorites ? "fill-black text-black" : "text-amber-400"}
-                />
-                <span className="hidden sm:inline">Favoriler</span>
-              </button>
+                <span>VB Maçlar Sekmesi</span>
+                <ExternalLink size={12} />
+              </a>
             )}
 
-            <button
-              type="button"
-              onClick={handleDownloadSeasonIcs}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 hover:text-white border border-slate-700/80 transition-all shadow-xs cursor-pointer active:scale-95"
-              title="Fikstürü Apple/Google/Outlook Takvime Ekle (.ics)"
-            >
-              <Download size={12} className="text-ink-2" />
-              <span className="hidden sm:inline">Takvime Ekle</span>
-            </button>
-
-            <PrintScheduleButton
-              title="Yazdır"
-            />
+            <PrintScheduleButton title="Yazdır" />
           </div>
         </div>
 
         {/* Alt Satır: Durum ve Volleybox Filtreleri */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-          {/* Volleybox Filtreleri (Tümü, Skorlu, Skorsuz, Girilmedi, Değişenler) */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
               Volleybox:
@@ -556,7 +486,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
               </button>
             </div>
 
-            {/* Filtreleri Sıfırla */}
             {(volleyboxFilter !== "all" ||
               selectedWeek !== "all" ||
               statusFilter !== "all" ||
@@ -579,15 +508,13 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
         </div>
       </div>
 
-      {/* 2. Altyapı kompakt fikstür akışı */}
+      {/* 2. Kompakt fikstür akışı */}
       {fixtureSections.length === 0 ? (
         <div className="glass-panel border border-slate-800/80 rounded-2xl p-10 text-center space-y-2 shadow-card">
           <SearchX size={36} className="mx-auto text-slate-600" />
           <h3 className="text-sm font-bold text-white">Karşılaşma Bulunamadı</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            {showOnlyFavorites
-              ? "Favori kulüplerinize ait bu kriterlere uygun karşılaşma kaydı bulunmuyor."
-              : "Seçilen hafta veya filtreleme kriterlerine uygun maç bulunamadı."}
+            Seçilen hafta veya filtreleme kriterlerine uygun maç bulunamadı.
           </p>
         </div>
       ) : (
@@ -599,8 +526,6 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
               sectionLabel={sec.label}
               matches={sec.matches.map(toMatch)}
               selectedMatchId={selectedMatchId}
-              favorites={favoriteMatchIds}
-              onToggleFavorite={handleToggleFavorite}
               onSelectMatch={onSelectMatch}
               mode="fixtures"
               standingsHref={sec.standingsHref}

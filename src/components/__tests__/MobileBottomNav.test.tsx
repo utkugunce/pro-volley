@@ -4,13 +4,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MobileBottomNav } from "../MobileBottomNav";
 
 describe("MobileBottomNav Component", () => {
-  it("renders all 5 Sofascore navigation tabs", () => {
+  it("renders all 4 navigation tabs without favorites", () => {
     const onSelectTab = vi.fn();
     render(
       <MobileBottomNav
         activeTab="matches"
         onSelectTab={onSelectTab}
-        favoriteCount={3}
         liveCount={2}
         todayMatchesCount={5}
         resultsCount={12}
@@ -21,7 +20,7 @@ describe("MobileBottomNav Component", () => {
     expect(screen.getByText("Canlı")).toBeInTheDocument();
     expect(screen.getByText("Puan Durumu")).toBeInTheDocument();
     expect(screen.getByText("Ligler")).toBeInTheDocument();
-    expect(screen.getByText("Favorilerim")).toBeInTheDocument();
+    expect(screen.queryByText("Favorilerim")).not.toBeInTheDocument();
   });
 
   it("calls onSelectTab with 'matches' when Maçlar is clicked", () => {
@@ -54,9 +53,6 @@ describe("MobileBottomNav Component", () => {
 
     fireEvent.click(screen.getByText("Ligler"));
     expect(onSelectTab).toHaveBeenCalledWith("leagues");
-
-    fireEvent.click(screen.getByText("Favorilerim"));
-    expect(onSelectTab).toHaveBeenCalledWith("favorites");
   });
 
   it("displays badges with counts and handles 99+", () => {
@@ -64,13 +60,11 @@ describe("MobileBottomNav Component", () => {
       <MobileBottomNav
         activeTab="matches"
         onSelectTab={vi.fn()}
-        favoriteCount={2}
         todayMatchesCount={4}
       />
     );
 
     expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
 
     // Test > 99 badge format
     rerender(

@@ -3,11 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
+  ClipboardCheck,
   ExternalLink,
   Search,
-  Star,
   Printer,
-  Layers,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Kadinlar2LigMetadata } from "@/types/kadinlar2Lig";
@@ -15,6 +14,10 @@ import { triggerHaptic } from "@/utils/haptics";
 import { SettingsControls } from "@/components/SettingsControls";
 import { formatSyncDateTime } from "@/utils/formatSyncDate";
 import { LeagueSwitcher } from "@/components/layout/LeagueSwitcher";
+import {
+  getVolleyboxTournamentMatchesUrl,
+  toVolleyboxMatchesUrl,
+} from "@/utils/volleyboxWorkbench";
 
 export type Kadinlar2LigTabType =
   | "home"
@@ -38,8 +41,11 @@ interface Kadinlar2LigHeaderProps {
   isLoading?: boolean;
   todayMatchesCount?: number;
   resultsCount?: number;
+  /** @deprecated Favorites UI removed */
   favoritesCount?: number;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
+  /** @deprecated Favorites UI removed */
   onToggleFavoritesOnly?: () => void;
   onOpenSearch?: () => void;
 }
@@ -54,13 +60,13 @@ export const Kadinlar2LigHeader: React.FC<Kadinlar2LigHeaderProps> = ({
   onSearchChange,
   todayMatchesCount = 0,
   resultsCount = 0,
-  favoritesCount = 0,
-  showOnlyFavorites = false,
-  onToggleFavoritesOnly,
   onOpenSearch,
 }) => {
   const [showLinksModal, setShowLinksModal] = useState(false);
   const syncDateTime = metadata?.guncellenme_zamani ? formatSyncDateTime(metadata.guncellenme_zamani) : null;
+  const vbMatchesUrl =
+    getVolleyboxTournamentMatchesUrl("Kadınlar 2. Ligi", "Türkiye") ||
+    toVolleyboxMatchesUrl(metadata?.resmi_kaynaklar?.volleybox_turnuva);
 
   return (
     <header className="bg-canvas text-white sticky top-0 z-30 border-b border-line/70 pt-[env(safe-area-inset-top,0px)]">
@@ -93,7 +99,7 @@ export const Kadinlar2LigHeader: React.FC<Kadinlar2LigHeaderProps> = ({
           )}
         </div>
 
-        {/* Sağ Taraf: Arama, Favoriler, Kaynaklar, Son Çekim, Ayarlar, Yazdır */}
+        {/* Sağ Taraf: Arama, Kokpit, Kaynaklar, Son Çekim, Ayarlar, Yazdır */}
         <div className="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
           {onOpenSearch && (
             <button
@@ -110,37 +116,16 @@ export const Kadinlar2LigHeader: React.FC<Kadinlar2LigHeaderProps> = ({
             </button>
           )}
 
-          {/* Favori Filtrele Butonu */}
-          {onToggleFavoritesOnly && (
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic();
-                onToggleFavoritesOnly();
-              }}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors active:scale-[0.98] cursor-pointer ${
-                showOnlyFavorites
-                  ? "bg-warn text-black font-bold"
-                  : "bg-surface text-ink-2 hover:text-white hover:bg-surface-raised border border-line/60"
-              }`}
-              title={showOnlyFavorites ? "Tüm takımları göster" : "Sadece favori takımları göster"}
-            >
-              <Star
-                size={13}
-                className={showOnlyFavorites ? "fill-black text-black" : "text-warn"}
-              />
-              <span className="hidden md:inline">Favoriler</span>
-              {favoritesCount > 0 && (
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                    showOnlyFavorites ? "bg-black/20 text-black" : "bg-warn/20 text-warn"
-                  }`}
-                >
-                  {favoritesCount}
-                </span>
-              )}
-            </button>
-          )}
+          {/* Volleybox Kokpit Kısayolu */}
+          <Link
+            href="/volleybox"
+            prefetch={false}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-colors active:scale-[0.98]"
+            title="TVF → Volleybox Maç Giriş Kokpiti"
+          >
+            <ClipboardCheck size={13} className="text-emerald-400" />
+            <span className="hidden sm:inline">Kokpit</span>
+          </Link>
 
           {/* Resmi Kaynaklar Dropdown / Buton */}
           <div className="relative">
@@ -166,6 +151,17 @@ export const Kadinlar2LigHeader: React.FC<Kadinlar2LigHeaderProps> = ({
                     <p className="text-[11px] text-ink-3">Resmi TVF ve Volleybox Verileri</p>
                   </div>
                   <div className="py-1">
+                    {vbMatchesUrl && (
+                      <a
+                        href={vbMatchesUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-surface text-emerald-300 hover:text-emerald-200 font-semibold transition-colors"
+                      >
+                        <span>Volleybox Turnuva (Maçlar Sekmesi)</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
                     <a
                       href={metadata?.resmi_kaynaklar?.tvf_puan_durumu || "https://tvf.org.tr/lig/kadinlar-2-ligi"}
                       target="_blank"
@@ -334,14 +330,6 @@ export const Kadinlar2LigHeader: React.FC<Kadinlar2LigHeaderProps> = ({
           >
             <span>STATÜ</span>
           </button>
-
-          <Link
-            href="/takvim"
-            prefetch={false}
-            className="flex items-center gap-1.5 py-2.5 px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-ink-2 hover:text-white transition-colors cursor-pointer whitespace-nowrap duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          >
-            <span>TAKVİM</span>
-          </Link>
         </nav>
 
         {/* Canlı Filtreleme Arama Input (Masaüstü) */}

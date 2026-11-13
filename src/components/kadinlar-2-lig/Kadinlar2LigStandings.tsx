@@ -1,21 +1,43 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { TeamBadge } from "@/components/TeamBadge";
 import Link from "next/link";
-import { ExternalLink, Trophy, ChevronRight, Download, Star, Swords, Calculator } from "lucide-react";
+import {
+  AlertTriangle,
+  Calculator,
+  Check,
+  ChevronRight,
+  ClipboardCopy,
+  Download,
+  ExternalLink,
+  Swords,
+  Trophy,
+} from "lucide-react";
+import { StandingItem } from "@/types/fixture";
 import { Kadinlar2LigGroup } from "@/types/kadinlar2Lig";
 import { slugify } from "@/utils/slugify";
-import { useFavorites } from "@/utils/useFavorites";
 import { triggerHaptic } from "@/utils/haptics";
-import { getVolleyboxMapping } from "@/utils/volleybox";
-import { getKadinlar2LigTeamName, getKadinlar2LigTeamNameVariants, K2_CATEGORY } from "@/utils/kadinlar2LigConverter";
-import { trIncludes } from "@/utils/turkishLocale";
+import {
+  convertK2MatchToMatch,
+  getKadinlar2LigTeamName,
+  K2_CATEGORY,
+} from "@/utils/kadinlar2LigConverter";
+import { isMatchScored } from "@/utils/matchScoring";
+import { trIncludes, trLower } from "@/utils/turkishLocale";
+import {
+  detectStandingsAnomalies,
+  parseWorkbenchStandingKey,
+  resolveVolleyboxTeamMapping,
+  type StandingsAnomalyTeamDiff,
+} from "@/utils/volleyboxWorkbench";
+import { StandingsOperatorBanner } from "@/components/standings/StandingsOperatorBanner";
 import { StandingsSimulatorView } from "@/components/standings/StandingsSimulatorView";
 
 interface Kadinlar2LigStandingsProps {
   group: Kadinlar2LigGroup;
   searchQuery?: string;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
   onCompareTeam?: (teamSlug: string) => void;
 }
@@ -23,24 +45,91 @@ interface Kadinlar2LigStandingsProps {
 export const Kadinlar2LigStandings: React.FC<Kadinlar2LigStandingsProps> = ({
   group,
   searchQuery = "",
-  showOnlyFavorites = false,
   onCompareTeam,
 }) => {
   const [showDetailedStats, setShowDetailedStats] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const [copiedTeamKey, setCopiedTeamKey] = useState<string | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const teams = useMemo(() => group?.puan_durumu || [], [group?.puan_durumu]);
+  const groupLabel = group?.grup_adi || `${group?.grup_no}. Grup`;
+  const standingKey = `Türkiye - ${K2_CATEGORY} - ${groupLabel}`;
+
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
-      const displayName = getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name);
-      if (showOnlyFavorites && !getKadinlar2LigTeamNameVariants(t.takim_adi, t.volleybox_name).some((n) => isFavorite(n))) return false;
+      const displayName = getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K2_CATEGORY);
       if (searchQuery) {
         if (!trIncludes(t.takim_adi, searchQuery) && !trIncludes(displayName, searchQuery)) return false;
       }
       return true;
     });
-  }, [teams, showOnlyFavorites, searchQuery, isFavorite]);
+  }, [teams, searchQuery]);
+
+  const { standingItems, finishedMatches, upcomingMatches, activeContext, groupAnomaly, diffByTeam } =
+    useMemo(() => {
+      const converted = (group?.fikstur || []).map((m) =>
+        convertK2MatchToMatch(m, {
+          category: K2_CATEGORY,
+          age_group: "Büyük Kadınlar",
+          gender: "Kadın",
+        })
+      );
+      const finished = converted.filter(isMatchScored);
+      const upcoming = converted.filter((m) => !isMatchScored(m));
+      const items: StandingItem[] = teams.map((t) => ({
+        rank: t.sira,
+        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K2_CATEGORY),
+        played: t.o,
+        won: t.g,
+        lost: t.m,
+        points: t.p,
+        sets_won: t.as,
+        sets_lost: t.vs,
+        set_ratio: t.sav,
+        points_won: t.asp,
+        points_lost: t.vsp,
+        point_ratio: t.spav,
+        form: [],
+      }));
+      const ctx = parseWorkbenchStandingKey(standingKey, "Türkiye");
+      const anomalies =
+        items.length > 0 && finished.length > 0
+          ? detectStandingsAnomalies(finished, { [standingKey]: items }, "Türkiye")
+          : [];
+      const anomaly = anomalies[0] || null;
+      const diffMap = new Map<string, StandingsAnomalyTeamDiff>();
+      (anomaly?.discrepancyTeams || []).forEach((d) => {
+        diffMap.set(trLower(d.team), d);
+      });
+      return {
+        standingItems: items,
+        finishedMatches: finished,
+        upcomingMatches: upcoming,
+        activeContext: ctx,
+        groupAnomaly: anomaly,
+        diffByTeam: diffMap,
+      };
+    }, [group?.fikstur, teams, standingKey]);
+
+  const handleCopyTeam = (key: string, name: string) => {
+    if (!name) return;
+    triggerHaptic("selection");
+    try {
+      void navigator.clipboard?.writeText(name);
+      setCopiedTeamKey(key);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedTeamKey(null), 1400);
+    } catch {
+      // Clipboard API unavailable
+    }
+  };
 
   const handleDownloadCsv = () => {
     const BOM = "\uFEFF";
@@ -91,9 +180,19 @@ export const Kadinlar2LigStandings: React.FC<Kadinlar2LigStandingsProps> = ({
 
   return (
     <div className="space-y-4">
+      <StandingsOperatorBanner
+        activeContext={activeContext}
+        city="Türkiye"
+        items={standingItems}
+        finishedMatches={finishedMatches}
+        upcomingMatches={upcomingMatches}
+        forfeitCount={groupAnomaly?.forfeitMatchCount ?? 0}
+        discrepancyTeams={groupAnomaly?.discrepancyTeams ?? []}
+      />
+
       {/* Puan Durumu Tablosu Kartı */}
       <div className="glass-panel border border-slate-800/80 rounded-2xl shadow-card overflow-hidden">
-        {/* 1. Başlık Şeridi (Altyapı ile Birebir) */}
+        {/* 1. Başlık Şeridi */}
         <div className="bg-surface-muted text-white px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 shadow-xs">
@@ -224,26 +323,31 @@ export const Kadinlar2LigStandings: React.FC<Kadinlar2LigStandingsProps> = ({
 
                       {/* Takım Logo & İsim */}
                       {(() => {
-                        const vb = getVolleyboxMapping(team.takim_adi, K2_CATEGORY);
-                        const displayName = getKadinlar2LigTeamName(team.takim_adi, team.volleybox_name);
+                        const vb = resolveVolleyboxTeamMapping(team.takim_adi, K2_CATEGORY, "Türkiye");
+                        const displayName = getKadinlar2LigTeamName(team.takim_adi, team.volleybox_name, K2_CATEGORY);
+                        const rowKey = String(team.takim_id || idx);
                         const teamSlug = slugify(displayName);
                         const vbUrl = team.volleybox_url || vb?.volleybox_url;
-                        const isFav = isFavorite(displayName) || isFavorite(team.takim_adi);
+                        const vbLogo = vb?.local_logo || vb?.logo_url || team.logo;
+                        const teamDiff =
+                          diffByTeam.get(trLower(displayName)) || diffByTeam.get(trLower(team.takim_adi));
 
                         return (
                           <>
                             <td className="py-2 sm:py-2.5 px-3">
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <Link prefetch={false}
+                                <Link
+                                  prefetch={false}
                                   href={`/takim/${teamSlug}`}
                                   className="shrink-0 hover:opacity-80 transition-opacity"
                                   title={`${displayName} Kulüp Profili`}
                                 >
-                                  <TeamBadge name={displayName} size="xs" />
+                                  <TeamBadge name={displayName} logoUrl={vbLogo} size="xs" />
                                 </Link>
 
                                 <div className="min-w-0 flex-1 flex items-center gap-1.5">
-                                  <Link prefetch={false}
+                                  <Link
+                                    prefetch={false}
                                     href={`/takim/${teamSlug}`}
                                     className="font-semibold text-slate-100 hover:text-ink transition-colors truncate block text-xs sm:text-[13px] hover:underline underline-offset-2"
                                     title={displayName !== team.takim_adi ? `${displayName} (TVF: ${team.takim_adi})` : `${displayName} Kulüp Profilini Aç`}
@@ -251,26 +355,32 @@ export const Kadinlar2LigStandings: React.FC<Kadinlar2LigStandingsProps> = ({
                                     {displayName}
                                   </Link>
 
+                                  {teamDiff && (
+                                    <span
+                                      className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-scoreboard tabular-nums font-bold shrink-0"
+                                      title={`TVF Tablosu: ${teamDiff.tvfPlayed}O / ${teamDiff.tvfWon}G · Fikstürdeki Biten Maç: ${teamDiff.calcPlayed}O / ${teamDiff.calcWon}G`}
+                                    >
+                                      <AlertTriangle size={9} className="text-amber-400" />
+                                      <span>{teamDiff.tvfPlayed}≠{teamDiff.calcPlayed}</span>
+                                    </span>
+                                  )}
+
                                   <button
                                     type="button"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      triggerHaptic("selection");
-                                      toggleFavorite(displayName);
+                                      handleCopyTeam(rowKey, displayName);
                                     }}
-                                    className="shrink-0 p-1 min-w-[28px] min-h-[28px] flex items-center justify-center text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
-                                    title={isFav ? "Favorilerden çıkar" : "Favorilere ekle"}
-                                    aria-label={isFav ? "Favorilerden çıkar" : "Favorilere ekle"}
+                                    className="shrink-0 p-1 min-w-[26px] min-h-[26px] flex items-center justify-center rounded text-slate-400 hover:text-primary hover:bg-slate-800/70 transition-colors cursor-pointer"
+                                    title={`Volleybox takım adını kopyala: ${displayName}`}
+                                    aria-label={`${displayName} adını kopyala`}
                                   >
-                                    <Star
-                                      size={13}
-                                      className={
-                                        isFav
-                                          ? "fill-amber-400 text-amber-400"
-                                          : "text-slate-400 hover:text-amber-400"
-                                      }
-                                    />
+                                    {copiedTeamKey === rowKey ? (
+                                      <Check size={12} className="text-emerald-400" />
+                                    ) : (
+                                      <ClipboardCopy size={12} />
+                                    )}
                                   </button>
 
                                   {isPlayoff && (

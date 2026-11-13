@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, MapPin, CalendarPlus, Copy, Check, AlertTriangle, ChevronRight } from "lucide-react";
+import { MapPin, Copy, Check, AlertTriangle, ChevronRight } from "lucide-react";
 import type { Match } from "@/types/fixture";
 import { TeamVolleyboxLink } from "@/components/TeamVolleyboxLink";
 import { isMatchOverdueForScore } from "@/utils/calendar";
@@ -13,13 +13,13 @@ interface FixtureGridCardProps {
   idx: number;
   matches: Match[];
   hasMultipleGroups: boolean;
-  favorites: string[];
+  favorites?: string[];
   copiedId: string | null;
   effectiveCity: string | undefined;
   onToggleFavorite?: (id: string) => void;
   onSelectMatch?: (match: Match) => void;
   handleCopy: (e: React.MouseEvent, match: Match) => void;
-  handleDownloadIcs: (e: React.MouseEvent, match: Match) => void;
+  handleDownloadIcs?: (e: React.MouseEvent, match: Match) => void;
 }
 
 /** Yayın tarzı grid görünümünde tek bir maç kartı (grup değiştiyse önce grup başlığı). */
@@ -28,16 +28,13 @@ export function FixtureGridCard({
   idx,
   matches,
   hasMultipleGroups,
-  favorites,
+  favorites = [],
   copiedId,
   effectiveCity,
-  onToggleFavorite,
   onSelectMatch,
   handleCopy,
-  handleDownloadIcs,
 }: FixtureGridCardProps) {
   const {
-    isFav,
     isFinished,
     homeWon,
     awayWon,
@@ -67,8 +64,6 @@ export function FixtureGridCard({
         className={`rounded-xl border transition-all duration-200 overflow-hidden flex flex-col justify-between ${
           hasDiff
             ? "bg-gradient-to-b from-amber-950/30 via-slate-900/90 to-slate-950 border-amber-600/50 shadow-md shadow-amber-950/20"
-            : isFav
-            ? "bg-gradient-to-b from-amber-500/10 via-slate-900/90 to-slate-950 border-amber-400/50 shadow-md shadow-amber-500/10"
             : "bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950/90 border-slate-800/80 hover:border-slate-700/80 shadow-card hover:shadow-lg"
         }`}
       >
@@ -93,29 +88,12 @@ export function FixtureGridCard({
             )}
           </div>
           <div className="flex items-center gap-1">
-            {!isFinished && match.date !== "TBD" && (
-              <button
-                onClick={(e) => handleDownloadIcs(e, match)}
-                className="p-1 rounded-md text-slate-400 hover:text-amber-400 hover:bg-slate-800/80 transition-colors"
-                title="Takvime Ekle (.ics)"
-              >
-                <CalendarPlus size={13} />
-              </button>
-            )}
             <button
               onClick={(e) => handleCopy(e, match)}
               className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
               title="Maç Detayını Kopyala"
             >
               {isCopied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-            </button>
-            <button
-              onClick={() => onToggleFavorite?.(match.id)}
-              className="p-1 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-md text-slate-400 hover:text-amber-400 hover:bg-slate-800/80 transition-colors"
-              title={isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-              aria-label={isFav ? `${match.home_team} - ${match.away_team} maçını favorilerden çıkar` : `${match.home_team} - ${match.away_team} maçını favorilere ekle`}
-            >
-              <Star size={13} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
             </button>
           </div>
         </div>

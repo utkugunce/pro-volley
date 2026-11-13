@@ -6,14 +6,19 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { Layers } from "lucide-react";
 import { Kadinlar2LigGroup } from "@/types/kadinlar2Lig";
 import { slugify } from "@/utils/slugify";
-import { useFavorites } from "@/utils/useFavorites";
-import { getKadinlar2LigTeamName, getKadinlar2LigTeamNameVariants } from "@/utils/kadinlar2LigConverter";
+import {
+  getKadinlar2LigTeamName,
+  getKadinlar2LigTeamNameVariants,
+  K2_CATEGORY,
+} from "@/utils/kadinlar2LigConverter";
+import { resolveVolleyboxTeamMapping } from "@/utils/volleyboxWorkbench";
 import { trIncludes } from "@/utils/turkishLocale";
 
 interface Kadinlar2LigLeadersProps {
   groups: Kadinlar2LigGroup[];
   onSelectGroup: (groupNo: number, tab?: "standings" | "fixtures") => void;
   searchQuery?: string;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
 }
 
@@ -21,29 +26,22 @@ export const Kadinlar2LigLeaders: React.FC<Kadinlar2LigLeadersProps> = ({
   groups,
   onSelectGroup,
   searchQuery = "",
-  showOnlyFavorites = false,
 }) => {
-  const { isFavorite } = useFavorites();
-
   const filteredGroups = useMemo(() => {
     return groups.filter((group) => {
-      if (showOnlyFavorites) {
-        const hasFavTeam = group.puan_durumu.some((t) =>
-          getKadinlar2LigTeamNameVariants(t.takim_adi, t.volleybox_name).some((n) => isFavorite(n))
-        );
-        if (!hasFavTeam) return false;
-      }
       if (searchQuery) {
         const matchesName =
           trIncludes(group.grup_adi, searchQuery) || trIncludes(`Grup ${group.grup_no}`, searchQuery);
         const matchesTeam = group.puan_durumu.some((t) =>
-          getKadinlar2LigTeamNameVariants(t.takim_adi, t.volleybox_name).some((n) => trIncludes(n, searchQuery))
+          getKadinlar2LigTeamNameVariants(t.takim_adi, t.volleybox_name, K2_CATEGORY).some((n) =>
+            trIncludes(n, searchQuery)
+          )
         );
         if (!matchesName && !matchesTeam) return false;
       }
       return true;
     });
-  }, [groups, showOnlyFavorites, searchQuery, isFavorite]);
+  }, [groups, searchQuery]);
 
   return (
     <div className="space-y-4">
@@ -123,7 +121,17 @@ export const Kadinlar2LigLeaders: React.FC<Kadinlar2LigLeadersProps> = ({
                     </div>
                   ) : (
                     topTeams.map((team) => {
-                      const displayName = getKadinlar2LigTeamName(team.takim_adi, team.volleybox_name);
+                      const displayName = getKadinlar2LigTeamName(
+                        team.takim_adi,
+                        team.volleybox_name,
+                        K2_CATEGORY
+                      );
+                      const vb = resolveVolleyboxTeamMapping(
+                        team.takim_adi,
+                        K2_CATEGORY,
+                        "Türkiye"
+                      );
+                      const vbLogo = vb?.local_logo || vb?.logo_url || team.logo;
 
                       return (
                         <div
@@ -139,7 +147,7 @@ export const Kadinlar2LigLeaders: React.FC<Kadinlar2LigLeadersProps> = ({
                               {team.sira}.
                             </span>
 
-                            <TeamBadge name={displayName} size="xs" />
+                            <TeamBadge name={displayName} logoUrl={vbLogo} size="xs" />
 
                             <Link
                               prefetch={false}

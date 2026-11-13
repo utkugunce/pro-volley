@@ -108,7 +108,7 @@ describe("Erişilebilirlik (a11y) Standartları (GÖREV 3)", () => {
   });
 
   describe("TodayMatchesView a11y", () => {
-    it("favori yıldız butonuna ve görünüm seçiciye ekran okuyucu dostu aria etiketleri sağlar", () => {
+    it("görünüm seçiciye ekran okuyucu dostu aria etiketleri sağlar ve favori butonu göstermez", () => {
       const mockMatch: Match = {
         id: "ist-20260920-001",
         city: "İstanbul",
@@ -130,9 +130,7 @@ describe("Erişilebilirlik (a11y) Standartları (GÖREV 3)", () => {
         />
       );
 
-      // Favori butonunda durum bazlı aria-label olmalı
-      const favBtn = screen.getByLabelText(/maçını favorilerden çıkar/i);
-      expect(favBtn).toBeDefined();
+      expect(screen.queryByLabelText(/favori/i)).not.toBeInTheDocument();
 
       // Görünüm biçimi tablist'i
       const viewTablist = screen.getByRole("tablist", { name: "Görünüm biçimi" });

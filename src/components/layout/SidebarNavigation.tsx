@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Trophy,
-  Star,
   MapPin,
   ChevronDown,
   Layers,
@@ -20,6 +19,7 @@ interface SidebarNavigationProps {
   matches?: Match[];
   selectedCategory?: string;
   onSelectCategory?: (category: string) => void;
+  /** @deprecated Favorites UI removed */
   favoritesCount?: number;
   totalMatches?: number;
   onToggleCollapse?: () => void;
@@ -32,11 +32,9 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   matches = [],
   selectedCategory = "Tümü",
   onSelectCategory,
-  favoritesCount = 0,
   totalMatches = 0,
   onToggleCollapse,
 }) => {
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [expandedCities, setExpandedCities] = useState<Record<string, boolean>>({
     [currentCity]: true,
     all: true,
@@ -92,7 +90,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           <Trophy size={14} className="text-primary shrink-0" />
           <div className="min-w-0">
             <h2 className="font-bold text-white text-[13px] tracking-tight leading-tight truncate">Lig Ağacı</h2>
-            <p className="text-[10px] text-ink-3 truncate">TVF Altyapı Hiyerarşisi</p>
+            <p className="text-[10px] text-ink-3 truncate">TVF Operatör Hiyerarşisi</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -115,75 +113,62 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-3">
-        {/* 1. BÖLÜM: FAVORİLERİM & HIZLI ERİŞİM */}
-        <div className="space-y-1 pb-2 border-b border-line/50">
-          <button
-            type="button"
-            onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
-            className="w-full flex items-center justify-between text-[11px] font-bold text-ink-3 hover:text-white px-2 py-1 rounded transition-colors cursor-pointer"
+        {/* 1. BÖLÜM: VOLLEYBOX KOKPİT & PROFESYONEL LİGLER */}
+        <div className="space-y-0.5 pb-2 border-b border-line/50">
+          <div className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-ink-3">
+            Kokpit &amp; Ulusal Ligler
+          </div>
+
+          <Link
+            href="/volleybox"
+            prefetch={false}
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 transition-colors"
           >
-            <span className="flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
-              <Star size={12} className="text-warn" />
-              <span>Favorilerim</span>
+            <span className="flex items-center gap-2 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <span className="font-bold text-[11px] truncate">Volleybox Kokpit</span>
             </span>
-            <ChevronDown
-              size={12}
-              className={`transform transition-transform duration-200 ${isFavoritesOpen ? "rotate-0" : "-rotate-90"}`}
-            />
-          </button>
+            <span className="text-[10px] text-emerald-300 font-mono shrink-0">İş Tezgahı →</span>
+          </Link>
 
-          {isFavoritesOpen && (
-            <div className="space-y-0.5 pt-0.5">
-              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-ink-2">
-                <span className="flex items-center gap-2">
-                  <Star size={12} className="text-warn" />
-                  <span className="font-medium text-[11px]">Yıldızlı Maçlar</span>
-                </span>
-                <span className="font-display font-semibold tabular-nums text-ink-3 text-[11px]">
-                  {favoritesCount}
-                </span>
-              </div>
+          <Link
+            href="/sultanlar-ligi"
+            prefetch={false}
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
+          >
+            <span className="flex items-center gap-2 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+              <span className="font-medium text-[11px] truncate">Vodafone Sultanlar Ligi</span>
+            </span>
+            <span className="text-[10px] text-amber-400 font-mono shrink-0">Süper Lig →</span>
+          </Link>
 
-              <Link
-                href="/sultanlar-ligi"
-                prefetch={false}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                  <span className="font-medium text-[11px] truncate">Vodafone Sultanlar Ligi</span>
-                </span>
-                <span className="text-[10px] text-amber-400 font-mono shrink-0">Süper Lig →</span>
-              </Link>
+          <Link
+            href="/kadinlar-1-ligi"
+            prefetch={false}
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
+          >
+            <span className="flex items-center gap-2 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <span className="font-medium text-[11px] truncate">Arabica Kadınlar 1. Ligi</span>
+            </span>
+            <span className="text-[10px] text-ink-3 font-mono shrink-0">A &amp; B Grubu →</span>
+          </Link>
 
-              <Link
-                href="/kadinlar-1-ligi"
-                prefetch={false}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                  <span className="font-medium text-[11px] truncate">Arabica Kadınlar 1. Ligi</span>
-                </span>
-                <span className="text-[10px] text-ink-3 font-mono shrink-0">A & B Grubu →</span>
-              </Link>
-
-              <Link
-                href="/kadinlar-2-ligi"
-                prefetch={false}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                  <span className="font-medium text-[11px] truncate">TVF Kadınlar 2. Ligi</span>
-                </span>
-                <span className="text-[10px] text-ink-3 font-mono shrink-0">16 Grup →</span>
-              </Link>
-            </div>
-          )}
+          <Link
+            href="/kadinlar-2-ligi"
+            prefetch={false}
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-surface-raised/60 text-ink-2 hover:text-white transition-colors group"
+          >
+            <span className="flex items-center gap-2 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <span className="font-medium text-[11px] truncate">TVF Kadınlar 2. Ligi</span>
+            </span>
+            <span className="text-[10px] text-ink-3 font-mono shrink-0">16 Grup →</span>
+          </Link>
         </div>
 
-        {/* 2. BÖLÜM: İLLER & ALTYAPI LİGLERİ HİYERARŞİSİ */}
+        {/* İLLER & ALTYAPI LİGLERİ HİYERARŞİSİ */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-ink-3">
             <span className="flex items-center gap-1.5">

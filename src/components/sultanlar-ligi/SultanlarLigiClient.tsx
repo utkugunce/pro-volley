@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Kadinlar2LigData } from "@/types/kadinlar2Lig";
 import { Match, StandingItem } from "@/types/fixture";
-import { useFavorites } from "@/utils/useFavorites";
 
 const MobileMatchDrawer = dynamic(
   () => import("@/components/MobileMatchDrawer").then((mod) => mod.MobileMatchDrawer),
@@ -15,7 +14,6 @@ const SpotlightSearchModal = dynamic(
   { ssr: false }
 );
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
-import { PrimaryTeamWidget } from "@/components/PrimaryTeamWidget";
 import { slugify } from "@/utils/slugify";
 import { SultanlarLigiHeader } from "./SultanlarLigiHeader";
 import { SultanlarLigiSidebar } from "./SultanlarLigiSidebar";
@@ -30,7 +28,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import {
   convertK2MatchToMatch,
   getKadinlar2LigTeamName,
-  toggleKadinlar2LigMatchFavorite,
 } from "@/utils/kadinlar2LigConverter";
 import {
   expandKadinlar2LigData,
@@ -49,6 +46,8 @@ interface SultanlarLigiClientProps {
   initialTab?: SultanlarTabType;
 }
 
+const SULTANLAR_CATEGORY = "Vodafone Sultanlar Ligi";
+
 export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
   initialData,
   initialTab,
@@ -60,10 +59,7 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
-
-  const { count: favoritesCount, isFavorite, toggleFavorite } = useFavorites();
 
   const currentGroupData = data.gruplar[0];
 
@@ -91,7 +87,7 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
   const convertedMatches: Match[] = useMemo(() => {
     return (data.tum_maclar || []).map((m) =>
       convertK2MatchToMatch(m, {
-        category: "Vodafone Sultanlar Ligi",
+        category: SULTANLAR_CATEGORY,
         age_group: "Büyük Kadınlar",
         gender: "Kadın",
       })
@@ -100,11 +96,14 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
 
   const standingsMap: Record<string, StandingItem[]> = useMemo(() => {
     const res: Record<string, StandingItem[]> = {};
-    (data.gruplar || []).forEach((g) => {
-      const key = g.grup_adi || "Lig Etabı";
+    (data.gruplar || []).forEach((g, idx) => {
+      const key =
+        idx === 0
+          ? `Türkiye - ${SULTANLAR_CATEGORY}`
+          : `Türkiye - ${SULTANLAR_CATEGORY} - ${g.grup_adi || `Grup ${g.grup_no}`}`;
       res[key] = (g.puan_durumu || []).map((t) => ({
         rank: t.sira,
-        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, "Vodafone Sultanlar Ligi"),
+        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, SULTANLAR_CATEGORY),
         played: t.o,
         won: t.g,
         lost: t.m,
@@ -122,7 +121,13 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
   }, [data.gruplar]);
 
   const searchableTeams = useMemo(() => {
-    return (data.tum_takimlar || []).map((t) => t.takim_adi);
+    return Array.from(
+      new Set(
+        (data.tum_takimlar || []).map((t) =>
+          getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, SULTANLAR_CATEGORY)
+        )
+      )
+    );
   }, [data.tum_takimlar]);
 
   const searchableHalls = useMemo(() => {
@@ -139,7 +144,7 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
   }, [data.tum_maclar]);
 
   const searchableCategories = useMemo(() => {
-    return ["Vodafone Sultanlar Ligi"];
+    return [SULTANLAR_CATEGORY];
   }, []);
 
   // Klavye kısayolu (Cmd+K / Ctrl+K) Spotlight Arama
@@ -198,10 +203,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
     setIsMobileDrawerOpen(false);
   };
 
-  const handleToggleFavoriteMatch = (match: Match) => {
-    toggleKadinlar2LigMatchFavorite(match, isFavorite, toggleFavorite);
-  };
-
   return (
     <AppShell
       section="sultanlar"
@@ -214,9 +215,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
           onSearchChange={setSearchQuery}
           todayMatchesCount={todayMatchesCount}
           resultsCount={resultsCount}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onOpenSearch={() => setIsSearchOpen(true)}
         />
       }
@@ -224,9 +222,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
         <SultanlarLigiSidebar
           groups={data.gruplar}
           activeTab={activeTab}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onSelectTab={handleSelectTab}
         />
       }
@@ -235,8 +230,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
           <MatchInspectorPanel
             match={selectedMatch}
             onClose={handleCloseInspector}
-            isFavorite={isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)}
-            onToggleFavorite={() => handleToggleFavoriteMatch(selectedMatch)}
             standings={standingsMap}
             allMatches={convertedMatches}
           />
@@ -245,18 +238,11 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
       footer={
         <footer className="px-4 py-4 text-center text-xs text-slate-500 sm:flex sm:items-center sm:justify-between border-t border-line/60 bg-surface/50">
           <span className="font-semibold text-slate-400">TVF Vodafone Sultanlar Ligi</span>
-          <span className="mt-1 block sm:mt-0 font-mono">14 Kulüp • Canlı Fikstür ve Puan Durumu</span>
+          <span className="mt-1 block sm:mt-0 font-mono">14 Kulüp • Volleybox İş İstasyonu</span>
         </footer>
       }
     >
       <div className="flex flex-col space-y-3 px-1 pb-20 sm:space-y-4 sm:px-2 sm:pb-8 lg:px-0">
-        <PrimaryTeamWidget
-          matches={convertedMatches}
-          city="Sultanlar Ligi"
-          onSelectMatch={handleSelectMatch}
-          availableTeams={searchableTeams}
-        />
-
         {/* GENEL BAKIŞ / PORTAL TABI */}
         {activeTab === "home" && (
           <Kadinlar2LigHomePortal
@@ -266,9 +252,8 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            leagueTitle="Vodafone Sultanlar Ligi"
-            leagueCategory="Vodafone Sultanlar Ligi"
+            leagueTitle={SULTANLAR_CATEGORY}
+            leagueCategory={SULTANLAR_CATEGORY}
             isSingleGroup={true}
           />
         )}
@@ -280,11 +265,9 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Vodafone Sultanlar Ligi"
-            leagueCategory="Vodafone Sultanlar Ligi"
+            leagueTitle={SULTANLAR_CATEGORY}
+            leagueCategory={SULTANLAR_CATEGORY}
             isSingleGroup={true}
           />
         )}
@@ -296,11 +279,9 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Vodafone Sultanlar Ligi"
-            leagueCategory="Vodafone Sultanlar Ligi"
+            leagueTitle={SULTANLAR_CATEGORY}
+            leagueCategory={SULTANLAR_CATEGORY}
             isSingleGroup={true}
           />
         )}
@@ -311,7 +292,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
             <SultanlarLigiStandings
               group={currentGroupData}
               searchQuery={searchQuery}
-              showOnlyFavorites={showOnlyFavorites}
               onCompareTeam={() => handleSelectTab("standings")}
             />
 
@@ -323,11 +303,10 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
                 allMatches={data.tum_maclar}
                 isAllGroups={false}
                 searchQuery={searchQuery}
-                showOnlyFavorites={showOnlyFavorites}
                 onSelectMatch={handleSelectMatch}
                 selectedMatchId={selectedMatch?.id || null}
-                leagueTitle="Vodafone Sultanlar Ligi"
-                leagueCategory="Vodafone Sultanlar Ligi"
+                leagueTitle={SULTANLAR_CATEGORY}
+                leagueCategory={SULTANLAR_CATEGORY}
                 isSingleGroup={true}
               />
             </div>
@@ -342,11 +321,10 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
             allMatches={data.tum_maclar}
             isAllGroups={false}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
-            leagueTitle="Vodafone Sultanlar Ligi"
-            leagueCategory="Vodafone Sultanlar Ligi"
+            leagueTitle={SULTANLAR_CATEGORY}
+            leagueCategory={SULTANLAR_CATEGORY}
             isSingleGroup={true}
           />
         )}
@@ -355,7 +333,7 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
         {activeTab === "statu" && <SultanlarLigiStatuView />}
       </div>
 
-      {/* MOBİL ALT MENÜ (SOFASCORE STANDARDI) */}
+      {/* MOBİL ALT MENÜ */}
       <Kadinlar2LigMobileNav
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
@@ -371,11 +349,6 @@ export const SultanlarLigiClient: React.FC<SultanlarLigiClientProps> = ({
           onClose={handleCloseMobileDrawer}
           allMatches={convertedMatches}
           standings={standingsMap}
-          onToggleFavorite={(mId) => {
-            const m = convertedMatches.find((x) => x.id === mId);
-            if (m) toggleKadinlar2LigMatchFavorite(m, isFavorite, toggleFavorite);
-          }}
-          isFavorite={isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)}
         />
       )}
 

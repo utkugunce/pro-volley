@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Match } from "@/types/fixture";
 import { TeamVolleyboxLink } from "./TeamVolleyboxLink";
-import { MapPin, Calendar, Clock, Star, CalendarPlus, Trophy, Navigation, Flame } from "lucide-react";
+import { MapPin, Calendar, Clock, Trophy, Navigation, Flame } from "lucide-react";
 import { getHallNavigationUrl } from "@/utils/halls";
-import { generateMatchIcs, downloadIcsFile } from "@/utils/ics";
 import { getMatchForfeitInfo } from "@/utils/forfeit";
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
@@ -14,7 +13,9 @@ import { CopyButton } from "@/components/arc/copy-button/copy-button";
 interface FeaturedMatchHeroProps {
   matches: Match[];
   city?: string;
+  /** @deprecated Favorites UI removed */
   favorites?: string[];
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
   onSelectMatch?: (match: Match) => void;
 }
@@ -22,27 +23,18 @@ interface FeaturedMatchHeroProps {
 export const FeaturedMatchHero: React.FC<FeaturedMatchHeroProps> = ({
   matches,
   city = "İstanbul",
-  favorites = [],
-  onToggleFavorite,
   onSelectMatch,
 }) => {
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   // En uygun öne çıkan maçı seç:
-  // 1. Önce favori olup henüz oynanmamış ilk maç
-  // 2. Henüz oynanmamış en yakın tarihli maç
-  // 3. Hiçbiri yoksa en son tamamlanan maç
+  // 1. Henüz oynanmamış en yakın tarihli maç
+  // 2. Hiçbiri yoksa en son tamamlanan maç
   const featuredMatch = React.useMemo(() => {
     if (!matches || matches.length === 0) return null;
 
     const validMatches = matches.filter((m) => m.date && m.date !== "TBD");
     if (validMatches.length === 0) return matches[0];
-
-    // Favori ve yaklaşan maç
-    const favUpcoming = validMatches.find(
-      (m) => favorites.includes(m.id) && m.status !== "finished"
-    );
-    if (favUpcoming) return favUpcoming;
 
     // Yaklaşan ilk maç
     const upcoming = validMatches.find((m) => m.status !== "finished");
@@ -50,7 +42,7 @@ export const FeaturedMatchHero: React.FC<FeaturedMatchHeroProps> = ({
 
     // Tamamlanan son maç
     return validMatches[validMatches.length - 1];
-  }, [matches, favorites]);
+  }, [matches]);
 
   // Geri sayım sayacı
   useEffect(() => {
@@ -87,7 +79,6 @@ export const FeaturedMatchHero: React.FC<FeaturedMatchHeroProps> = ({
 
   if (!featuredMatch) return null;
 
-  const isFav = favorites.includes(featuredMatch.id);
   const isFinished = featuredMatch.status === "finished";
   const homeWon = isFinished && (featuredMatch.home_score ?? 0) > (featuredMatch.away_score ?? 0);
   const awayWon = isFinished && (featuredMatch.away_score ?? 0) > (featuredMatch.home_score ?? 0);
@@ -98,14 +89,6 @@ export const FeaturedMatchHero: React.FC<FeaturedMatchHeroProps> = ({
     if (parts.length !== 3) return dateStr;
     const [y, m, d] = parts;
     return `${d}.${m}.${y}`;
-  };
-
-  const handleDownloadIcs = () => {
-    if (!featuredMatch.date || featuredMatch.date === "TBD") return;
-    const ics = generateMatchIcs(featuredMatch);
-    if (ics) {
-      downloadIcsFile(`mac-${featuredMatch.home_team}-${featuredMatch.away_team}.ics`, ics);
-    }
   };
 
   const copyShareText = `TVF ${featuredMatch.city || city} ${featuredMatch.category} (${featuredMatch.group}):\n${featuredMatch.home_team} vs ${featuredMatch.away_team}\n🗓 ${featuredMatch.date} ${featuredMatch.time}\n📍 ${featuredMatch.hall}`;
@@ -299,40 +282,11 @@ export const FeaturedMatchHero: React.FC<FeaturedMatchHeroProps> = ({
             </Button>
           )}
 
-          {!isFinished && featuredMatch.date !== "TBD" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleDownloadIcs}
-              className="font-bold cursor-pointer text-xs"
-              title="Takvime Ekle"
-            >
-              <CalendarPlus size={13} className="text-primary mr-1" />
-              <span className="hidden sm:inline">Takvime Ekle</span>
-            </Button>
-          )}
-
           <CopyButton
             value={copyShareText}
             label="Paylaş"
             variant="outline"
           />
-
-          {onToggleFavorite && (
-            <Button
-              variant={isFav ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => onToggleFavorite(featuredMatch.id)}
-              className={`p-2 cursor-pointer ${
-                isFav
-                  ? "bg-amber-500/15 border-amber-500/40 text-amber-400"
-                  : "text-slate-400 hover:text-white"
-              }`}
-              title={isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-            >
-              <Star size={14} className={isFav ? "fill-amber-400 text-amber-400" : ""} />
-            </Button>
-          )}
         </div>
       </div>
     </div>

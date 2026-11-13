@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { TeamBadge } from "@/components/TeamBadge";
 import {
-  CalendarPlus,
   Calendar,
   MapPin,
   ExternalLink,
@@ -12,19 +11,17 @@ import {
   Trophy,
   Activity,
   Swords,
-  Star,
   ArrowRight,
+  Copy,
+  Check,
 } from "lucide-react";
-import { TeamDetails, TeamMatchDetail } from "@/utils/teamData";
-import { downloadIcsFile, generateMatchIcs, generateSeasonIcs } from "@/utils/ics";
+import { TeamDetails } from "@/utils/teamData";
 import { TeamVolleyboxLink } from "@/components/TeamVolleyboxLink";
-import { getVolleyboxLeagueMapping } from "@/utils/volleybox";
-import { useFavorites } from "@/utils/useFavorites";
+import { resolveVolleyboxLeagueMapping } from "@/utils/volleyboxWorkbench";
 import { FormBadge } from "@/components/FormBadge";
 import { VolleyMatchRow } from "@/components/match/VolleyMatchRow";
 import dynamic from "next/dynamic";
 import { SkeletonCard } from "@/components/skeletons/Skeleton";
-import { Button } from "@/components/arc/button/button";
 import { Badge } from "@/components/arc/badge/badge";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
@@ -41,7 +38,6 @@ import { TeamOpponentRecords } from "@/components/team/TeamOpponentRecords";
 import { TeamHallsCard } from "@/components/team/TeamHallsCard";
 import { T } from "@/components/T";
 import { SettingsControls } from "@/components/SettingsControls";
-import { CalendarSubscribeModal } from "@/components/takvim/CalendarSubscribeModal";
 
 const getClubBrandColors = (teamName: string, is2Lig: boolean = false) => {
   const lower = trLower(teamName);
@@ -122,10 +118,7 @@ interface TeamDetailClientProps {
 
 export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsSlot, clubSlot }) => {
   const [matchFilter, setMatchFilter] = useState<"all" | "finished" | "upcoming">("all");
-  const [, setDownloadingSeason] = useState(false);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const { isFavorite, toggleFavorite } = useFavorites();
-  const isFav = isFavorite(team.teamName);
+  const [copiedVbName, setCopiedVbName] = useState(false);
   const is2LigTeam = team.categories.some((c) => c.includes("Kadınlar 2. Ligi"));
   const brand = getClubBrandColors(team.teamName, is2LigTeam);
 
@@ -139,21 +132,11 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
     return true;
   });
 
-  const handleDownloadSeasonIcs = () => {
-    setDownloadingSeason(true);
-    try {
-      const ics = generateSeasonIcs(team.matches, `${team.teamName} Sezon Fikstürü`);
-      downloadIcsFile(`${team.slug}-sezon-fiksturu.ics`, ics);
-    } finally {
-      setTimeout(() => setDownloadingSeason(false), 800);
-    }
-  };
-
-  const handleDownloadSingleMatchIcs = (m: TeamMatchDetail) => {
-    const ics = generateMatchIcs(m);
-    if (ics) {
-      downloadIcsFile(`mac-${m.home_team}-${m.away_team}-${m.date}.ics`, ics);
-    }
+  const handleCopyVbName = () => {
+    const val = team.mapping?.matched_as || team.teamName;
+    navigator.clipboard?.writeText(val);
+    setCopiedVbName(true);
+    setTimeout(() => setCopiedVbName(false), 1800);
   };
 
   return (
@@ -211,36 +194,6 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
                 <ExternalLink size={12} />
               </a>
             )}
-
-            <Button
-              variant={isFav ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => toggleFavorite(team.teamName)}
-              className={`cursor-pointer ${
-                isFav
-                  ? "bg-amber-500/20 border-amber-500/60 text-amber-300"
-                  : "text-ink-2 hover:text-white"
-              }`}
-              title={isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-            >
-              <Star size={13} className={isFav ? "fill-amber-400 text-amber-400 mr-1" : "text-ink-3 mr-1"} />
-              <span className="hidden sm:inline">{isFav ? "Favorilerde" : "Favorilere Ekle"}</span>
-              <span className="sm:hidden">{isFav ? "Takipte" : "Takip"}</span>
-            </Button>
-
-            {team.matches.length > 0 && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowCalendarModal(true)}
-                className="font-semibold cursor-pointer"
-                title="Tüm sezon maçlarını Apple, Google veya Outlook takviminize ekleyin"
-              >
-                <CalendarPlus size={13} className="mr-1 text-amber-300" />
-                <span className="hidden sm:inline">Takvime Abone Ol</span>
-                <span className="sm:hidden">Takvim</span>
-              </Button>
-            )}
           </div>
         </div>
       </header>
@@ -277,24 +230,24 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
                 })}
               </div>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words">
-                  {team.teamName}
-                </h1>
-                <button
-                  onClick={() => toggleFavorite(team.teamName)}
-                  className="p-1.5 rounded-lg bg-surface-muted/80 hover:bg-surface-muted border border-line/70 transition-all cursor-pointer inline-flex items-center justify-center"
-                  title={isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-                >
-                  <Star size={17} className={isFav ? "fill-amber-400 text-amber-400" : "text-ink-3 hover:text-amber-300"} />
-                </button>
-              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-words">
+                {team.teamName}
+              </h1>
 
               {team.mapping?.matched_as && (
-                <p className="text-xs text-ink-3 mt-1 flex items-center gap-1">
+                <div className="text-xs text-ink-3 mt-1 flex items-center gap-1.5 flex-wrap">
                   <span>Volleybox Eşleşmesi:</span>
                   <strong className="text-ink">{team.mapping.matched_as}</strong>
-                </p>
+                  <button
+                    type="button"
+                    onClick={handleCopyVbName}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-muted hover:bg-panel border border-line/60 text-[10px] text-ink-2 hover:text-white transition-colors cursor-pointer"
+                    title="Volleybox takım adını kopyala"
+                  >
+                    {copiedVbName ? <Check size={10} className="text-done" /> : <Copy size={10} />}
+                    <span>{copiedVbName ? "Kopyalandı" : "Kopyala"}</span>
+                  </button>
+                </div>
               )}
 
               <ClubPyramidView team={team} />
@@ -401,7 +354,7 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
                         <ArrowRight size={13} className="text-ink-3 group-hover/title:text-primary transition-colors" />
                       </Link>
                       {(() => {
-                        const vbLeague = getVolleyboxLeagueMapping(ctx.groupName, ctx.city);
+                        const vbLeague = resolveVolleyboxLeagueMapping(ctx.groupName, ctx.city);
                         if (!vbLeague?.volleybox_url) return null;
                         return (
                           <a
@@ -574,27 +527,13 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
           ) : (
             <div className="rounded-xl bg-surface border border-line/70 divide-y divide-line/50 overflow-hidden">
               {filteredMatches.map((m) => (
-                <div key={m.id} className="flex items-center justify-between pr-2 sm:pr-3">
-                  <div className="flex-1 min-w-0">
-                    <VolleyMatchRow
-                      match={m}
-                      cityName={m.city || (team.cities.length === 1 ? team.cities[0] : undefined)}
-                      leagueLabel={m.category}
-                      showHall={true}
-                    />
-                  </div>
-                  {m.date !== "TBD" && (
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadSingleMatchIcs(m)}
-                      className="shrink-0 p-2 rounded-lg text-ink-3 hover:text-amber-400 hover:bg-surface-muted/70 transition-colors cursor-pointer"
-                      title="Bu maçı takvime ekle (.ics)"
-                      aria-label="Bu maçı takvime ekle (.ics)"
-                    >
-                      <CalendarPlus size={14} />
-                    </button>
-                  )}
-                </div>
+                <VolleyMatchRow
+                  key={m.id}
+                  match={m}
+                  cityName={m.city || (team.cities.length === 1 ? team.cities[0] : undefined)}
+                  leagueLabel={m.category}
+                  showHall={true}
+                />
               ))}
             </div>
           )}
@@ -607,16 +546,6 @@ export const TeamDetailClient: React.FC<TeamDetailClientProps> = ({ team, statsS
           city={team.cities.length === 1 ? team.cities[0] : undefined}
         />
       </main>
-
-      {/* Canlı Takvim Abonelik Modalı */}
-      <CalendarSubscribeModal
-        teamName={team.teamName}
-        teamSlug={team.slug}
-        city={team.city}
-        isOpen={showCalendarModal}
-        onClose={() => setShowCalendarModal(false)}
-        onDownloadIcs={handleDownloadSeasonIcs}
-      />
     </div>
   );
 };

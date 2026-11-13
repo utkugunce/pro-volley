@@ -8,14 +8,14 @@ interface FixtureListViewProps {
   visibleMatches: Match[];
   matches: Match[];
   hasMultipleGroups: boolean;
-  favorites: string[];
+  favorites?: string[];
   copiedId: string | null;
   effectiveCity: string | undefined;
   city: string;
   onToggleFavorite?: (id: string) => void;
   onSelectMatch?: (match: Match) => void;
   handleCopy: (e: React.MouseEvent, match: Match) => void;
-  handleDownloadIcs: (e: React.MouseEvent, match: Match) => void;
+  handleDownloadIcs?: (e: React.MouseEvent, match: Match) => void;
 }
 
 /** Resmi TVF / Fikstür Tablosu: Tarih - Yer - Saat - A Takımı - B Takımı - Skor - Set Skorları - Volleybox - İşlem */
@@ -23,7 +23,7 @@ export function FixtureListView({
   visibleMatches,
   matches,
   hasMultipleGroups,
-  favorites,
+  favorites = [],
   copiedId,
   effectiveCity,
   city,
@@ -37,7 +37,6 @@ export function FixtureListView({
       <table className="w-full text-left border-separate border-spacing-y-2 text-xs">
         <thead>
           <tr className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-            <th className="pb-1 px-2 text-center w-8" title="Favorilere Ekle">⭐</th>
             <th className="pb-1 px-2 w-[85px] whitespace-nowrap">Tarih</th>
             <th className="pb-1 px-2 text-center w-14 whitespace-nowrap">Saat</th>
             <th className="pb-1 px-2 min-w-[80px] max-w-[125px] lg:max-w-[150px]">Yer</th>

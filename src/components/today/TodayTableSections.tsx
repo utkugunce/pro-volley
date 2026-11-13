@@ -7,14 +7,16 @@ import type { MatchSection } from "@/utils/todayMatches";
 
 interface TodayTableSectionsProps {
   sections: MatchSection[];
-  favorites: string[];
-  onToggleFavorite: (matchId: string) => void;
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
+  /** @deprecated Favorites UI removed */
+  onToggleFavorite?: (matchId: string) => void;
   city: string;
   onSelectMatch?: (match: Match) => void;
 }
 
 /** Tablo Görünümü: lig / grup bölümleri başına bir FixtureTable. */
-export function TodayTableSections({ sections, favorites, onToggleFavorite, city, onSelectMatch }: TodayTableSectionsProps) {
+export function TodayTableSections({ sections, city, onSelectMatch }: TodayTableSectionsProps) {
   return (
     <div className="space-y-4">
       {sections.map((sec, idx) => (
@@ -23,8 +25,6 @@ export function TodayTableSections({ sections, favorites, onToggleFavorite, city
           title={sec.title}
           subTitle={sec.subTitle}
           matches={sec.matches}
-          favorites={favorites}
-          onToggleFavorite={onToggleFavorite}
           city={city}
           onSelectMatch={onSelectMatch}
         />

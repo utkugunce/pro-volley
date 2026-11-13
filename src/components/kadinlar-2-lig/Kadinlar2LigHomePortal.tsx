@@ -12,18 +12,19 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Kadinlar2LigData } from "@/types/kadinlar2Lig";
-import { Match } from "@/types/fixture";
-import { useFavorites } from "@/utils/useFavorites";
+import { Match, StandingItem } from "@/types/fixture";
 import {
   convertK2MatchToMatch,
   getKadinlar2LigTeamName,
+  K2_CATEGORY,
   normalizeK2Date,
-  toggleKadinlar2LigMatchFavorite,
 } from "@/utils/kadinlar2LigConverter";
+import { formatGroupName } from "@/utils/grouping";
 import { isMatchScored } from "@/utils/matchScoring";
 import { compareMatchDateTime, formatDateTurkish } from "@/utils/calendar";
-import { getVolleyboxMapping } from "@/utils/volleybox";
 import { trIncludes } from "@/utils/turkishLocale";
+import { resolveVolleyboxTeamMapping } from "@/utils/volleyboxWorkbench";
+import { VolleyboxWorkbenchPanel } from "@/components/dashboard/VolleyboxWorkbenchPanel";
 import { Kadinlar2LigTabType } from "./Kadinlar2LigHeader";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { VolleyMatchRow } from "@/components/match/VolleyMatchRow";
@@ -35,6 +36,7 @@ interface Kadinlar2LigHomePortalProps {
   onSelectMatch: (match: Match) => void;
   selectedMatchId?: string | null;
   searchQuery?: string;
+  /** @deprecated Favorites UI removed */
   showOnlyFavorites?: boolean;
   leagueTitle?: string;
   leagueCategory?: string;
@@ -48,14 +50,14 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
   onSelectMatch,
   selectedMatchId,
   searchQuery = "",
-  showOnlyFavorites = false,
   leagueTitle,
   leagueCategory,
   isSingleGroup = false,
 }) => {
-  const { isFavorite, toggleFavorite } = useFavorites();
   const [feedFilter, setFeedFilter] = useState<"all" | "today" | "upcoming" | "finished">("all");
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<number | "all">("all");
+
+  const effectiveCategory = leagueCategory || K2_CATEGORY;
 
   const [todayStr, setTodayStr] = useState("");
   useEffect(() => {
@@ -74,20 +76,30 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
   const convertedMatches = useMemo(() => {
     return (data.tum_maclar || []).map((m) =>
       convertK2MatchToMatch(m, {
-        category: leagueCategory || (data.metadata?.kategori ? data.metadata.kategori : undefined),
+        category: effectiveCategory,
         age_group: "Büyük Kadınlar",
         gender: "Kadın",
       })
     );
-  }, [data.tum_maclar, leagueCategory, data.metadata?.kategori]);
+  }, [data.tum_maclar, effectiveCategory]);
+
+  const selectedGroupObj = useMemo(
+    () =>
+      selectedGroupFilter === "all"
+        ? null
+        : data.gruplar.find((g) => g.grup_no === selectedGroupFilter) || null,
+    [data.gruplar, selectedGroupFilter]
+  );
 
   const matchesByGroupAndSearch = useMemo(() => {
+    const targetGroupFormatted =
+      selectedGroupFilter !== "all"
+        ? formatGroupName(selectedGroupObj?.grup_adi || `Grup ${selectedGroupFilter}`)
+        : null;
+
     return convertedMatches.filter((m) => {
-      if (selectedGroupFilter !== "all" && m.group !== `Grup ${selectedGroupFilter}`) {
+      if (targetGroupFormatted && formatGroupName(m.group) !== targetGroupFormatted) {
         return false;
-      }
-      if (showOnlyFavorites) {
-        if (!isFavorite(m.home_team) && !isFavorite(m.away_team)) return false;
       }
       if (searchQuery) {
         const inTeams =
@@ -99,7 +111,38 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
       }
       return true;
     });
-  }, [convertedMatches, selectedGroupFilter, showOnlyFavorites, searchQuery, isFavorite]);
+  }, [convertedMatches, selectedGroupFilter, selectedGroupObj, searchQuery]);
+
+  const workbenchStandings = useMemo<Record<string, StandingItem[]>>(() => {
+    const map: Record<string, StandingItem[]> = {};
+    const targetGroups =
+      selectedGroupFilter === "all"
+        ? data.gruplar
+        : data.gruplar.filter((g) => g.grup_no === selectedGroupFilter);
+
+    targetGroups.forEach((g) => {
+      const gLabel = g.grup_adi || `${g.grup_no}. Grup`;
+      const key = isSingleGroup
+        ? `Türkiye - ${effectiveCategory}`
+        : `Türkiye - ${effectiveCategory} - ${gLabel}`;
+      map[key] = (g.puan_durumu || []).map((t) => ({
+        rank: t.sira,
+        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, effectiveCategory),
+        played: t.o,
+        won: t.g,
+        lost: t.m,
+        points: t.p,
+        sets_won: t.as,
+        sets_lost: t.vs,
+        set_ratio: t.sav,
+        points_won: t.asp,
+        points_lost: t.vsp,
+        point_ratio: t.spav,
+        form: [],
+      }));
+    });
+    return map;
+  }, [data.gruplar, selectedGroupFilter, isSingleGroup, effectiveCategory]);
 
   const stats = useMemo(() => {
     const totalMatches = matchesByGroupAndSearch.length;
@@ -152,18 +195,13 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
   const topTeamsPerGroup = useMemo(() => {
     return data.gruplar.map((g) => ({
       grup_no: g.grup_no,
-      grup_adi: g.grup_adi || `Grup ${g.grup_no}`,
+      grup_adi: g.grup_adi || `${g.grup_no}. Grup`,
       leader: g.puan_durumu[0] || null,
       runnerUp: g.puan_durumu[1] || null,
       completedMatches: (g.fikstur || []).filter((m) => m.durum === "BİTTİ").length,
       totalMatches: g.fikstur?.length || g.mac_sayisi || 0,
     }));
   }, [data.gruplar]);
-
-  const handleToggleFavorite = (matchId: string) => {
-    const m = convertedMatches.find((x) => x.id === matchId);
-    if (m) toggleKadinlar2LigMatchFavorite(m, isFavorite, toggleFavorite);
-  };
 
   return (
     <div className="space-y-4 animate-in fade-in-50 duration-200">
@@ -172,17 +210,17 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
         <h1 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
           <span className="hero-heading-gradient">
-            {leagueTitle ? `${leagueTitle} Maç Merkezi & Bülteni` : "TVF Kadınlar 2. Ligi Maç Merkezi & Bülteni"}
+            {leagueTitle ? `${leagueTitle} Operatör Kokpiti` : "TVF Kadınlar 2. Ligi Operatör Kokpiti"}
           </span>
         </h1>
         <span className="text-[11px] font-display tabular-nums text-ink-3">
           {isSingleGroup
             ? `Tek Grup · ${stats.totalMatches} Maç`
-            : `${selectedGroupFilter === "all" ? `${stats.totalGroups} Grup` : `Grup ${selectedGroupFilter}`} · ${stats.totalMatches} Maç`}
+            : `${selectedGroupFilter === "all" ? `${stats.totalGroups} Grup` : selectedGroupObj?.grup_adi || `Grup ${selectedGroupFilter}`} · ${stats.totalMatches} Maç`}
         </span>
       </div>
 
-      {/* 1. ÜST KONTROL BAR: FOTMOB / APPLE SPORTS SEGMENTED FİLTRE */}
+      {/* 1. ÜST KONTROL BAR */}
       <div className="glass-panel rounded-2xl p-2 sm:p-2.5 border border-line/70 flex flex-col md:flex-row md:items-center justify-between gap-2">
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
           <button
@@ -283,7 +321,7 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                     : "text-ink-2 hover:text-white hover:bg-surface-raised/50"
                 }`}
               >
-                Grup {g.grup_no}
+                {g.grup_adi || `Grup ${g.grup_no}`}
               </button>
             ))}
           </div>
@@ -332,11 +370,9 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                     key={match.id}
                     match={match}
                     isSelected={selectedMatchId === match.id}
-                    isFavorite={isFavorite(match.home_team) || isFavorite(match.away_team)}
-                    onToggleFavorite={handleToggleFavorite}
                     onSelectMatch={onSelectMatch}
                     todayStr={todayIso}
-                    leagueFallback={leagueTitle || leagueCategory || "Kadınlar 2. Ligi"}
+                    leagueFallback={leagueTitle || effectiveCategory}
                   />
                 ))}
               </div>
@@ -344,6 +380,16 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
           </div>
         ) : (
           <div className="space-y-5">
+            {/* VOLLEYBOX OPERATÖR İŞ KUYRUĞU */}
+            <VolleyboxWorkbenchPanel
+              matches={matchesByGroupAndSearch}
+              standings={workbenchStandings}
+              city="Türkiye"
+              title={`${leagueTitle || "Kadınlar 2. Ligi"} — Volleybox Operatör İş Kuyruğu`}
+              hideEnsureFullData
+              onSelectMatch={onSelectMatch}
+            />
+
             {/* BÖLÜM 1: BUGÜNÜN MAÇLARI */}
             {todayMatches.length > 0 && (
               <div className="space-y-2">
@@ -366,11 +412,9 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                       key={match.id}
                       match={match}
                       isSelected={selectedMatchId === match.id}
-                      isFavorite={isFavorite(match.home_team) || isFavorite(match.away_team)}
-                      onToggleFavorite={handleToggleFavorite}
                       onSelectMatch={onSelectMatch}
                       todayStr={todayIso}
-                      leagueFallback={leagueTitle || leagueCategory || "Kadınlar 2. Ligi"}
+                      leagueFallback={leagueTitle || effectiveCategory}
                     />
                   ))}
                 </div>
@@ -407,11 +451,9 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                       key={match.id}
                       match={match}
                       isSelected={selectedMatchId === match.id}
-                      isFavorite={isFavorite(match.home_team) || isFavorite(match.away_team)}
-                      onToggleFavorite={handleToggleFavorite}
                       onSelectMatch={onSelectMatch}
                       todayStr={todayIso}
-                      leagueFallback={leagueTitle || leagueCategory || "Kadınlar 2. Ligi"}
+                      leagueFallback={leagueTitle || effectiveCategory}
                     />
                   ))
                 )}
@@ -444,11 +486,9 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                       key={match.id}
                       match={match}
                       isSelected={selectedMatchId === match.id}
-                      isFavorite={isFavorite(match.home_team) || isFavorite(match.away_team)}
-                      onToggleFavorite={handleToggleFavorite}
                       onSelectMatch={onSelectMatch}
                       todayStr={todayIso}
-                      leagueFallback={leagueTitle || leagueCategory || "Kadınlar 2. Ligi"}
+                      leagueFallback={leagueTitle || effectiveCategory}
                     />
                   ))}
                 </div>
@@ -491,11 +531,12 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                         const teamName = getKadinlar2LigTeamName(
                           t.takim_adi,
                           t.volleybox_name,
-                          leagueCategory || "Vodafone Sultanlar Ligi"
+                          effectiveCategory
                         );
-                        const mapping = getVolleyboxMapping(
+                        const mapping = resolveVolleyboxTeamMapping(
                           teamName,
-                          leagueCategory || "Vodafone Sultanlar Ligi"
+                          effectiveCategory,
+                          "Türkiye"
                         );
                         const logo = mapping?.local_logo || mapping?.logo_url || t.logo;
 
@@ -531,13 +572,13 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                           ? getKadinlar2LigTeamName(
                               grp.leader.takim_adi,
                               grp.leader.volleybox_name,
-                              leagueCategory || "Kadınlar 2. Ligi"
+                              effectiveCategory
                             )
                           : null;
                         const mapping = leaderName
-                          ? getVolleyboxMapping(leaderName, leagueCategory || "Kadınlar 2. Ligi")
+                          ? resolveVolleyboxTeamMapping(leaderName, effectiveCategory, "Türkiye")
                           : null;
-                        const logo = mapping?.local_logo || mapping?.logo_url;
+                        const logo = mapping?.local_logo || mapping?.logo_url || grp.leader?.logo;
 
                         return (
                           <div
@@ -546,8 +587,8 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
                             className="p-2 rounded-lg bg-surface-muted/70 border border-line/40 hover:border-primary/40 transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-between gap-2 text-xs cursor-pointer"
                           >
                             <div className="min-w-0 flex items-center gap-2">
-                              <span className="font-mono font-semibold text-[10px] text-ink-3 w-12 shrink-0">
-                                Grup {grp.grup_no}
+                              <span className="font-mono font-semibold text-[10px] text-ink-3 min-w-[3.5rem] shrink-0">
+                                {grp.grup_adi}
                               </span>
                               {leaderName ? (
                                 <>
@@ -658,12 +699,12 @@ export const Kadinlar2LigHomePortal: React.FC<Kadinlar2LigHomePortalProps> = ({
             <div className="rounded-2xl p-3 bg-surface border border-line/60 text-[11px] text-ink-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-primary shrink-0" />
-                <span>TVF Resmi Bülteni & Volleybox Entegrasyonu</span>
+                <span>TVF Resmi Bülteni & Volleybox Operatör İş Tezgahı</span>
               </div>
               <span className="font-mono font-semibold text-ink shrink-0">
                 {isSingleGroup
                   ? `${stats.totalTeams} Takım Tek Grup`
-                  : `${data.gruplar.length} Grup Canlı Takip`}
+                  : `${data.gruplar.length} Grup Takibi`}
               </span>
             </div>
           </div>

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { CityInfo, Match } from "@/types/fixture";
 import { formatDateTurkish, compareMatchDateTime, isTodayOrUnscoredYesterday, getYesterdayString } from "@/utils/calendar";
-import { useFavorites } from "@/utils/useFavorites";
 import { isMatchScored } from "@/utils/matchScoring";
 import {
   buildActiveCityCards,
@@ -11,7 +10,7 @@ import {
   groupMatchesIntoSections,
 } from "@/utils/todayMatches";
 
-export type TodayQuickStatus = "all" | "upcoming" | "finished" | "favorites";
+export type TodayQuickStatus = "all" | "upcoming" | "finished";
 
 interface UseTodayMatchesDataArgs {
   matches: Match[];
@@ -19,11 +18,12 @@ interface UseTodayMatchesDataArgs {
   citiesList: CityInfo[];
   todayStr: string;
   yesterdayStr?: string;
-  favorites: string[];
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
 }
 
 /**
- * "Günün Maçları" görünümünün türetilmiş verileri: bugünün / dünden kalan maçlar, favori sayacı,
+ * "Günün Maçları" görünümünün türetilmiş verileri: bugünün / dünden kalan maçlar,
  * hızlı durum filtresi, KPI'lar, sıradaki / son maç günü yedek görünümleri ve tablo bölümleri.
  */
 export function useTodayMatchesData({
@@ -32,10 +32,8 @@ export function useTodayMatchesData({
   citiesList,
   todayStr,
   yesterdayStr,
-  favorites,
 }: UseTodayMatchesDataArgs) {
   const [quickStatus, setQuickStatus] = useState<TodayQuickStatus>("all");
-  const { isFavorite: isTeamFavorite } = useFavorites();
 
   const effectiveYesterdayStr = yesterdayStr || getYesterdayString(todayStr);
 
@@ -46,20 +44,6 @@ export function useTodayMatchesData({
     );
   }, [matches, todayStr, effectiveYesterdayStr]);
 
-  const isMatchFavorite = useMemo(() => {
-    return (m: Match) => {
-      return (
-        favorites.includes(m.id) ||
-        isTeamFavorite(m.home_team) ||
-        isTeamFavorite(m.away_team)
-      );
-    };
-  }, [favorites, isTeamFavorite]);
-
-  const todayFavoritesCount = useMemo(() => {
-    return todayMatches.filter(isMatchFavorite).length;
-  }, [todayMatches, isMatchFavorite]);
-
   // Durum filtrelemesi (Her zaman erken saatteki maç ilk gösterilecek şekilde saat sıralamalı)
   const filteredTodayMatches = useMemo(() => {
     let base = todayMatches;
@@ -67,11 +51,9 @@ export function useTodayMatchesData({
       base = todayMatches.filter((m) => m.status === "upcoming" || !isMatchScored(m));
     } else if (quickStatus === "finished") {
       base = todayMatches.filter((m) => isMatchScored(m));
-    } else if (quickStatus === "favorites") {
-      base = todayMatches.filter(isMatchFavorite);
     }
     return [...base].sort((m1, m2) => compareMatchDateTime(m1, m2, "asc"));
-  }, [todayMatches, quickStatus, isMatchFavorite]);
+  }, [todayMatches, quickStatus]);
 
   // Dashboard KPI Sayıları
   const dashboardKpis = useMemo(
@@ -119,8 +101,6 @@ export function useTodayMatchesData({
     setQuickStatus,
     effectiveYesterdayStr,
     todayMatches,
-    isMatchFavorite,
-    todayFavoritesCount,
     filteredTodayMatches,
     dashboardKpis,
     nextMatchDay,

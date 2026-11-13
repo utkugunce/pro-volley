@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Clock, ArrowRight, MapPin, Star, ExternalLink, AlertTriangle, Navigation } from "lucide-react";
+import { Clock, ArrowRight, MapPin, ExternalLink, AlertTriangle } from "lucide-react";
 import type { Match } from "@/types/fixture";
 import { TeamVolleyboxLink } from "@/components/TeamVolleyboxLink";
 import { LeagueVolleyboxLink } from "@/components/LeagueVolleyboxLink";
@@ -15,8 +15,10 @@ interface TodayMatchCardProps {
   match: Match;
   city: string;
   effectiveYesterdayStr: string;
-  isFav: boolean;
-  onToggleFavorite: (matchId: string) => void;
+  /** @deprecated Favorites UI removed */
+  isFav?: boolean;
+  /** @deprecated Favorites UI removed */
+  onToggleFavorite?: (matchId: string) => void;
   onSelectMatch?: (match: Match) => void;
 }
 
@@ -25,8 +27,6 @@ export function TodayMatchCard({
   match: m,
   city,
   effectiveYesterdayStr,
-  isFav,
-  onToggleFavorite,
   onSelectMatch,
 }: TodayMatchCardProps) {
   const hasScore = isMatchScored(m);
@@ -46,8 +46,6 @@ export function TodayMatchCard({
       className={`glass-card rounded-2xl border transition-all duration-300 shadow-card hover:shadow-card-hover flex flex-col justify-between overflow-hidden group ${
         disc?.has_diff
           ? "border-amber-500/60 ring-1 ring-amber-400/30"
-          : isFav
-          ? "border-amber-500/60 ring-1 ring-amber-400/40"
           : isYesterdayUnscored
           ? "border-amber-500/30 bg-amber-950/10 hover:border-amber-500/60"
           : "border-slate-800 hover:border-slate-600/80"
@@ -101,15 +99,6 @@ export function TodayMatchCard({
               <span className="font-mono font-scoreboard tabular-nums">{m.time}</span>
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => onToggleFavorite(m.id)}
-            className="p-1 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-slate-800/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 active:scale-90"
-            title={isFav ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-            aria-label={isFav ? `${m.home_team} - ${m.away_team} maçını favorilerden çıkar` : `${m.home_team} - ${m.away_team} maçını favorilere ekle`}
-          >
-            <Star size={14} aria-hidden="true" className={isFav ? "fill-amber-400 text-amber-400" : ""} />
-          </button>
         </div>
       </div>
 
@@ -266,20 +255,20 @@ export function TodayMatchCard({
               <ExternalLink size={10} />
             </a>
           ) : (
-            <span className="text-[10px] text-slate-600 font-medium">VB Girişi Yok</span>
+            <span className="text-[10px] text-amber-400/90 font-semibold">VB Eksik</span>
           )}
         </div>
-
-        {onSelectMatch && (
-          <button
-            onClick={() => onSelectMatch(m)}
-            className="w-full py-2 px-3 bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold border-t border-slate-800/80 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <span>Maç Merkezi & Setler</span>
-            <ArrowRight size={12} className="text-ink-2" />
-          </button>
-        )}
       </div>
+
+      {onSelectMatch && (
+        <button
+          onClick={() => onSelectMatch(m)}
+          className="w-full py-2 px-3 bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold border-t border-slate-800/80 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <span>Maç Merkezi & Setler</span>
+          <ArrowRight size={12} className="text-ink-2" />
+        </button>
+      )}
     </div>
   );
 }

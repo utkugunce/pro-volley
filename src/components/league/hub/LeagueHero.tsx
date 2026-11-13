@@ -1,16 +1,20 @@
 "use client";
 
-import { MapPin, Trophy, Users, Calendar, ExternalLink, Download, FileSpreadsheet } from "lucide-react";
+import { MapPin, Trophy, Users, Calendar, ExternalLink, FileSpreadsheet } from "lucide-react";
 import { LeagueData } from "@/utils/leagueData";
+import { getVolleyboxTournamentMatchesUrl } from "@/utils/volleyboxWorkbench";
 
 export interface LeagueHeroProps {
-  handleDownloadCalendar: () => void;
+  /** @deprecated ICS export removed */
+  handleDownloadCalendar?: () => void;
   handleDownloadCsv: () => void;
   league: LeagueData;
   progressPercent: number;
 }
 
-export function LeagueHero({ handleDownloadCalendar, handleDownloadCsv, league, progressPercent }: LeagueHeroProps) {
+export function LeagueHero({ handleDownloadCsv, league, progressPercent }: LeagueHeroProps) {
+  const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(league.category, league.city);
+
   return (
     <section className="bg-surface border-b border-line py-5 sm:py-6 px-4">
       <div className="max-w-7xl mx-auto space-y-4">
@@ -57,20 +61,22 @@ export function LeagueHero({ handleDownloadCalendar, handleDownloadCsv, league, 
               {league.leagueName}
             </h1>
             <p className="text-xs sm:text-sm text-ink-3 mt-1 max-w-2xl">
-              {league.city} ili {league.category} ligi canlı puan durumu, haftalık maç fikstürleri, kesinleşmiş set skorları ve detaylı takım istatistikleri.
+              {league.city} · {league.category} — Puan durumu, fikstür, set skorları ve Volleybox veri akışı.
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {league.matches.length > 0 && (
-              <button
-                onClick={handleDownloadCalendar}
-                className="inline-flex items-center gap-1.5 text-xs font-bold bg-primary hover:bg-primary-hover text-primary-fg px-3.5 py-2 rounded-lg transition-colors cursor-pointer"
-                title="Tüm lig fikstürünü takviminize (.ics) indirin"
+            {vbMatchesUrl && (
+              <a
+                href={vbMatchesUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold bg-primary hover:bg-primary-hover text-primary-fg px-3.5 py-2 rounded-lg transition-colors"
+                title="Volleybox turnuva maçlar sekmesini aç"
               >
-                <Download size={13} />
-                <span>Sezonu Takvime Ekle</span>
-              </button>
+                <span>VB Maçlar Sekmesi</span>
+                <ExternalLink size={13} />
+              </a>
             )}
 
             {league.groups.length > 0 && (

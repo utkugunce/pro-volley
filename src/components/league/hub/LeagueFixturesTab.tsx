@@ -10,7 +10,8 @@ import { LeagueData } from "@/utils/leagueData";
 
 export interface LeagueFixturesTabProps {
   displayedUpcomingMatches: Match[];
-  favorites: string[];
+  /** @deprecated Favorites UI removed */
+  favorites?: string[];
   fixtureDateCounts: { [dateStr: string]: number };
   league: LeagueData;
   selectedFixtureDate: string;
@@ -19,7 +20,8 @@ export interface LeagueFixturesTabProps {
   setTeamSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   teamSearchQuery: string;
   todayStr: string;
-  toggleFavorite: (teamName: string) => void;
+  /** @deprecated Favorites UI removed */
+  toggleFavorite?: (teamName: string) => void;
   uniqueFixtureDates: string[];
   upcomingSections: { title: string; subTitle: string; matches: Match[] }[];
   yesterdayStr: string;
@@ -27,7 +29,6 @@ export interface LeagueFixturesTabProps {
 
 export function LeagueFixturesTab({
   displayedUpcomingMatches,
-  favorites,
   fixtureDateCounts,
   league,
   selectedFixtureDate,
@@ -36,7 +37,6 @@ export function LeagueFixturesTab({
   setTeamSearchQuery,
   teamSearchQuery,
   todayStr,
-  toggleFavorite,
   uniqueFixtureDates,
   upcomingSections,
   yesterdayStr,
@@ -114,8 +114,6 @@ export function LeagueFixturesTab({
               title={sec.title}
               subTitle={sec.subTitle}
               matches={sec.matches}
-              favorites={favorites}
-              onToggleFavorite={toggleFavorite}
               city={league.city}
               showCityBadge={false}
               onSelectMatch={setSelectedMatch}

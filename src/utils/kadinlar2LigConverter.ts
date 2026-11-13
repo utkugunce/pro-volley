@@ -111,10 +111,14 @@ export function toggleKadinlar2LigMatchFavorite(
 }
 
 /** Takım adı araması: hem Volleybox adı hem TVF adı üzerinden Türkçe karakter duyarsız eşleşir. */
-export function kadinlar2LigMatchHasTeamQuery(m: Kadinlar2LigMatch, query: string): boolean {
+export function kadinlar2LigMatchHasTeamQuery(
+  m: Kadinlar2LigMatch,
+  query: string,
+  category?: string
+): boolean {
   return [
-    ...getKadinlar2LigTeamNameVariants(m.takim_a, m.takim_a_volleybox_name),
-    ...getKadinlar2LigTeamNameVariants(m.takim_b, m.takim_b_volleybox_name),
+    ...getKadinlar2LigTeamNameVariants(m.takim_a, m.takim_a_volleybox_name, category),
+    ...getKadinlar2LigTeamNameVariants(m.takim_b, m.takim_b_volleybox_name, category),
   ].some((name) => trIncludes(name, query));
 }
 

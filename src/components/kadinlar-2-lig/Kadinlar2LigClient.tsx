@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Kadinlar2LigData } from "@/types/kadinlar2Lig";
 import { Match, StandingItem } from "@/types/fixture";
-import { useFavorites } from "@/utils/useFavorites";
 
 const MobileMatchDrawer = dynamic(
   () => import("@/components/MobileMatchDrawer").then((mod) => mod.MobileMatchDrawer),
@@ -15,7 +14,6 @@ const SpotlightSearchModal = dynamic(
   { ssr: false }
 );
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
-import { PrimaryTeamWidget } from "@/components/PrimaryTeamWidget";
 import { slugify } from "@/utils/slugify";
 import { Kadinlar2LigHeader, Kadinlar2LigTabType } from "./Kadinlar2LigHeader";
 import { Kadinlar2LigGroupBar } from "./Kadinlar2LigGroupBar";
@@ -34,7 +32,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import {
   convertK2MatchToMatch,
   getKadinlar2LigTeamName,
-  toggleKadinlar2LigMatchFavorite,
+  K2_CATEGORY,
 } from "@/utils/kadinlar2LigConverter";
 import {
   expandKadinlar2LigData,
@@ -70,11 +68,8 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
   const [isLoading] = useState<boolean>(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [compareSlug1, setCompareSlug1] = useState<string | undefined>(undefined);
-
-  const { count: favoritesCount, isFavorite, toggleFavorite } = useFavorites();
 
   const totalTeamsCount =
     data.metadata?.toplam_takim_sayisi || data.tum_takimlar?.length || 163;
@@ -107,16 +102,23 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
 
   // Standart Match dizisi ve puan durumu haritası (MatchInspectorPanel ve MobileMatchDrawer uyumlu)
   const convertedMatches: Match[] = useMemo(() => {
-    return (data.tum_maclar || []).map((m) => convertK2MatchToMatch(m));
+    return (data.tum_maclar || []).map((m) =>
+      convertK2MatchToMatch(m, {
+        category: K2_CATEGORY,
+        age_group: "Büyük Kadınlar",
+        gender: "Kadın",
+      })
+    );
   }, [data.tum_maclar]);
 
   const standingsMap: Record<string, StandingItem[]> = useMemo(() => {
     const res: Record<string, StandingItem[]> = {};
     (data.gruplar || []).forEach((g) => {
-      const key = g.grup_adi || `Grup ${g.grup_no}`;
+      const groupName = g.grup_adi || `${g.grup_no}. Grup`;
+      const key = `Türkiye - ${K2_CATEGORY} - ${groupName}`;
       res[key] = (g.puan_durumu || []).map((t) => ({
         rank: t.sira,
-        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name),
+        team: getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K2_CATEGORY),
         played: t.o,
         won: t.g,
         lost: t.m,
@@ -138,7 +140,7 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
     return Array.from(
       new Set(
         (data.tum_takimlar || []).map((t) =>
-          getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name)
+          getKadinlar2LigTeamName(t.takim_adi, t.volleybox_name, K2_CATEGORY)
         )
       )
     );
@@ -283,9 +285,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
           isLoading={isLoading}
           todayMatchesCount={todayMatchesCount}
           resultsCount={resultsCount}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onOpenSearch={() => setIsSearchOpen(true)}
         />
       }
@@ -294,9 +293,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
           groups={data.gruplar}
           selectedGroup={selectedGroup}
           activeTab={activeTab}
-          favoritesCount={favoritesCount}
-          showOnlyFavorites={showOnlyFavorites}
-          onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
           onSelectGroup={handleSelectGroup}
           onSelectTab={handleSelectTab}
         />
@@ -318,15 +314,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
                 }
               }
             }}
-            onToggleFavorite={(matchId) => {
-              const m = convertedMatches.find((x) => x.id === matchId);
-              if (m) toggleKadinlar2LigMatchFavorite(m, isFavorite, toggleFavorite);
-            }}
-            isFavorite={
-              selectedMatch
-                ? isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)
-                : false
-            }
           />
         ) : null
       }
@@ -356,14 +343,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             </button>
           </div>
         )}
-
-        {/* Desteklenen Kulüp (Primary Team VIP Widget) */}
-        <PrimaryTeamWidget
-          matches={convertedMatches}
-          city="Kadınlar 2. Ligi"
-          onSelectMatch={handleSelectMatch}
-          availableTeams={searchableTeams}
-        />
 
         {/* Sayfa Semantik H1 Başlığı (Anasayfa harici sekmelerde) */}
         {activeTab !== "home" && (
@@ -413,7 +392,8 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
+            leagueTitle={K2_CATEGORY}
+            leagueCategory={K2_CATEGORY}
           />
         )}
 
@@ -424,9 +404,9 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
+            leagueTitle={K2_CATEGORY}
+            leagueCategory={K2_CATEGORY}
           />
         )}
 
@@ -437,9 +417,9 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             groups={data.gruplar}
             onSelectMatch={handleSelectMatch}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
-            onToggleFavoritesOnly={() => setShowOnlyFavorites((prev) => !prev)}
             selectedMatchId={selectedMatch?.id || null}
+            leagueTitle={K2_CATEGORY}
+            leagueCategory={K2_CATEGORY}
           />
         )}
 
@@ -451,13 +431,11 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
                 groups={data.gruplar}
                 onSelectGroup={handleSelectGroupFromAnywhere}
                 searchQuery={searchQuery}
-                showOnlyFavorites={showOnlyFavorites}
               />
             ) : (
               <Kadinlar2LigStandings
                 group={currentGroupData}
                 searchQuery={searchQuery}
-                showOnlyFavorites={showOnlyFavorites}
                 onCompareTeam={handleCompareTeam}
               />
             )}
@@ -470,9 +448,10 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
                 allMatches={data.tum_maclar}
                 isAllGroups={selectedGroup === "all"}
                 searchQuery={searchQuery}
-                showOnlyFavorites={showOnlyFavorites}
                 onSelectMatch={handleSelectMatch}
                 selectedMatchId={selectedMatch?.id || null}
+                leagueTitle={K2_CATEGORY}
+                leagueCategory={K2_CATEGORY}
               />
             </div>
           </div>
@@ -486,9 +465,10 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             allMatches={data.tum_maclar}
             isAllGroups={selectedGroup === "all"}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
             onSelectMatch={handleSelectMatch}
             selectedMatchId={selectedMatch?.id || null}
+            leagueTitle={K2_CATEGORY}
+            leagueCategory={K2_CATEGORY}
           />
         )}
 
@@ -498,7 +478,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             groups={data.gruplar}
             onSelectGroup={handleSelectGroupFromAnywhere}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
           />
         )}
 
@@ -509,7 +488,7 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
             onSelectGroup={handleSelectGroupFromAnywhere}
             onCompareTeam={handleCompareTeam}
             searchQuery={searchQuery}
-            showOnlyFavorites={showOnlyFavorites}
+            leagueCategory={K2_CATEGORY}
           />
         )}
 
@@ -534,15 +513,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
           onClose={() => setIsMobileDrawerOpen(false)}
           allMatches={convertedMatches}
           standings={standingsMap}
-          onToggleFavorite={(matchId) => {
-            const m = convertedMatches.find((x) => x.id === matchId);
-            if (m) toggleKadinlar2LigMatchFavorite(m, isFavorite, toggleFavorite);
-          }}
-          isFavorite={
-            selectedMatch
-              ? isFavorite(selectedMatch.home_team) || isFavorite(selectedMatch.away_team)
-              : false
-          }
         />
       )}
 
@@ -577,9 +547,6 @@ export const Kadinlar2LigClient: React.FC<Kadinlar2LigClientProps> = ({
       <Kadinlar2LigMobileNav
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
-        showOnlyFavorites={showOnlyFavorites}
-        onToggleFavorites={() => setShowOnlyFavorites((prev) => !prev)}
-        favoriteCount={favoritesCount}
         todayMatchesCount={todayMatchesCount}
         resultsCount={resultsCount}
       />

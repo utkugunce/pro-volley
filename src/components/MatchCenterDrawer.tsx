@@ -13,31 +13,29 @@ const SocialStoryModal = dynamic(
 import {
   X,
   MapPin,
-  Calendar,
   Clock,
   ExternalLink,
-  CalendarPlus,
   Copy,
   Check,
   Share2,
   Swords,
   Navigation,
-  Trophy,
   AlertTriangle,
   Flame,
 } from "lucide-react";
 import { getHallNavigationUrl } from "@/utils/halls";
-import { generateMatchIcs, downloadIcsFile } from "@/utils/ics";
 import { slugify } from "@/utils/slugify";
 import { triggerHaptic } from "@/utils/haptics";
-import { getVolleyboxMapping } from "@/utils/volleybox";
 import { getMatchForfeitInfo } from "@/utils/forfeit";
+import { resolveVolleyboxTeamMapping } from "@/utils/volleyboxWorkbench";
 
 interface MatchCenterDrawerProps {
   match: Match | null;
   onClose: () => void;
   city?: string;
+  /** @deprecated Favorites UI removed */
   onToggleFavorite?: (id: string) => void;
+  /** @deprecated Favorites UI removed */
   isFavorite?: boolean;
 }
 
@@ -45,8 +43,6 @@ export const MatchCenterDrawer: React.FC<MatchCenterDrawerProps> = ({
   match,
   onClose,
   city = "İstanbul",
-  onToggleFavorite,
-  isFavorite = false,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showStoryModal, setShowStoryModal] = useState(false);
@@ -66,11 +62,9 @@ export const MatchCenterDrawer: React.FC<MatchCenterDrawerProps> = ({
 
   const effectiveCity = match.city || city;
   const isFinished = match.status === "finished";
-  const homeWon = isFinished && (match.home_score ?? 0) > (match.away_score ?? 0);
-  const awayWon = isFinished && (match.away_score ?? 0) > (match.home_score ?? 0);
 
-  const homeMapping = getVolleyboxMapping(match.home_team, match.category, undefined, effectiveCity);
-  const awayMapping = getVolleyboxMapping(match.away_team, match.category, undefined, effectiveCity);
+  const homeMapping = resolveVolleyboxTeamMapping(match.home_team, match.category, effectiveCity);
+  const awayMapping = resolveVolleyboxTeamMapping(match.away_team, match.category, effectiveCity);
 
   const homeLogo = homeMapping?.local_logo || homeMapping?.logo_url;
   const awayLogo = awayMapping?.local_logo || awayMapping?.logo_url;
@@ -91,18 +85,6 @@ export const MatchCenterDrawer: React.FC<MatchCenterDrawerProps> = ({
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownloadIcs = () => {
-    triggerHaptic("medium");
-    if (!match.date || match.date === "TBD") {
-      alert("Bu maçın tarihi henüz açıklanmadığı için takvime eklenemez.");
-      return;
-    }
-    const ics = generateMatchIcs(match);
-    if (ics) {
-      downloadIcsFile(`mac-${match.home_team}-${match.away_team}-${match.date}.ics`, ics);
-    }
   };
 
   return (
@@ -349,7 +331,7 @@ export const MatchCenterDrawer: React.FC<MatchCenterDrawerProps> = ({
           </div>
 
           {/* 3. Alt Aksiyon Çubuğu (Quick Actions) */}
-          <div className="p-4 bg-slate-950 border-t border-slate-800 grid grid-cols-3 gap-2 shrink-0">
+          <div className="p-4 bg-slate-950 border-t border-slate-800 grid grid-cols-2 gap-2 shrink-0">
             <button
               onClick={() => setShowStoryModal(true)}
               className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-fg text-xs font-bold shadow-glow-primary transition-all active:scale-95 cursor-pointer"
@@ -357,15 +339,6 @@ export const MatchCenterDrawer: React.FC<MatchCenterDrawerProps> = ({
             >
               <Share2 size={14} />
               <span>Hikaye Kartı</span>
-            </button>
-
-            <button
-              onClick={handleDownloadIcs}
-              className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-all active:scale-95 cursor-pointer"
-              title="Takvime Ekle (.ics)"
-            >
-              <CalendarPlus size={14} className="text-amber-400" />
-              <span>Takvim (.ics)</span>
             </button>
 
             <button
