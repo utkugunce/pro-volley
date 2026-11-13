@@ -2,9 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { Crown, Trophy, Layers } from "lucide-react";
+import { Crown, Trophy, Layers, ClipboardCheck } from "lucide-react";
 
-export type ActiveLeagueKey = "sultanlar" | "1-lig" | "2-lig" | "altyapi";
+export type ActiveLeagueKey = "sultanlar" | "1-lig" | "2-lig" | "volleybox" | "altyapi";
 
 interface LeagueSwitcherProps {
   activeLeague: ActiveLeagueKey;
@@ -53,6 +53,16 @@ export const LeagueSwitcher: React.FC<LeagueSwitcherProps> = ({
       icon: <Layers size={13} className="text-fuchsia-400 shrink-0" />,
       activeClass:
         "bg-gradient-to-r from-fuchsia-600/25 via-purple-500/15 to-amber-500/15 text-fuchsia-200 border border-fuchsia-400/50 shadow-xs",
+    },
+    {
+      key: "volleybox",
+      label: "Volleybox",
+      sublabel: "Giriş",
+      href: "/volleybox",
+      title: "TVF → Volleybox Maç Giriş & Eşleştirme Kokpiti",
+      icon: <ClipboardCheck size={13} className="text-emerald-400 shrink-0" />,
+      activeClass:
+        "bg-gradient-to-r from-emerald-600/25 via-teal-500/15 to-amber-500/15 text-emerald-200 border border-emerald-400/50 shadow-xs",
     },
   ];
 
