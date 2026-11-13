@@ -4,7 +4,8 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    autoDeploy: true
+    branch: main
+    autoDeployTrigger: commit
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
