@@ -262,6 +262,29 @@ def run_sultanlar_scraper():
     snap_f = json.loads(target_f["wire:snapshot"])
     matches = extract_fixtures(snap_f)
     print(f"  ✅ {len(matches)} maç fikstürü başarıyla alındı.")
+
+    # Önceki dosyadan Volleybox maç senkronizasyon verilerini koru (GitHub Actions 403 aldığında kaybolmasın)
+    existing_matches_map = {}
+    prev_sync_updated_at = None
+    if os.path.exists(OUTPUT_FILE):
+        try:
+            with open(OUTPUT_FILE, "r", encoding="utf-8") as ef:
+                prev_data = json.load(ef)
+                prev_sync_updated_at = prev_data.get("metadata", {}).get("volleybox_sync_updated_at")
+                for pm in prev_data.get("tum_maclar", []):
+                    m_id = pm.get("id") or f"{pm.get('grup_no')}_{pm.get('mac_no')}"
+                    existing_matches_map[m_id] = pm
+        except Exception:
+            pass
+
+    for m in matches:
+        m_id = m.get("id") or f"{m.get('grup_no')}_{m.get('mac_no')}"
+        prev_m = existing_matches_map.get(m_id)
+        if prev_m:
+            if prev_m.get("volleybox") and not m.get("volleybox"):
+                m["volleybox"] = prev_m["volleybox"]
+            if prev_m.get("discrepancy") and not m.get("discrepancy"):
+                m["discrepancy"] = prev_m["discrepancy"]
     
     finished_count = sum(1 for m in matches if m["durum"] == "BİTTİ")
     print(f"  🏁 Tamamlanan Maç: {finished_count}, Planlanan Maç: {len(matches) - finished_count}")
@@ -300,6 +323,11 @@ def run_sultanlar_scraper():
         "tum_maclar": matches,
         "tum_takimlar": teams,
     }
+
+    synced_matches_count = sum(1 for m in matches if m.get("volleybox", {}).get("synced"))
+    if synced_matches_count > 0:
+        payload["metadata"]["volleybox_synced_matches"] = synced_matches_count
+        payload["metadata"]["volleybox_sync_updated_at"] = prev_sync_updated_at or datetime.now().isoformat()
     
     atomic_write_json(OUTPUT_FILE, payload)
     print(f"\n🎉 Sultanlar Ligi verisi kaydedildi -> {OUTPUT_FILE}")

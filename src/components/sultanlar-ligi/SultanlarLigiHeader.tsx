@@ -58,8 +58,8 @@ export const SultanlarLigiHeader: React.FC<SultanlarLigiHeaderProps> = ({
   return (
     <header className="bg-canvas text-white sticky top-0 z-30 border-b border-line/70 pt-[env(safe-area-inset-top,0px)]">
       {/* 1. Üst Global Bar: Marka + Segmented League Switcher + Lig Rozeti + Sağ Kontroller */}
-      <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 flex flex-wrap min-[1200px]:flex-nowrap items-center justify-between border-b border-line/50 gap-x-2.5 gap-y-1.5">
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-[1200px]:flex-nowrap min-[1200px]:min-w-0 min-[1200px]:[&>*:not(.hdr-tagline)]:shrink-0">
+      <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 flex flex-wrap min-[1360px]:flex-nowrap items-center justify-between border-b border-line/50 gap-x-2.5 gap-y-1.5">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-[1360px]:flex-nowrap min-[1360px]:[&>*:not(.hdr-tagline)]:shrink-0">
           <BrandLogo onClick={() => onSelectTab("home")} />
           <LeagueSwitcher activeLeague="sultanlar" />
 
@@ -71,7 +71,7 @@ export const SultanlarLigiHeader: React.FC<SultanlarLigiHeaderProps> = ({
         </div>
 
         {/* Sağ Taraf: Arama, Kokpit, Kaynaklar, Son Çekim, Ayarlar, Yazdır */}
-        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto shrink-0">
           {onOpenSearch && (
             <button
               type="button"
