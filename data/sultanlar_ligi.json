@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-vodafone-sultanlar-ligi-2026-27-o45086/matches"
     },
     "volleybox_synced_matches": 94,
-    "volleybox_sync_updated_at": "2026-11-11T09:59:02.447772"
+    "volleybox_sync_updated_at": "2026-11-13T19:38:51.207040"
   },
   "gruplar": [
     {
@@ -4926,14 +4926,14 @@
             "vb_time": "15:00",
             "vb_hall": "Prof. Dr. Veysel Eroğlu Spor Salonu",
             "discrepancy": {
-              "has_diff": false,
+              "has_diff": true,
               "date_diff": false,
-              "time_diff": false,
+              "time_diff": true,
               "hall_diff": false,
               "vb_date": "2026-12-20",
               "vb_time": "15:00",
               "vb_hall": "Prof. Dr. Veysel Eroğlu Spor Salonu",
-              "details": null
+              "details": "Saat Değişti (TVF: 13:00 / VB: 15:00)"
             }
           }
         },
@@ -9768,14 +9768,14 @@
         "vb_time": "15:00",
         "vb_hall": "Prof. Dr. Veysel Eroğlu Spor Salonu",
         "discrepancy": {
-          "has_diff": false,
+          "has_diff": true,
           "date_diff": false,
-          "time_diff": false,
+          "time_diff": true,
           "hall_diff": false,
           "vb_date": "2026-12-20",
           "vb_time": "15:00",
           "vb_hall": "Prof. Dr. Veysel Eroğlu Spor Salonu",
-          "details": null
+          "details": "Saat Değişti (TVF: 13:00 / VB: 15:00)"
         }
       }
     },
