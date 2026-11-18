@@ -3,7 +3,7 @@
     "lig_adi": "Uzman Posta Kadınlar Voleybol 2. Ligi",
     "sezon": "2026-2027",
     "kategori": "Büyük Kadınlar",
-    "guncellenme_zamani": "2026-11-17T21:56:21.401927",
+    "guncellenme_zamani": "2026-11-18T14:54:50.691342",
     "toplam_grup_sayisi": 16,
     "toplam_takim_sayisi": 162,
     "toplam_mac_sayisi": 1026,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-2-ligi-2026-27-o45047/matches"
     },
     "volleybox_synced_matches": 1026,
-    "volleybox_sync_updated_at": "2026-11-17T22:01:33.927630"
+    "volleybox_sync_updated_at": "2026-11-18T14:59:55.816170"
   },
   "gruplar": [
     {
@@ -2518,16 +2518,16 @@
             "has_score": false,
             "vb_date": "2026-11-29",
             "vb_time": "13:00",
-            "vb_hall": "Şehit Mustafa Özel Spor Kompleksi",
+            "vb_hall": "BJK Süleyman Seba Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
               "time_diff": false,
-              "hall_diff": true,
+              "hall_diff": false,
               "vb_date": "2026-11-29",
               "vb_time": "13:00",
-              "vb_hall": "Şehit Mustafa Özel Spor Kompleksi",
-              "details": "Salon Değişti (TVF: SÜLEYMAN SEBA SPOR SALONU / VB: Şehit Mustafa Özel Spor Kompleksi)"
+              "vb_hall": "BJK Süleyman Seba Spor Salonu",
+              "details": null
             }
           }
         },
@@ -9024,17 +9024,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-28",
-            "vb_time": "18:30",
+            "vb_time": "19:00",
             "vb_hall": "İBB Çekmeköy Spor Kompleksi",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-28",
-              "vb_time": "18:30",
+              "vb_time": "19:00",
               "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-              "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+              "details": null
             }
           }
         },
@@ -9279,17 +9279,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-12-05",
-            "vb_time": "18:30",
+            "vb_time": "19:00",
             "vb_hall": "İBB Çekmeköy Spor Kompleksi",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-12-05",
-              "vb_time": "18:30",
+              "vb_time": "19:00",
               "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-              "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+              "details": null
             }
           }
         },
@@ -9840,17 +9840,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-12-26",
-            "vb_time": "18:30",
+            "vb_time": "19:00",
             "vb_hall": "İBB Çekmeköy Spor Kompleksi",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-12-26",
-              "vb_time": "18:30",
+              "vb_time": "19:00",
               "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-              "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+              "details": null
             }
           }
         },
@@ -19728,17 +19728,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-12-05",
-            "vb_time": "13:00",
+            "vb_time": "19:00",
             "vb_hall": "Bornova Vali Hüseyin Öğütcen Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-12-05",
-              "vb_time": "13:00",
+              "vb_time": "19:00",
               "vb_hall": "Bornova Vali Hüseyin Öğütcen Spor Salonu",
-              "details": "Saat Değişti (TVF: 19:00 / VB: 13:00)"
+              "details": null
             }
           }
         },
@@ -30126,17 +30126,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-29",
-            "vb_time": "19:00",
+            "vb_time": "17:30",
             "vb_hall": "Karacabey Atatürk Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-29",
-              "vb_time": "19:00",
+              "vb_time": "17:30",
               "vb_hall": "Karacabey Atatürk Spor Salonu",
-              "details": "Saat Değişti (TVF: 17:30 / VB: 19:00)"
+              "details": null
             }
           }
         },
@@ -33941,17 +33941,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-21",
-            "vb_time": "14:00",
-            "vb_hall": "18 Temmuz Kapalı Spor Salonu",
+            "vb_time": "13:00",
+            "vb_hall": "Bahçeşehir Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
-              "hall_diff": true,
+              "time_diff": false,
+              "hall_diff": false,
               "vb_date": "2026-11-21",
-              "vb_time": "14:00",
-              "vb_hall": "18 Temmuz Kapalı Spor Salonu",
-              "details": "Saat Değişti (TVF: 13:00 / VB: 14:00) | Salon Değişti (TVF: BAHÇEŞEHİR SPOR SALONU / VB: 18 Temmuz Kapalı Spor Salonu)"
+              "vb_time": "13:00",
+              "vb_hall": "Bahçeşehir Spor Salonu",
+              "details": null
             }
           }
         },
@@ -37934,17 +37934,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-22",
-            "vb_time": "11:00",
+            "vb_time": "19:00",
             "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-22",
-              "vb_time": "11:00",
+              "vb_time": "19:00",
               "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
-              "details": "Saat Değişti (TVF: 19:00 / VB: 11:00)"
+              "details": null
             }
           }
         },
@@ -44237,17 +44237,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-21",
-            "vb_time": "16:00",
+            "vb_time": "13:00",
             "vb_hall": "Adnan Menderes Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-11-21",
-              "vb_time": "16:00",
+              "vb_time": "13:00",
               "vb_hall": "Adnan Menderes Spor Salonu",
-              "details": "Saat Değişti (TVF: 13:00 / VB: 16:00)"
+              "details": null
             }
           }
         },
@@ -89804,17 +89804,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-21",
-        "vb_time": "14:00",
-        "vb_hall": "18 Temmuz Kapalı Spor Salonu",
+        "vb_time": "13:00",
+        "vb_hall": "Bahçeşehir Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
-          "hall_diff": true,
+          "time_diff": false,
+          "hall_diff": false,
           "vb_date": "2026-11-21",
-          "vb_time": "14:00",
-          "vb_hall": "18 Temmuz Kapalı Spor Salonu",
-          "details": "Saat Değişti (TVF: 13:00 / VB: 14:00) | Salon Değişti (TVF: BAHÇEŞEHİR SPOR SALONU / VB: 18 Temmuz Kapalı Spor Salonu)"
+          "vb_time": "13:00",
+          "vb_hall": "Bahçeşehir Spor Salonu",
+          "details": null
         }
       }
     },
@@ -89855,17 +89855,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-21",
-        "vb_time": "16:00",
+        "vb_time": "13:00",
         "vb_hall": "Adnan Menderes Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-21",
-          "vb_time": "16:00",
+          "vb_time": "13:00",
           "vb_hall": "Adnan Menderes Spor Salonu",
-          "details": "Saat Değişti (TVF: 13:00 / VB: 16:00)"
+          "details": null
         }
       }
     },
@@ -93170,17 +93170,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-22",
-        "vb_time": "11:00",
+        "vb_time": "19:00",
         "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-22",
-          "vb_time": "11:00",
+          "vb_time": "19:00",
           "vb_hall": "TVF Selim Sırrı Tarcan Zeren Voleybol Salonu",
-          "details": "Saat Değişti (TVF: 19:00 / VB: 11:00)"
+          "details": null
         }
       }
     },
@@ -94394,17 +94394,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-28",
-        "vb_time": "18:30",
+        "vb_time": "19:00",
         "vb_hall": "İBB Çekmeköy Spor Kompleksi",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-28",
-          "vb_time": "18:30",
+          "vb_time": "19:00",
           "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-          "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+          "details": null
         }
       }
     },
@@ -94650,16 +94650,16 @@
         "has_score": false,
         "vb_date": "2026-11-29",
         "vb_time": "13:00",
-        "vb_hall": "Şehit Mustafa Özel Spor Kompleksi",
+        "vb_hall": "BJK Süleyman Seba Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
           "time_diff": false,
-          "hall_diff": true,
+          "hall_diff": false,
           "vb_date": "2026-11-29",
           "vb_time": "13:00",
-          "vb_hall": "Şehit Mustafa Özel Spor Kompleksi",
-          "details": "Salon Değişti (TVF: SÜLEYMAN SEBA SPOR SALONU / VB: Şehit Mustafa Özel Spor Kompleksi)"
+          "vb_hall": "BJK Süleyman Seba Spor Salonu",
+          "details": null
         }
       }
     },
@@ -96638,17 +96638,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-29",
-        "vb_time": "19:00",
+        "vb_time": "17:30",
         "vb_hall": "Karacabey Atatürk Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-11-29",
-          "vb_time": "19:00",
+          "vb_time": "17:30",
           "vb_hall": "Karacabey Atatürk Spor Salonu",
-          "details": "Saat Değişti (TVF: 17:30 / VB: 19:00)"
+          "details": null
         }
       }
     },
@@ -98270,17 +98270,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-12-05",
-        "vb_time": "18:30",
+        "vb_time": "19:00",
         "vb_hall": "İBB Çekmeköy Spor Kompleksi",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-12-05",
-          "vb_time": "18:30",
+          "vb_time": "19:00",
           "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-          "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+          "details": null
         }
       }
     },
@@ -98372,17 +98372,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-12-05",
-        "vb_time": "13:00",
+        "vb_time": "19:00",
         "vb_hall": "Bornova Vali Hüseyin Öğütcen Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-12-05",
-          "vb_time": "13:00",
+          "vb_time": "19:00",
           "vb_hall": "Bornova Vali Hüseyin Öğütcen Spor Salonu",
-          "details": "Saat Değişti (TVF: 19:00 / VB: 13:00)"
+          "details": null
         }
       }
     },
@@ -106430,17 +106430,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-12-26",
-        "vb_time": "18:30",
+        "vb_time": "19:00",
         "vb_hall": "İBB Çekmeköy Spor Kompleksi",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-12-26",
-          "vb_time": "18:30",
+          "vb_time": "19:00",
           "vb_hall": "İBB Çekmeköy Spor Kompleksi",
-          "details": "Saat Değişti (TVF: 19:00 / VB: 18:30)"
+          "details": null
         }
       }
     },
