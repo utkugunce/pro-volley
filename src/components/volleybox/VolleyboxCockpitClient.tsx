@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ClipboardCopy,
   ExternalLink,
+  FileSpreadsheet,
   Search,
   AlertTriangle,
   Terminal,
@@ -22,6 +23,7 @@ import { LeagueSwitcher } from "@/components/layout/LeagueSwitcher";
 import { SettingsControls } from "@/components/SettingsControls";
 import { VolleyboxWorkbenchPanel } from "@/components/dashboard/VolleyboxWorkbenchPanel";
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
+import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
 
 const MobileMatchDrawer = dynamic(
   () => import("@/components/MobileMatchDrawer").then((mod) => mod.MobileMatchDrawer),
@@ -451,6 +453,54 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                     {hideEntered ? <EyeOff size={13} /> : <Eye size={13} />}
                     <span>Girilenleri Gizle</span>
                   </button>
+
+                  {/* Volleybox Excel (.xlsx) İndir */}
+                  {filteredMatches.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const exportMatches: Match[] = filteredMatches.map((m) => {
+                          const existing = workbenchMatchMap.get(m.id);
+                          if (existing) return existing;
+                          return {
+                            id: m.id,
+                            city: m.sehir,
+                            date: m.isoDate || m.tarih,
+                            time: m.saat,
+                            hall: m.salon,
+                            category: m.leagueLabel,
+                            age_group: "Büyük Kadınlar",
+                            gender: "Kadın",
+                            group: m.grupAdi,
+                            match_no: m.id,
+                            home_team: m.takimA,
+                            away_team: m.takimB,
+                            home_score: m.setA !== "" ? Number(m.setA) : null,
+                            away_score: m.setB !== "" ? Number(m.setB) : null,
+                            score: m.skor || null,
+                            status: m.isFinished ? "finished" : "upcoming",
+                            volleybox:
+                              m.vbNameA || m.vbNameB
+                                ? {
+                                    synced: false,
+                                    host_name: m.vbNameA,
+                                    guest_name: m.vbNameB,
+                                  }
+                                : null,
+                          };
+                        });
+                        downloadVolleyboxExcelFiles(
+                          exportMatches,
+                          `volleybox_${leagueFilter}_${statusFilter}`
+                        );
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/40 text-emerald-300 cursor-pointer transition-colors"
+                      title="Filtrelenen maçları Volleybox Excel (.xlsx) şablonuyla indir (200'lük parçalar)"
+                    >
+                      <FileSpreadsheet size={13} />
+                      <span>Excel (.xlsx) İndir ({filteredMatches.length})</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Maç Satırları */}

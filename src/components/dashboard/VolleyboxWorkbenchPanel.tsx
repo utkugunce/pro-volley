@@ -8,6 +8,7 @@ import {
   ClipboardCopy,
   Database,
   ExternalLink,
+  FileSpreadsheet,
   ListChecks,
   Search,
   ShieldAlert,
@@ -25,6 +26,7 @@ import {
   resolveVolleyboxLeagueMapping,
   type VolleyboxQueueTab,
 } from "@/utils/volleyboxWorkbench";
+import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
 
 interface VolleyboxWorkbenchPanelProps {
   matches: Match[];
@@ -213,6 +215,16 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
 
   const visibleCount = Math.min(activeItems.length, visibleLimit);
   const hasMore = activeItems.length > visibleLimit;
+  const canExportExcel =
+    (activeTab === "unsynced" || activeTab === "missing_scores") && activeItems.length > 0;
+
+  const handleExportExcel = () => {
+    if (!canExportExcel) return;
+    downloadVolleyboxExcelFiles(
+      activeItems as Match[],
+      `volleybox_${activeTab}`
+    );
+  };
 
   return (
     <section
@@ -253,6 +265,17 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
                 </option>
               ))}
             </select>
+          )}
+          {canExportExcel && (
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold transition-colors cursor-pointer"
+              title="Seçili kuyruktaki maçları Volleybox Excel (.xlsx) şablonuyla indir (200'lük parçalar)"
+            >
+              <FileSpreadsheet size={12} />
+              <span>Excel (.xlsx) İndir ({activeItems.length})</span>
+            </button>
           )}
           {!hideEnsureFullData && isPartialData && onEnsureFullData && (
             <button
@@ -329,7 +352,7 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
         {activeItems.length === 0 ? (
           <div className="text-center py-6 bg-surface-raised/40 rounded-xl border border-line/50 text-xs text-ink-2">
             Bu kuyrukta bekleyen operatör işlemi bulunmuyor.
-            {!hideEnsureFullData && isPartialData && onEnsureFullData && (
+          {!hideEnsureFullData && isPartialData && onEnsureFullData && (
               <span className="block mt-2">
                 <button
                   type="button"
