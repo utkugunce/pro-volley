@@ -83,6 +83,7 @@ const nextConfig = {
   experimental: {
     // Lucide ikonlarının tüm paketi yerine yalnızca kullanılan ikonların import edilmesini sağlayarak derleme süresini ve bundle boyutunu düşürür
     optimizePackageImports: ["lucide-react", "motion"],
+    agentUpgrade: "security",
   },
   images: {
     // Vercel Image Optimization kota asimlarini ve fatura sisirme saldirilarini onlemek icin gorseller dogrudan CDN uzerinden sunulur
