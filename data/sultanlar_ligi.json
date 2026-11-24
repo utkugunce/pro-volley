@@ -3,7 +3,7 @@
     "lig_adi": "Vodafone Sultanlar Ligi",
     "sezon": "2026-2027",
     "kategori": "Sultanlar Ligi",
-    "guncellenme_zamani": "2026-11-23T11:04:51.599303",
+    "guncellenme_zamani": "2026-11-24T10:37:23.447388",
     "toplam_grup_sayisi": 1,
     "toplam_takim_sayisi": 14,
     "toplam_mac_sayisi": 95,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-vodafone-sultanlar-ligi-2026-27-o45086/matches"
     },
     "volleybox_synced_matches": 94,
-    "volleybox_sync_updated_at": "2026-11-23T11:05:10.335318"
+    "volleybox_sync_updated_at": "2026-11-24T10:37:42.285464"
   },
   "gruplar": [
     {
@@ -4844,7 +4844,7 @@
           "devre": 1,
           "tarih": "22.12.2026",
           "gun": "SALI",
-          "saat": "19:00",
+          "saat": "15:00",
           "sehir": "İSTANBUL",
           "salon": "ECZACIBAŞI SPOR KULÜBÜ HDI SİGORTA SPOR SALONU",
           "takim_a": "ECZACIBAŞI PERON İSTANBUL",
@@ -4875,14 +4875,14 @@
             "vb_time": "19:00",
             "vb_hall": "Eczacıbaşı Spor Salonu",
             "discrepancy": {
-              "has_diff": false,
+              "has_diff": true,
               "date_diff": false,
-              "time_diff": false,
+              "time_diff": true,
               "hall_diff": false,
               "vb_date": "2026-12-22",
               "vb_time": "19:00",
               "vb_hall": "Eczacıbaşı Spor Salonu",
-              "details": null
+              "details": "Saat Değişti (TVF: 15:00 / VB: 19:00)"
             }
           }
         },
@@ -9686,7 +9686,7 @@
       "devre": 1,
       "tarih": "22.12.2026",
       "gun": "SALI",
-      "saat": "19:00",
+      "saat": "15:00",
       "sehir": "İSTANBUL",
       "salon": "ECZACIBAŞI SPOR KULÜBÜ HDI SİGORTA SPOR SALONU",
       "takim_a": "ECZACIBAŞI PERON İSTANBUL",
@@ -9717,14 +9717,14 @@
         "vb_time": "19:00",
         "vb_hall": "Eczacıbaşı Spor Salonu",
         "discrepancy": {
-          "has_diff": false,
+          "has_diff": true,
           "date_diff": false,
-          "time_diff": false,
+          "time_diff": true,
           "hall_diff": false,
           "vb_date": "2026-12-22",
           "vb_time": "19:00",
           "vb_hall": "Eczacıbaşı Spor Salonu",
-          "details": null
+          "details": "Saat Değişti (TVF: 15:00 / VB: 19:00)"
         }
       }
     },

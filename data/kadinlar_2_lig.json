@@ -3,7 +3,7 @@
     "lig_adi": "Uzman Posta Kadınlar Voleybol 2. Ligi",
     "sezon": "2026-2027",
     "kategori": "Büyük Kadınlar",
-    "guncellenme_zamani": "2026-11-23T20:44:11.977444",
+    "guncellenme_zamani": "2026-11-24T10:38:34.769160",
     "toplam_grup_sayisi": 16,
     "toplam_takim_sayisi": 162,
     "toplam_mac_sayisi": 1026,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-2-ligi-2026-27-o45047/matches"
     },
     "volleybox_synced_matches": 1026,
-    "volleybox_sync_updated_at": "2026-11-23T20:44:11.977658"
+    "volleybox_sync_updated_at": "2026-11-24T10:41:37.395776"
   },
   "gruplar": [
     {
@@ -2364,17 +2364,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-11-28",
-            "vb_time": "16:30",
-            "vb_hall": "Güngören Belediyesi Spor Salonu",
+            "vb_time": "18:30",
+            "vb_hall": "Tozkoparan Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
-              "hall_diff": true,
+              "time_diff": false,
+              "hall_diff": false,
               "vb_date": "2026-11-28",
-              "vb_time": "16:30",
-              "vb_hall": "Güngören Belediyesi Spor Salonu",
-              "details": "Saat Değişti (TVF: 18:30 / VB: 16:30) | Salon Değişti (TVF: TOZKOPARAN SPOR SALONU / VB: Güngören Belediyesi Spor Salonu)"
+              "vb_time": "18:30",
+              "vb_hall": "Tozkoparan Spor Salonu",
+              "details": null
             }
           }
         },
@@ -11866,8 +11866,8 @@
             "url": "https://women.volleybox.net/tr/dev-atasehir-spor-atasehir-kartallar-spor-kulubu-c415275",
             "host_name": "Dev Ataşehir Spor",
             "guest_name": "Ataşehir Kartalları Spor Kulübü",
-            "score": null,
-            "has_score": false,
+            "score": "3 - 1",
+            "has_score": true,
             "vb_date": "2026-11-23",
             "vb_time": "18:00",
             "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
@@ -93269,8 +93269,8 @@
         "url": "https://women.volleybox.net/tr/dev-atasehir-spor-atasehir-kartallar-spor-kulubu-c415275",
         "host_name": "Dev Ataşehir Spor",
         "guest_name": "Ataşehir Kartalları Spor Kulübü",
-        "score": null,
-        "has_score": false,
+        "score": "3 - 1",
+        "has_score": true,
         "vb_date": "2026-11-23",
         "vb_time": "18:00",
         "vb_hall": "TVF 50. Yıl Deniz Esinduy Spor Salonu",
@@ -94343,17 +94343,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-11-28",
-        "vb_time": "16:30",
-        "vb_hall": "Güngören Belediyesi Spor Salonu",
+        "vb_time": "18:30",
+        "vb_hall": "Tozkoparan Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
-          "hall_diff": true,
+          "time_diff": false,
+          "hall_diff": false,
           "vb_date": "2026-11-28",
-          "vb_time": "16:30",
-          "vb_hall": "Güngören Belediyesi Spor Salonu",
-          "details": "Saat Değişti (TVF: 18:30 / VB: 16:30) | Salon Değişti (TVF: TOZKOPARAN SPOR SALONU / VB: Güngören Belediyesi Spor Salonu)"
+          "vb_time": "18:30",
+          "vb_hall": "Tozkoparan Spor Salonu",
+          "details": null
         }
       }
     },
