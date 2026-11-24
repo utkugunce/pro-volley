@@ -67,6 +67,7 @@ from scripts.sync_volleybox_matches import (
     fetch_volleybox_tournament_matches,
     match_tvf_with_vb,
     vb_round_to_tr_group_aliases,
+    load_volleybox_ignored,
 )
 
 AUTH_STATE_FILE = DATA_DIR / ".volleybox_auth.json"
@@ -406,6 +407,7 @@ def collect_unsynced_matches(
     by_tournament: Dict[str, List[Dict[str, Any]]] = {}
     seen_match_ids = set()
     quarantine_data = load_quarantine() if not ignore_quarantine else {}
+    ignored_unsynced = load_volleybox_ignored().get("ignore_unsynced", set())
 
     def process_city_file(path: Path, default_city: str):
         if not path.exists():
@@ -462,7 +464,7 @@ def collect_unsynced_matches(
                 continue
 
             m_id = str(m.get("id") or f"{city_slug}_{m.get('home_team')}_{m.get('away_team')}_{m.get('date')}")
-            if m_id in seen_match_ids:
+            if m_id in seen_match_ids or m_id in ignored_unsynced:
                 continue
             if not ignore_quarantine and m_id in quarantine_data:
                 continue
@@ -583,7 +585,7 @@ def collect_unsynced_matches(
                 continue
 
             m_id = str(m.get("id") or f"{p_slug}_{m.get('takim_a')}_{m.get('takim_b')}_{m.get('tarih')}")
-            if m_id in seen_match_ids:
+            if m_id in seen_match_ids or m_id in ignored_unsynced:
                 continue
             if not ignore_quarantine and m_id in quarantine_data:
                 continue

@@ -955,6 +955,21 @@ def sync_fixtures_file(fixtures_path: Path, vb_tournaments: Dict[str, List[Dict[
     return synced_count, total_count
 
 
+def load_volleybox_ignored() -> Dict[str, set]:
+    ignored_file = DATA_DIR / "volleybox-ignored.json"
+    if not ignored_file.exists():
+        return {"ignore_discrepancy": set(), "ignore_unsynced": set()}
+    try:
+        with open(ignored_file, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return {
+            "ignore_discrepancy": set(raw.get("ignore_discrepancy") or []),
+            "ignore_unsynced": set(raw.get("ignore_unsynced") or []),
+        }
+    except Exception:
+        return {"ignore_discrepancy": set(), "ignore_unsynced": set()}
+
+
 def sync_league_json_matches(
     json_path: Path,
     league_name: str,
@@ -1065,7 +1080,11 @@ def sync_league_json_matches(
 
         matched_vb = match_tvf_with_vb(tvf_m, vb_matches, team_alias_map, used_vb_ids)
         if matched_vb:
-            discrepancy = check_discrepancy(tvf_m, matched_vb)
+            ignored_cfg = load_volleybox_ignored()
+            if str(m.get("id") or "") in ignored_cfg["ignore_discrepancy"]:
+                discrepancy = {"has_diff": False}
+            else:
+                discrepancy = check_discrepancy(tvf_m, matched_vb)
             m["volleybox"] = {
                 "synced": True,
                 "match_id": matched_vb["match_id"],

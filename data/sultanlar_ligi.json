@@ -3702,14 +3702,7 @@
             "vb_time": "15:00",
             "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
             "discrepancy": {
-              "has_diff": true,
-              "date_diff": true,
-              "time_diff": false,
-              "hall_diff": false,
-              "vb_date": "2026-12-16",
-              "vb_time": "15:00",
-              "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
-              "details": "Tarih Değişti (TVF: 2026-11-21 / VB: 2026-12-16)"
+              "has_diff": false
             }
           }
         },
@@ -8544,14 +8537,7 @@
         "vb_time": "15:00",
         "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
         "discrepancy": {
-          "has_diff": true,
-          "date_diff": true,
-          "time_diff": false,
-          "hall_diff": false,
-          "vb_date": "2026-12-16",
-          "vb_time": "15:00",
-          "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
-          "details": "Tarih Değişti (TVF: 2026-11-21 / VB: 2026-12-16)"
+          "has_diff": false
         }
       }
     },

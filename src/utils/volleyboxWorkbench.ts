@@ -1,4 +1,16 @@
+import volleyboxIgnored from "../../data/volleybox-ignored.json";
 import type { Match, StandingItem, VolleyboxLeagueMapping, VolleyboxMapping } from "@/types/fixture";
+
+const IGNORED_DISCREPANCY_IDS = new Set<string>(volleyboxIgnored.ignore_discrepancy ?? []);
+const IGNORED_UNSYNCED_IDS = new Set<string>(volleyboxIgnored.ignore_unsynced ?? []);
+
+export function isDiscrepancyIgnored(matchId?: string | null): boolean {
+  return Boolean(matchId && IGNORED_DISCREPANCY_IDS.has(matchId));
+}
+
+export function isUnsyncedIgnored(matchId?: string | null): boolean {
+  return Boolean(matchId && IGNORED_UNSYNCED_IDS.has(matchId));
+}
 import { getMatchForfeitInfo } from "@/utils/forfeit";
 import { formatGroupName } from "@/utils/grouping";
 import { isMatchScored } from "@/utils/matchScoring";
@@ -690,12 +702,12 @@ export function buildVolleyboxWorkbenchData(
     }
 
     // Queue 2: Bulletin discrepancy between TVF and Volleybox (schedule changed)
-    if (m.volleybox?.synced && m.volleybox?.discrepancy?.has_diff) {
+    if (m.volleybox?.synced && m.volleybox?.discrepancy?.has_diff && !isDiscrepancyIgnored(m.id)) {
       discrepancies.push(m);
     }
 
     // Queue 3: Dated TVF matches not yet entered on Volleybox
-    if (hasValidDate && !m.volleybox?.synced) {
+    if (hasValidDate && !m.volleybox?.synced && !isUnsyncedIgnored(m.id)) {
       unsynced.push(m);
     }
 

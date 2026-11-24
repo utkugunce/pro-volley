@@ -4,6 +4,7 @@ import { formatGroupName, formatLeagueCategoryTitle } from "@/utils/grouping";
 import { AGE_CATEGORIES, classifyAgeCategory } from "@/utils/leagueHierarchy";
 import { trLower, trIncludes } from "@/utils/turkishLocale";
 import { isMatchScored } from "@/utils/matchScoring";
+import { isDiscrepancyIgnored, isUnsyncedIgnored } from "@/utils/volleyboxWorkbench";
 
 export type VolleyboxFilter = "all" | "synced" | "scored" | "unscored" | "unsynced" | "discrepancy";
 
@@ -61,9 +62,13 @@ export function computeVolleyboxStats(matches: Match[], todayStr: string): Volle
   ).length;
   // Değişenler: İl bülteninde tarihi, saati veya salonu değişen maçlar (oynanmış/sonucu olan maçlar hariç)
   const discrepancy = syncedMatches.filter(
-    (m) => m.volleybox?.discrepancy?.has_diff && !isMatchScored(m) && m.status !== "finished"
+    (m) =>
+      m.volleybox?.discrepancy?.has_diff &&
+      !isDiscrepancyIgnored(m.id) &&
+      !isMatchScored(m) &&
+      m.status !== "finished"
   ).length;
-  const unsynced = total - synced;
+  const unsynced = validMatches.filter((m) => !m.volleybox?.synced && !isUnsyncedIgnored(m.id)).length;
   const percent = total > 0 ? Math.round((synced / total) * 100) : 0;
   return { total, synced, scored, unscored, unsynced, discrepancy, percent };
 }
@@ -143,11 +148,15 @@ export function filterFixtureMatches(matches: Match[], opts: FixtureFilterOption
     // Değişenler: İl temsilciliği bülteninde tarih, saat veya salonu değişenler (oynanmış/sonucu olan maçlar hariç)
     if (
       volleyboxFilter === "discrepancy" &&
-      (!m.volleybox?.synced || !m.volleybox?.discrepancy?.has_diff || isMatchScored(m) || m.status === "finished")
+      (!m.volleybox?.synced ||
+        !m.volleybox?.discrepancy?.has_diff ||
+        isDiscrepancyIgnored(m.id) ||
+        isMatchScored(m) ||
+        m.status === "finished")
     ) {
       return false;
     }
-    if (volleyboxFilter === "unsynced" && m.volleybox?.synced) {
+    if (volleyboxFilter === "unsynced" && (m.volleybox?.synced || isUnsyncedIgnored(m.id))) {
       return false;
     }
 
