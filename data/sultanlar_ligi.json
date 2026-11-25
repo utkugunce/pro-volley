@@ -3,7 +3,7 @@
     "lig_adi": "Vodafone Sultanlar Ligi",
     "sezon": "2026-2027",
     "kategori": "Sultanlar Ligi",
-    "guncellenme_zamani": "2026-11-24T19:49:35.358278",
+    "guncellenme_zamani": "2026-11-25T13:53:17.673175",
     "toplam_grup_sayisi": 1,
     "toplam_takim_sayisi": 14,
     "toplam_mac_sayisi": 95,
@@ -15,8 +15,8 @@
       "volleybox_turnuva": "https://women.volleybox.net/tr/women-vodafone-sultanlar-ligi-2026-27-o45086",
       "volleybox_maclar": "https://women.volleybox.net/tr/women-vodafone-sultanlar-ligi-2026-27-o45086/matches"
     },
-    "volleybox_synced_matches": 94,
-    "volleybox_sync_updated_at": "2026-11-24T10:37:42.285464"
+    "volleybox_synced_matches": 95,
+    "volleybox_sync_updated_at": "2026-11-25T13:53:37.955859"
   },
   "gruplar": [
     {
@@ -1454,18 +1454,25 @@
           "takim_a_volleybox_name": "Fenerbahçe Medicana",
           "takim_b_volleybox_name": "Göztepe Yuppo",
           "volleybox": {
-            "synced": false,
-            "match_id": null,
-            "url": null,
-            "host_name": null,
-            "guest_name": null,
+            "synced": true,
+            "match_id": "398616",
+            "url": "https://women.volleybox.net/tr/fenerbahce-goztepe-sk-c398616",
+            "host_name": "Fenerbahçe Medicana",
+            "guest_name": "Göztepe Yuppo",
             "score": null,
             "has_score": false,
-            "vb_date": null,
-            "vb_time": null,
-            "vb_hall": null,
+            "vb_date": "2026-12-08",
+            "vb_time": "14:00",
+            "vb_hall": "TVF Burhan Felek Voleybol Salonu",
             "discrepancy": {
-              "has_diff": false
+              "has_diff": false,
+              "date_diff": false,
+              "time_diff": false,
+              "hall_diff": false,
+              "vb_date": "2026-12-08",
+              "vb_time": "14:00",
+              "vb_hall": "TVF Burhan Felek Voleybol Salonu",
+              "details": null
             }
           }
         },
@@ -3953,8 +3960,8 @@
             "guest_name": "Fenerbahçe Medicana",
             "score": null,
             "has_score": false,
-            "vb_date": "2026-12-16",
-            "vb_time": "15:00",
+            "vb_date": "2026-12-22",
+            "vb_time": "13:00",
             "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
             "discrepancy": {
               "has_diff": false
@@ -4865,17 +4872,17 @@
             "score": null,
             "has_score": false,
             "vb_date": "2026-12-22",
-            "vb_time": "19:00",
+            "vb_time": "15:00",
             "vb_hall": "Eczacıbaşı Spor Salonu",
             "discrepancy": {
-              "has_diff": true,
+              "has_diff": false,
               "date_diff": false,
-              "time_diff": true,
+              "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-12-22",
-              "vb_time": "19:00",
+              "vb_time": "15:00",
               "vb_hall": "Eczacıbaşı Spor Salonu",
-              "details": "Saat Değişti (TVF: 15:00 / VB: 19:00)"
+              "details": null
             }
           }
         },
@@ -6289,18 +6296,25 @@
       "takim_a_volleybox_name": "Fenerbahçe Medicana",
       "takim_b_volleybox_name": "Göztepe Yuppo",
       "volleybox": {
-        "synced": false,
-        "match_id": null,
-        "url": null,
-        "host_name": null,
-        "guest_name": null,
+        "synced": true,
+        "match_id": "398616",
+        "url": "https://women.volleybox.net/tr/fenerbahce-goztepe-sk-c398616",
+        "host_name": "Fenerbahçe Medicana",
+        "guest_name": "Göztepe Yuppo",
         "score": null,
         "has_score": false,
-        "vb_date": null,
-        "vb_time": null,
-        "vb_hall": null,
+        "vb_date": "2026-12-08",
+        "vb_time": "14:00",
+        "vb_hall": "TVF Burhan Felek Voleybol Salonu",
         "discrepancy": {
-          "has_diff": false
+          "has_diff": false,
+          "date_diff": false,
+          "time_diff": false,
+          "hall_diff": false,
+          "vb_date": "2026-12-08",
+          "vb_time": "14:00",
+          "vb_hall": "TVF Burhan Felek Voleybol Salonu",
+          "details": null
         }
       }
     },
@@ -8788,8 +8802,8 @@
         "guest_name": "Fenerbahçe Medicana",
         "score": null,
         "has_score": false,
-        "vb_date": "2026-12-16",
-        "vb_time": "15:00",
+        "vb_date": "2026-12-22",
+        "vb_time": "13:00",
         "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
         "discrepancy": {
           "has_diff": false
@@ -9700,17 +9714,17 @@
         "score": null,
         "has_score": false,
         "vb_date": "2026-12-22",
-        "vb_time": "19:00",
+        "vb_time": "15:00",
         "vb_hall": "Eczacıbaşı Spor Salonu",
         "discrepancy": {
-          "has_diff": true,
+          "has_diff": false,
           "date_diff": false,
-          "time_diff": true,
+          "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-12-22",
-          "vb_time": "19:00",
+          "vb_time": "15:00",
           "vb_hall": "Eczacıbaşı Spor Salonu",
-          "details": "Saat Değişti (TVF: 15:00 / VB: 19:00)"
+          "details": null
         }
       }
     },
