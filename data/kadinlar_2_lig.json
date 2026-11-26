@@ -3,7 +3,7 @@
     "lig_adi": "Uzman Posta Kadınlar Voleybol 2. Ligi",
     "sezon": "2026-2027",
     "kategori": "Büyük Kadınlar",
-    "guncellenme_zamani": "2026-11-25T13:54:43.934036",
+    "guncellenme_zamani": "2026-11-26T18:44:45.678305",
     "toplam_grup_sayisi": 16,
     "toplam_takim_sayisi": 162,
     "toplam_mac_sayisi": 1026,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-2-ligi-2026-27-o45047/matches"
     },
     "volleybox_synced_matches": 1026,
-    "volleybox_sync_updated_at": "2026-11-25T14:01:01.521922"
+    "volleybox_sync_updated_at": "2026-11-26T18:44:45.678509"
   },
   "gruplar": [
     {
@@ -23770,7 +23770,7 @@
           "devre": 2,
           "tarih": "28.11.2026",
           "gun": "CUMARTESİ",
-          "saat": "19:00",
+          "saat": "20:00",
           "sehir": "İZMİR",
           "salon": "BAYRAKLI MUSTAFA KEMAL ATATÜRK SPOR SALONU",
           "takim_a": "BAYRAKLI BLD. SPOR",
@@ -94570,7 +94570,7 @@
       "devre": 2,
       "tarih": "28.11.2026",
       "gun": "CUMARTESİ",
-      "saat": "19:00",
+      "saat": "20:00",
       "sehir": "İZMİR",
       "salon": "BAYRAKLI MUSTAFA KEMAL ATATÜRK SPOR SALONU",
       "takim_a": "BAYRAKLI BLD. SPOR",
