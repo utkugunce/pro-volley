@@ -3,7 +3,7 @@
     "lig_adi": "Vodafone Sultanlar Ligi",
     "sezon": "2026-2027",
     "kategori": "Sultanlar Ligi",
-    "guncellenme_zamani": "2026-11-25T18:55:47.624892",
+    "guncellenme_zamani": "2026-11-27T09:11:37.011040",
     "toplam_grup_sayisi": 1,
     "toplam_takim_sayisi": 14,
     "toplam_mac_sayisi": 95,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-vodafone-sultanlar-ligi-2026-27-o45086/matches"
     },
     "volleybox_synced_matches": 95,
-    "volleybox_sync_updated_at": "2026-11-25T13:53:37.955859"
+    "volleybox_sync_updated_at": "2026-11-27T09:11:57.216735"
   },
   "gruplar": [
     {
@@ -4569,14 +4569,14 @@
             "vb_time": "16:00",
             "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
             "discrepancy": {
-              "has_diff": false,
-              "date_diff": false,
+              "has_diff": true,
+              "date_diff": true,
               "time_diff": false,
               "hall_diff": false,
               "vb_date": "2026-12-06",
               "vb_time": "16:00",
               "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
-              "details": null
+              "details": "Tarih Değişti (TVF: 2026-12-07 / VB: 2026-12-06)"
             }
           }
         },
@@ -9411,14 +9411,14 @@
         "vb_time": "16:00",
         "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
         "discrepancy": {
-          "has_diff": false,
-          "date_diff": false,
+          "has_diff": true,
+          "date_diff": true,
           "time_diff": false,
           "hall_diff": false,
           "vb_date": "2026-12-06",
           "vb_time": "16:00",
           "vb_hall": "TVF Atatürk Voleybol Salonu Vestel Spor Kompleksi",
-          "details": null
+          "details": "Tarih Değişti (TVF: 2026-12-07 / VB: 2026-12-06)"
         }
       }
     },

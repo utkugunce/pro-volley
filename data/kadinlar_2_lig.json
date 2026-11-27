@@ -3,7 +3,7 @@
     "lig_adi": "Uzman Posta Kadınlar Voleybol 2. Ligi",
     "sezon": "2026-2027",
     "kategori": "Büyük Kadınlar",
-    "guncellenme_zamani": "2026-11-26T18:44:45.678305",
+    "guncellenme_zamani": "2026-11-27T09:12:50.921660",
     "toplam_grup_sayisi": 16,
     "toplam_takim_sayisi": 162,
     "toplam_mac_sayisi": 1026,
@@ -16,7 +16,7 @@
       "volleybox_maclar": "https://women.volleybox.net/tr/women-turkiye-kadnlar-voleybol-2-ligi-2026-27-o45047/matches"
     },
     "volleybox_synced_matches": 1026,
-    "volleybox_sync_updated_at": "2026-11-26T18:44:45.678509"
+    "volleybox_sync_updated_at": "2026-11-27T09:18:35.140164"
   },
   "gruplar": [
     {
@@ -23801,14 +23801,14 @@
             "vb_time": "19:00",
             "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
             "discrepancy": {
-              "has_diff": false,
+              "has_diff": true,
               "date_diff": false,
-              "time_diff": false,
+              "time_diff": true,
               "hall_diff": false,
               "vb_date": "2026-11-28",
               "vb_time": "19:00",
               "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
-              "details": null
+              "details": "Saat Değişti (TVF: 20:00 / VB: 19:00)"
             }
           }
         },
@@ -94601,14 +94601,14 @@
         "vb_time": "19:00",
         "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
         "discrepancy": {
-          "has_diff": false,
+          "has_diff": true,
           "date_diff": false,
-          "time_diff": false,
+          "time_diff": true,
           "hall_diff": false,
           "vb_date": "2026-11-28",
           "vb_time": "19:00",
           "vb_hall": "Bayraklı Mustafa Kemal Atatürk Spor Salonu",
-          "details": null
+          "details": "Saat Değişti (TVF: 20:00 / VB: 19:00)"
         }
       }
     },
