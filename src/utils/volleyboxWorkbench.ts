@@ -644,6 +644,77 @@ export function detectStandingsAnomalies(
 /**
  * Classifies all TVF matches & standings into operator queues for Volleybox data entry.
  */
+export interface LeagueGroupBucket<T> {
+  groupName: string;
+  items: T[];
+}
+
+export interface LeagueBucket<T> {
+  leagueKey: string;
+  leagueLabel: string;
+  totalCount: number;
+  groups: LeagueGroupBucket<T>[];
+}
+
+const LEAGUE_SORT_ORDER: Record<string, number> = {
+  sultanlar: 0,
+  "Vodafone Sultanlar Ligi": 0,
+  "Sultanlar Ligi": 0,
+  "1-lig": 1,
+  "Kadınlar 1. Ligi": 1,
+  "Kadınlar 1. Lig": 1,
+  "2-lig": 2,
+  "Kadınlar 2. Ligi": 2,
+  "Kadınlar 2. Lig": 2,
+};
+
+/** Groups items first by league, then by group name within each league. */
+export function groupItemsByLeagueAndGroup<T>(
+  items: readonly T[],
+  getLeagueKey: (item: T) => string,
+  getLeagueLabel: (item: T) => string,
+  getGroupName: (item: T) => string
+): LeagueBucket<T>[] {
+  const leagueMap = new Map<
+    string,
+    { leagueKey: string; leagueLabel: string; groupMap: Map<string, T[]>; totalCount: number }
+  >();
+
+  for (const item of items) {
+    const lKey = getLeagueKey(item) || "other";
+    const lLabel = getLeagueLabel(item) || "Diğer";
+    const gName = (getGroupName(item) || "").trim() || "Genel";
+
+    let lBucket = leagueMap.get(lKey);
+    if (!lBucket) {
+      lBucket = { leagueKey: lKey, leagueLabel: lLabel, groupMap: new Map(), totalCount: 0 };
+      leagueMap.set(lKey, lBucket);
+    }
+    lBucket.totalCount += 1;
+    const arr = lBucket.groupMap.get(gName);
+    if (arr) {
+      arr.push(item);
+    } else {
+      lBucket.groupMap.set(gName, [item]);
+    }
+  }
+
+  return Array.from(leagueMap.values())
+    .sort((a, b) => {
+      const oa = LEAGUE_SORT_ORDER[a.leagueKey] ?? LEAGUE_SORT_ORDER[a.leagueLabel] ?? 99;
+      const ob = LEAGUE_SORT_ORDER[b.leagueKey] ?? LEAGUE_SORT_ORDER[b.leagueLabel] ?? 99;
+      return oa - ob || a.leagueLabel.localeCompare(b.leagueLabel, "tr", { numeric: true });
+    })
+    .map((lb) => ({
+      leagueKey: lb.leagueKey,
+      leagueLabel: lb.leagueLabel,
+      totalCount: lb.totalCount,
+      groups: Array.from(lb.groupMap.entries())
+        .sort(([ga], [gb]) => ga.localeCompare(gb, "tr", { numeric: true }))
+        .map(([groupName, groupItems]) => ({ groupName, items: groupItems })),
+    }));
+}
+
 export function buildVolleyboxWorkbenchData(
   matches: Match[],
   standings?: Record<string, StandingItem[]>,

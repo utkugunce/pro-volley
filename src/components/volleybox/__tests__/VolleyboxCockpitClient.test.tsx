@@ -89,4 +89,40 @@ describe("VolleyboxCockpitClient", () => {
 
     vi.unstubAllGlobals();
   });
+
+  it("groups Checklist matches by league first and then by group", () => {
+    const lig1GroupB: VolleyboxCockpitMatch = {
+      ...sampleChecklistMatch,
+      id: "lig1-b",
+      leagueKey: "1-lig",
+      leagueLabel: "Kadınlar 1. Lig",
+      grupAdi: "B Grubu",
+    };
+    const lig1GroupA: VolleyboxCockpitMatch = {
+      ...sampleChecklistMatch,
+      id: "lig1-a",
+      leagueKey: "1-lig",
+      leagueLabel: "Kadınlar 1. Lig",
+      grupAdi: "A Grubu",
+    };
+
+    render(
+      <VolleyboxCockpitClient
+        matches={[lig1GroupB, sampleChecklistMatch, lig1GroupA]}
+        workbenchMatches={[sampleWorkbenchMatch]}
+        workbenchStandings={{}}
+        unmappedTeams={[]}
+        updatedAtByLeague={{ sultanlar: "2026-11-05 20:00", "1-lig": "-", "2-lig": "-" }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Checklist/i }));
+
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((el) => el.textContent);
+    expect(headings).toEqual(["Sultanlar Ligi", "Kadınlar 1. Lig"]);
+
+    const groupA = screen.getAllByText("A Grubu")[0];
+    const groupB = screen.getAllByText("B Grubu")[0];
+    expect(groupA.compareDocumentPosition(groupB) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

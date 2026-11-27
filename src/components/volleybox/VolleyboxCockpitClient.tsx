@@ -24,6 +24,7 @@ import { SettingsControls } from "@/components/SettingsControls";
 import { VolleyboxWorkbenchPanel } from "@/components/dashboard/VolleyboxWorkbenchPanel";
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
 import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
+import { groupItemsByLeagueAndGroup } from "@/utils/volleyboxWorkbench";
 
 const MobileMatchDrawer = dynamic(
   () => import("@/components/MobileMatchDrawer").then((mod) => mod.MobileMatchDrawer),
@@ -219,6 +220,17 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
   const visibleMatches = useMemo(
     () => filteredMatches.slice(0, pageSize),
     [filteredMatches, pageSize]
+  );
+
+  const groupedVisibleMatches = useMemo(
+    () =>
+      groupItemsByLeagueAndGroup(
+        visibleMatches,
+        (m) => m.leagueKey,
+        (m) => m.leagueLabel,
+        (m) => m.grupAdi
+      ),
+    [visibleMatches]
   );
 
   const formatMatchCopyLine = (m: VolleyboxCockpitMatch) => {
@@ -503,14 +515,38 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                   )}
                 </div>
 
-                {/* Maç Satırları */}
-                <div className="space-y-2">
+                {/* Maç Satırları (Lig -> Grup hiyerarşisiyle) */}
+                <div className="space-y-4">
                   {visibleMatches.length === 0 ? (
                     <div className="bg-surface border border-line/70 rounded-2xl p-8 text-center text-sm text-ink-2">
                       Seçili filtrelere uygun maç bulunamadı.
                     </div>
                   ) : (
-                    visibleMatches.map((m) => {
+                    groupedVisibleMatches.map((leagueBucket) => (
+                      <section key={leagueBucket.leagueKey} className="space-y-2.5">
+                        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-raised/80 border border-line/80">
+                          <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
+                            {leagueBucket.leagueLabel}
+                          </h2>
+                          <span className="text-[11px] font-mono font-bold text-ink-2 tabular-nums">
+                            {leagueBucket.totalCount} maç
+                          </span>
+                        </div>
+
+                        <div className="space-y-3 pl-0 sm:pl-2">
+                          {leagueBucket.groups.map((grp) => (
+                            <div key={`${leagueBucket.leagueKey}-${grp.groupName}`} className="space-y-1.5">
+                              <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-canvas/80 border border-line/60">
+                                <span className="text-[11px] font-bold text-sky-300">
+                                  {grp.groupName}
+                                </span>
+                                <span className="text-[10px] font-mono text-ink-3 tabular-nums">
+                                  {grp.items.length} maç
+                                </span>
+                              </div>
+
+                              <div className="space-y-2">
+                                {grp.items.map((m) => {
                       const isEntered = Boolean(enteredIds[m.id]);
                       const hasUnmapped = !m.vbNameA || !m.vbNameB;
                       const copyLineKey = `line-${m.id}`;
@@ -661,7 +697,13 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                           </div>
                         </div>
                       );
-                    })
+                    })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    ))
                   )}
 
                   {filteredMatches.length > pageSize && (
