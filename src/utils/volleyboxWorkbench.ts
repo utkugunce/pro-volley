@@ -661,6 +661,7 @@ const LEAGUE_SORT_ORDER: Record<string, number> = {
   "Vodafone Sultanlar Ligi": 0,
   "Sultanlar Ligi": 0,
   "1-lig": 1,
+  "Arabica Coffee House Kadınlar Voleybol 1. Ligi": 1,
   "Kadınlar 1. Ligi": 1,
   "Kadınlar 1. Lig": 1,
   "2-lig": 2,

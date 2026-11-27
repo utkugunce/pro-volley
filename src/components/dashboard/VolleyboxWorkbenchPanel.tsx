@@ -23,6 +23,7 @@ import {
   getResolvedVolleyboxHallName,
   getResolvedVolleyboxTeamName,
   getVolleyboxTournamentMatchesUrl,
+  groupItemsByLeagueAndGroup,
   resolveVolleyboxLeagueMapping,
   type VolleyboxQueueTab,
 } from "@/utils/volleyboxWorkbench";
@@ -215,6 +216,18 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
 
   const visibleCount = Math.min(activeItems.length, visibleLimit);
   const hasMore = activeItems.length > visibleLimit;
+  const isMatchQueueTab =
+    activeTab === "missing_scores" || activeTab === "discrepancies" || activeTab === "unsynced";
+  const groupedVisibleMatchQueues = useMemo(() => {
+    if (!showLeagueFilter || !isMatchQueueTab) return null;
+    const slice = activeItems.slice(0, visibleCount) as Match[];
+    return groupItemsByLeagueAndGroup(
+      slice,
+      (m) => canonicalizeLeagueCategory(m.category) || m.category || "Diğer",
+      (m) => canonicalizeLeagueCategory(m.category) || m.category || "Diğer",
+      (m) => m.group || "Genel"
+    );
+  }, [showLeagueFilter, isMatchQueueTab, activeItems, visibleCount]);
   const canExportExcel =
     (activeTab === "unsynced" || activeTab === "missing_scores") && activeItems.length > 0;
 
@@ -223,6 +236,222 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
     downloadVolleyboxExcelFiles(
       activeItems as Match[],
       `volleybox_${activeTab}`
+    );
+  };
+
+  const renderMatchCard = (m: Match) => {
+    const effCity = m.city || city || "";
+    const vbHome = getResolvedVolleyboxTeamName(m.home_team, m.category, effCity);
+    const vbAway = getResolvedVolleyboxTeamName(m.away_team, m.category, effCity);
+    const vbHall = getResolvedVolleyboxHallName(m.hall, effCity, matches, m.volleybox?.vb_hall);
+    const setsText = formatSetScoresForVolleybox(m.set_scores);
+
+    if (activeTab === "missing_scores") {
+      const fullMatchText = formatMatchForVolleyboxCopy(m, effCity, matches);
+      const vbUrl =
+        m.volleybox?.url ||
+        (m.volleybox?.match_id ? `https://women.volleybox.net/m${m.volleybox.match_id}` : null);
+      const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity);
+      const editUrl = vbMatchesUrl || vbUrl;
+
+      return (
+        <div
+          key={m.id}
+          onClick={() => onSelectMatch?.(m)}
+          className="p-2.5 sm:p-3 rounded-xl bg-surface-raised/60 hover:bg-surface-raised border border-line/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
+        >
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+              <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
+                {effCity || "Genel"}
+              </span>
+              <span className="font-scoreboard tabular-nums text-ink-2 font-semibold">
+                {m.date} {m.time}
+              </span>
+              <span className="text-ink-2 truncate">
+                {m.category}
+                {m.group ? ` · ${m.group}` : ""}
+              </span>
+            </div>
+            <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-2 flex-wrap">
+              <span className="truncate">{vbHome}</span>
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-scoreboard tabular-nums">
+                {m.home_score} - {m.away_score}
+              </span>
+              <span className="truncate">{vbAway}</span>
+            </div>
+            {setsText && (
+              <div className="text-[11px] font-scoreboard tabular-nums text-ink-2">
+                Setler: <span className="text-ink font-semibold">{setsText}</span>
+              </div>
+            )}
+            {vbHall && (
+              <div className="text-[11px] text-ink-2 truncate">
+                Salon (VB): <span className="text-ink font-medium">{vbHall}</span>
+              </div>
+            )}
+          </div>
+
+          <div
+            className="flex items-center gap-1.5 flex-wrap shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {setsText && renderCopyButton(`sets-${m.id}`, setsText, "Setleri Kopyala")}
+            {m.date && m.date !== "TBD" && renderCopyButton(`ms-date-${m.id}`, m.date, `Tarih (${m.date})`)}
+            {m.time && m.time !== "--:--" && renderCopyButton(`ms-time-${m.id}`, m.time, `Saat (${m.time})`)}
+            {vbHall && renderCopyButton(`ms-hall-${m.id}`, vbHall, "Salonu Kopyala")}
+            {renderCopyButton(`match-${m.id}`, fullMatchText, "Maçı Kopyala")}
+            {editUrl && (
+              <a
+                href={editUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Volleybox lig maçlar sekmesinde skoru gir"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition-colors"
+              >
+                <span>VB Maçlar Sekmesi</span>
+                <ExternalLink size={11} />
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === "discrepancies") {
+      const disc = m.volleybox?.discrepancy;
+      const vbUrl =
+        m.volleybox?.url ||
+        (m.volleybox?.match_id ? `https://women.volleybox.net/m${m.volleybox.match_id}` : null);
+      const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity);
+      const editUrl = vbMatchesUrl || vbUrl;
+
+      return (
+        <div
+          key={m.id}
+          onClick={() => onSelectMatch?.(m)}
+          className="p-2.5 sm:p-3 rounded-xl bg-amber-950/20 hover:bg-amber-950/35 border border-amber-500/40 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
+        >
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+              <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
+                {effCity || "Genel"}
+              </span>
+              <span className="text-ink-2 truncate">
+                {m.category}
+                {m.group ? ` · ${m.group}` : ""}
+              </span>
+            </div>
+            <div className="text-xs sm:text-[13px] font-bold text-white">
+              {vbHome} — {vbAway}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap text-[11px] font-scoreboard tabular-nums">
+              {disc?.date_diff && (
+                <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200">
+                  Tarih: {disc.vb_date || "?"} → <strong>{m.date}</strong>
+                </span>
+              )}
+              {disc?.time_diff && (
+                <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200">
+                  Saat: {disc.vb_time || "?"} → <strong>{m.time}</strong>
+                </span>
+              )}
+              {disc?.hall_diff && (
+                <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200 font-sans">
+                  Salon: {disc.vb_hall || "?"} → <strong>{vbHall || m.hall}</strong>
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="flex items-center gap-1.5 flex-wrap shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {m.date && m.date !== "TBD" && renderCopyButton(`disc-date-${m.id}`, m.date, `Tarih (${m.date})`)}
+            {m.time && m.time !== "--:--" && renderCopyButton(`disc-time-${m.id}`, m.time, `Saat (${m.time})`)}
+            {vbHall && renderCopyButton(`disc-hall-${m.id}`, vbHall, "Salonu Kopyala")}
+            {editUrl && (
+              <a
+                href={editUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Volleybox lig maçlar sekmesinde düzenle"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-[11px] font-bold transition-colors"
+              >
+                <span>VB&apos;de Düzenle (Maçlar)</span>
+                <ExternalLink size={11} />
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const leagueUrl = resolveVolleyboxLeagueMapping(m.category, effCity)?.volleybox_url;
+    const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity) || leagueUrl;
+
+    return (
+      <div
+        key={m.id}
+        onClick={() => onSelectMatch?.(m)}
+        className="p-2.5 sm:p-3 rounded-xl bg-surface-raised/60 hover:bg-surface-raised border border-line/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
+      >
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+            <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
+              {effCity || "Genel"}
+            </span>
+            <span className="font-scoreboard tabular-nums text-ink font-semibold">
+              {m.date} {m.time}
+            </span>
+            <span className="text-ink-2 truncate">
+              {m.category}
+              {m.group ? ` · ${m.group}` : ""}
+            </span>
+          </div>
+          <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-1.5 flex-wrap">
+            <span>{vbHome}</span>
+            <span className="text-ink-2 font-normal">-</span>
+            <span>{vbAway}</span>
+            {setsText && (
+              <span className="text-[11px] font-scoreboard tabular-nums text-emerald-300 font-semibold">
+                ({m.home_score}-{m.away_score}: {setsText})
+              </span>
+            )}
+          </div>
+          {vbHall && (
+            <div className="text-[11px] text-ink-2 truncate">
+              Salon (VB): <span className="text-ink font-medium">{vbHall}</span>
+              {vbHall !== m.hall && <span className="text-ink-3"> · TVF: {m.hall}</span>}
+            </div>
+          )}
+        </div>
+
+        <div
+          className="flex items-center gap-1.5 flex-wrap shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {m.date && m.date !== "TBD" && renderCopyButton(`u-date-${m.id}`, m.date, `Tarih (${m.date})`)}
+          {m.time && m.time !== "--:--" && renderCopyButton(`u-time-${m.id}`, m.time, `Saat (${m.time})`)}
+          {renderCopyButton(`u-home-${m.id}`, vbHome, "Ev Sahibi")}
+          {renderCopyButton(`u-away-${m.id}`, vbAway, "Deplasman")}
+          {vbHall && renderCopyButton(`u-hall-${m.id}`, vbHall, "Salonu Kopyala")}
+          {setsText && renderCopyButton(`u-sets-${m.id}`, setsText, "Setler")}
+          {vbMatchesUrl && (
+            <a
+              href={vbMatchesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Volleybox lig maçlar sekmesinde yeni maç ekle"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 text-[11px] font-bold transition-colors"
+            >
+              <span>VB Maçlar Sekmesi</span>
+              <ExternalLink size={11} />
+            </a>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -366,232 +595,41 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
           </div>
         ) : (
           <div className="space-y-2">
-            {activeTab === "missing_scores" &&
-              (activeItems.slice(0, visibleCount) as Match[]).map((m) => {
-                const effCity = m.city || city || "";
-                const vbHome = getResolvedVolleyboxTeamName(m.home_team, m.category, effCity);
-                const vbAway = getResolvedVolleyboxTeamName(m.away_team, m.category, effCity);
-                const vbHall = getResolvedVolleyboxHallName(m.hall, effCity, matches, m.volleybox?.vb_hall);
-                const setsText = formatSetScoresForVolleybox(m.set_scores);
-                const fullMatchText = formatMatchForVolleyboxCopy(m, effCity, matches);
-                const vbUrl =
-                  m.volleybox?.url ||
-                  (m.volleybox?.match_id ? `https://women.volleybox.net/m${m.volleybox.match_id}` : null);
-                const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity);
-                const editUrl = vbMatchesUrl || vbUrl;
-
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => onSelectMatch?.(m)}
-                    className="p-2.5 sm:p-3 rounded-xl bg-surface-raised/60 hover:bg-surface-raised border border-line/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-                        <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
-                          {effCity || "Genel"}
-                        </span>
-                        <span className="font-scoreboard tabular-nums text-ink-2 font-semibold">
-                          {m.date} {m.time}
-                        </span>
-                        <span className="text-ink-2 truncate">
-                          {m.category}
-                          {m.group ? ` · ${m.group}` : ""}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-2 flex-wrap">
-                        <span className="truncate">{vbHome}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-scoreboard tabular-nums">
-                          {m.home_score} - {m.away_score}
-                        </span>
-                        <span className="truncate">{vbAway}</span>
-                      </div>
-                      {setsText && (
-                        <div className="text-[11px] font-scoreboard tabular-nums text-ink-2">
-                          Setler: <span className="text-ink font-semibold">{setsText}</span>
+            {isMatchQueueTab && groupedVisibleMatchQueues ? (
+              <div className="space-y-4">
+                {groupedVisibleMatchQueues.map((leagueBucket) => (
+                  <section key={leagueBucket.leagueKey} className="space-y-2">
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-raised/80 border border-line/80">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-amber-300">
+                        {leagueBucket.leagueLabel}
+                      </h3>
+                      <span className="text-[11px] font-mono font-bold text-ink-2 tabular-nums">
+                        {leagueBucket.totalCount} maç
+                      </span>
+                    </div>
+                    <div className="space-y-2.5 pl-0 sm:pl-2">
+                      {leagueBucket.groups.map((grp) => (
+                        <div key={`${leagueBucket.leagueKey}-${grp.groupName}`} className="space-y-1.5">
+                          <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-canvas/80 border border-line/60">
+                            <span className="text-[11px] font-bold text-sky-300">
+                              {grp.groupName}
+                            </span>
+                            <span className="text-[10px] font-mono text-ink-3 tabular-nums">
+                              {grp.items.length} maç
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {grp.items.map(renderMatchCard)}
+                          </div>
                         </div>
-                      )}
-                      {vbHall && (
-                        <div className="text-[11px] text-ink-2 truncate">
-                          Salon (VB): <span className="text-ink font-medium">{vbHall}</span>
-                        </div>
-                      )}
+                      ))}
                     </div>
-
-                    <div
-                      className="flex items-center gap-1.5 flex-wrap shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {setsText && renderCopyButton(`sets-${m.id}`, setsText, "Setleri Kopyala")}
-                      {m.date && m.date !== "TBD" && renderCopyButton(`ms-date-${m.id}`, m.date, `Tarih (${m.date})`)}
-                      {m.time && m.time !== "--:--" && renderCopyButton(`ms-time-${m.id}`, m.time, `Saat (${m.time})`)}
-                      {vbHall && renderCopyButton(`ms-hall-${m.id}`, vbHall, "Salonu Kopyala")}
-                      {renderCopyButton(`match-${m.id}`, fullMatchText, "Maçı Kopyala")}
-                      {editUrl && (
-                        <a
-                          href={editUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Volleybox lig maçlar sekmesinde skoru gir"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition-colors"
-                        >
-                          <span>VB Maçlar Sekmesi</span>
-                          <ExternalLink size={11} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-            {activeTab === "discrepancies" &&
-              (activeItems.slice(0, visibleCount) as Match[]).map((m) => {
-                const effCity = m.city || city || "";
-                const vbHome = getResolvedVolleyboxTeamName(m.home_team, m.category, effCity);
-                const vbAway = getResolvedVolleyboxTeamName(m.away_team, m.category, effCity);
-                const vbHall = getResolvedVolleyboxHallName(m.hall, effCity, matches, m.volleybox?.vb_hall);
-                const disc = m.volleybox?.discrepancy;
-                const vbUrl =
-                  m.volleybox?.url ||
-                  (m.volleybox?.match_id ? `https://women.volleybox.net/m${m.volleybox.match_id}` : null);
-                const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity);
-                const editUrl = vbMatchesUrl || vbUrl;
-
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => onSelectMatch?.(m)}
-                    className="p-2.5 sm:p-3 rounded-xl bg-amber-950/20 hover:bg-amber-950/35 border border-amber-500/40 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-                        <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
-                          {effCity || "Genel"}
-                        </span>
-                        <span className="text-ink-2 truncate">
-                          {m.category}
-                          {m.group ? ` · ${m.group}` : ""}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-[13px] font-bold text-white">
-                        {vbHome} — {vbAway}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap text-[11px] font-scoreboard tabular-nums">
-                        {disc?.date_diff && (
-                          <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200">
-                            Tarih: {disc.vb_date || "?"} → <strong>{m.date}</strong>
-                          </span>
-                        )}
-                        {disc?.time_diff && (
-                          <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200">
-                            Saat: {disc.vb_time || "?"} → <strong>{m.time}</strong>
-                          </span>
-                        )}
-                        {disc?.hall_diff && (
-                          <span className="px-2 py-0.5 rounded bg-surface border border-amber-500/40 text-amber-200 font-sans">
-                            Salon: {disc.vb_hall || "?"} → <strong>{vbHall || m.hall}</strong>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      className="flex items-center gap-1.5 flex-wrap shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {m.date && m.date !== "TBD" && renderCopyButton(`disc-date-${m.id}`, m.date, `Tarih (${m.date})`)}
-                      {m.time && m.time !== "--:--" && renderCopyButton(`disc-time-${m.id}`, m.time, `Saat (${m.time})`)}
-                      {vbHall && renderCopyButton(`disc-hall-${m.id}`, vbHall, "Salonu Kopyala")}
-                      {editUrl && (
-                        <a
-                          href={editUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Volleybox lig maçlar sekmesinde düzenle"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-[11px] font-bold transition-colors"
-                        >
-                          <span>VB&apos;de Düzenle (Maçlar)</span>
-                          <ExternalLink size={11} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-            {activeTab === "unsynced" &&
-              (activeItems.slice(0, visibleCount) as Match[]).map((m) => {
-                const effCity = m.city || city || "";
-                const vbHome = getResolvedVolleyboxTeamName(m.home_team, m.category, effCity);
-                const vbAway = getResolvedVolleyboxTeamName(m.away_team, m.category, effCity);
-                const vbHall = getResolvedVolleyboxHallName(m.hall, effCity, matches, m.volleybox?.vb_hall);
-                const leagueUrl = resolveVolleyboxLeagueMapping(m.category, effCity)?.volleybox_url;
-                const vbMatchesUrl = getVolleyboxTournamentMatchesUrl(m.category, effCity) || leagueUrl;
-                const setsText = formatSetScoresForVolleybox(m.set_scores);
-
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => onSelectMatch?.(m)}
-                    className="p-2.5 sm:p-3 rounded-xl bg-surface-raised/60 hover:bg-surface-raised border border-line/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors cursor-pointer"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-                        <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold uppercase text-[10px]">
-                          {effCity || "Genel"}
-                        </span>
-                        <span className="font-scoreboard tabular-nums text-ink font-semibold">
-                          {m.date} {m.time}
-                        </span>
-                        <span className="text-ink-2 truncate">
-                          {m.category}
-                          {m.group ? ` · ${m.group}` : ""}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-1.5 flex-wrap">
-                        <span>{vbHome}</span>
-                        <span className="text-ink-2 font-normal">-</span>
-                        <span>{vbAway}</span>
-                        {setsText && (
-                          <span className="text-[11px] font-scoreboard tabular-nums text-emerald-300 font-semibold">
-                            ({m.home_score}-{m.away_score}: {setsText})
-                          </span>
-                        )}
-                      </div>
-                      {vbHall && (
-                        <div className="text-[11px] text-ink-2 truncate">
-                          Salon (VB): <span className="text-ink font-medium">{vbHall}</span>
-                          {vbHall !== m.hall && <span className="text-ink-3"> · TVF: {m.hall}</span>}
-                        </div>
-                      )}
-                    </div>
-
-                    <div
-                      className="flex items-center gap-1.5 flex-wrap shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {m.date && m.date !== "TBD" && renderCopyButton(`u-date-${m.id}`, m.date, `Tarih (${m.date})`)}
-                      {m.time && m.time !== "--:--" && renderCopyButton(`u-time-${m.id}`, m.time, `Saat (${m.time})`)}
-                      {renderCopyButton(`u-home-${m.id}`, vbHome, "Ev Sahibi")}
-                      {renderCopyButton(`u-away-${m.id}`, vbAway, "Deplasman")}
-                      {vbHall && renderCopyButton(`u-hall-${m.id}`, vbHall, "Salonu Kopyala")}
-                      {setsText && renderCopyButton(`u-sets-${m.id}`, setsText, "Setler")}
-                      {vbMatchesUrl && (
-                        <a
-                          href={vbMatchesUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Volleybox lig maçlar sekmesinde yeni maç ekle"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 text-[11px] font-bold transition-colors"
-                        >
-                          <span>VB Maçlar Sekmesi</span>
-                          <ExternalLink size={11} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  </section>
+                ))}
+              </div>
+            ) : (
+              isMatchQueueTab && (activeItems.slice(0, visibleCount) as Match[]).map(renderMatchCard)
+            )}
 
             {activeTab === "unmapped_teams" &&
               (activeItems.slice(0, visibleCount) as typeof workbench.unmappedTeams).map((item) => (
