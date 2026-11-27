@@ -89,7 +89,7 @@ export function resolveVolleyboxExcelTournament(match: Match): string {
 export function resolveVolleyboxExcelRound(match: Match, weekHint?: string): string {
   const catLower = trLower(match.category || "");
   const groupRaw = (match.group || "").trim();
-  const weekSource = (weekHint || groupRaw).trim();
+  const weekSource = (weekHint || match.week || groupRaw).trim();
   const weekMatch = weekSource.match(/(\d+)\s*\.\s*hafta/i) || weekSource.match(/^(\d+)$/);
   const weekNum = weekMatch ? parseInt(weekMatch[1], 10) : null;
 

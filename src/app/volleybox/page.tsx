@@ -149,6 +149,9 @@ export default function VolleyboxPage() {
       if (!converted.id) {
         converted.id = matchId;
       }
+      if (m.hafta) {
+        converted.week = String(m.hafta);
+      }
       workbenchMatches.push(converted);
 
       const mappingA = resolveVolleyboxTeamMapping(takimA, ds.canonicalCategory, cityForLookup);

@@ -27,7 +27,7 @@ import {
   resolveVolleyboxLeagueMapping,
   type VolleyboxQueueTab,
 } from "@/utils/volleyboxWorkbench";
-import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
+import { downloadVolleyboxExcelFiles, resolveVolleyboxExcelRound } from "@/utils/volleyboxExcel";
 
 interface VolleyboxWorkbenchPanelProps {
   matches: Match[];
@@ -245,6 +245,7 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
     const vbAway = getResolvedVolleyboxTeamName(m.away_team, m.category, effCity);
     const vbHall = getResolvedVolleyboxHallName(m.hall, effCity, matches, m.volleybox?.vb_hall);
     const setsText = formatSetScoresForVolleybox(m.set_scores);
+    const roundLabel = resolveVolleyboxExcelRound(m);
 
     if (activeTab === "missing_scores") {
       const fullMatchText = formatMatchForVolleyboxCopy(m, effCity, matches);
@@ -271,6 +272,9 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
               <span className="text-ink-2 truncate">
                 {m.category}
                 {m.group ? ` · ${m.group}` : ""}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-surface border border-line/70 text-[10px] font-semibold text-amber-300">
+                Tur: {roundLabel}
               </span>
             </div>
             <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-2 flex-wrap">
@@ -341,6 +345,9 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
                 {m.category}
                 {m.group ? ` · ${m.group}` : ""}
               </span>
+              <span className="px-1.5 py-0.5 rounded bg-surface border border-amber-500/40 text-[10px] font-semibold text-amber-300">
+                Tur: {roundLabel}
+              </span>
             </div>
             <div className="text-xs sm:text-[13px] font-bold text-white">
               {vbHome} — {vbAway}
@@ -408,6 +415,9 @@ export const VolleyboxWorkbenchPanel: React.FC<VolleyboxWorkbenchPanelProps> = (
             <span className="text-ink-2 truncate">
               {m.category}
               {m.group ? ` · ${m.group}` : ""}
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-surface border border-line/70 text-[10px] font-semibold text-amber-300">
+              Tur: {roundLabel}
             </span>
           </div>
           <div className="text-xs sm:text-[13px] font-bold text-white flex items-center gap-1.5 flex-wrap">

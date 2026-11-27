@@ -26,7 +26,7 @@ import { SettingsControls } from "@/components/SettingsControls";
 import { VolleyboxWorkbenchPanel } from "@/components/dashboard/VolleyboxWorkbenchPanel";
 import { FixtureTable } from "@/components/FixtureTable";
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
-import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
+import { downloadVolleyboxExcelFiles, resolveVolleyboxExcelRound } from "@/utils/volleyboxExcel";
 import { groupItemsByLeagueAndGroup } from "@/utils/volleyboxWorkbench";
 
 const MobileMatchDrawer = dynamic(
@@ -652,6 +652,24 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                       const copyLineKey = `line-${m.id}`;
                       const standardMatch = workbenchMatchMap.get(m.id);
                       const isSelected = selectedMatch?.id === m.id;
+                      const roundLabel = resolveVolleyboxExcelRound(
+                        standardMatch ?? {
+                          id: m.id,
+                          date: m.isoDate || m.tarih,
+                          time: m.saat,
+                          hall: m.salon,
+                          category: m.leagueLabel,
+                          age_group: "Büyük Kadınlar",
+                          gender: "Kadın",
+                          group: m.grupAdi,
+                          week: m.hafta,
+                          match_no: m.id,
+                          home_team: m.takimA,
+                          away_team: m.takimB,
+                          status: m.isFinished ? "finished" : "upcoming",
+                        },
+                        m.hafta
+                      );
 
                       return (
                         <div
@@ -675,6 +693,9 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                                 </span>
                                 {m.grupAdi && <span className="text-ink-3">{m.grupAdi}</span>}
                                 {m.hafta && <span className="text-ink-3">• {m.hafta}. Hafta</span>}
+                                <span className="px-1.5 py-0.5 rounded bg-canvas border border-line/70 text-[10px] font-semibold text-amber-300">
+                                  Tur: {roundLabel}
+                                </span>
                                 <span className="font-mono text-white font-semibold">
                                   {m.tarih} {m.saat}
                                 </span>

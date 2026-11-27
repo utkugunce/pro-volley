@@ -33,6 +33,7 @@ export interface Match {
   age_group: "Genç" | "Yıldız" | "Büyük" | "Büyük Kadınlar" | string;
   gender: "Kız" | "Erkek" | "Kadın" | string;
   group: string;
+  week?: string;
   match_no: string;
   home_team: string;
   away_team: string;
