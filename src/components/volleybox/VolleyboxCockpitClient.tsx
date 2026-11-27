@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
+  Calendar,
   Check,
   CheckCircle2,
   ClipboardCopy,
@@ -22,6 +24,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { LeagueSwitcher } from "@/components/layout/LeagueSwitcher";
 import { SettingsControls } from "@/components/SettingsControls";
 import { VolleyboxWorkbenchPanel } from "@/components/dashboard/VolleyboxWorkbenchPanel";
+import { FixtureTable } from "@/components/FixtureTable";
 import { MatchInspectorPanel } from "@/components/match/MatchInspectorPanel";
 import { downloadVolleyboxExcelFiles } from "@/utils/volleyboxExcel";
 import { groupItemsByLeagueAndGroup } from "@/utils/volleyboxWorkbench";
@@ -75,6 +78,12 @@ interface VolleyboxCockpitClientProps {
 
 const STORAGE_KEY = "pv-vb-entered-v1";
 
+const LEAGUE_FIXTURE_PATHS: Record<string, string> = {
+  sultanlar: "/sultanlar-ligi/fikstur",
+  "1-lig": "/kadinlar-1-ligi/fikstur",
+  "2-lig": "/kadinlar-2-ligi/fikstur",
+};
+
 export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
   matches,
   workbenchMatches = [],
@@ -87,7 +96,7 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
   const [statusFilter, setStatusFilter] = useState<"finished" | "upcoming" | "unmapped" | "all">("finished");
   const [searchQuery, setSearchQuery] = useState("");
   const [hideEntered, setHideEntered] = useState(false);
-  const [activeView, setActiveView] = useState<"workbench" | "matches" | "unmapped" | "cli">("workbench");
+  const [activeView, setActiveView] = useState<"workbench" | "matches" | "fixture" | "unmapped" | "cli">("workbench");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [enteredIds, setEnteredIds] = useState<Record<string, boolean>>({});
   const [pageSize, setPageSize] = useState(100);
@@ -100,6 +109,21 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         setEnteredIds(JSON.parse(raw));
+      }
+      const params = new URLSearchParams(window.location.search);
+      const lig = params.get("lig");
+      if (lig === "sultanlar" || lig === "1-lig" || lig === "2-lig" || lig === "all") {
+        setLeagueFilter(lig);
+      }
+      const view = params.get("gorunum");
+      if (
+        view === "workbench" ||
+        view === "matches" ||
+        view === "fixture" ||
+        view === "unmapped" ||
+        view === "cli"
+      ) {
+        setActiveView(view);
       }
     } catch {
       // ignore
@@ -343,6 +367,16 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => setActiveView("fixture")}
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeView === "fixture" ? "bg-primary text-primary-fg font-bold" : "text-ink-2 hover:text-white"
+              }`}
+            >
+              <Calendar size={13} />
+              <span>Fikstür ({filteredMatches.length})</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveView("unmapped")}
               className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeView === "unmapped" ? "bg-rose-500 text-white font-bold" : "text-ink-2 hover:text-white"
@@ -390,7 +424,7 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
               />
             )}
 
-            {activeView === "matches" && (
+            {(activeView === "matches" || activeView === "fixture") && (
               <>
                 {/* Filtre Çubuğu */}
                 <div className="bg-surface border border-line/70 rounded-2xl p-3 flex flex-wrap items-center gap-2.5">
@@ -515,22 +549,88 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                   )}
                 </div>
 
-                {/* Maç Satırları (Lig -> Grup hiyerarşisiyle) */}
+                {/* Maç Satırları / Fikstür Tablosu (Lig -> Grup hiyerarşisiyle) */}
+                {activeView === "fixture" ? (
+                  <div className="space-y-4">
+                    {visibleMatches.length === 0 ? (
+                      <div className="bg-surface border border-line/70 rounded-2xl p-8 text-center text-sm text-ink-2">
+                        Seçili filtrelere uygun maç bulunamadı.
+                      </div>
+                    ) : (
+                      groupedVisibleMatches.map((leagueBucket) => {
+                        const fixtureHref = LEAGUE_FIXTURE_PATHS[leagueBucket.leagueKey];
+                        return (
+                          <section key={`fix-${leagueBucket.leagueKey}`} className="space-y-2.5">
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-raised/80 border border-line/80">
+                              <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
+                                {leagueBucket.leagueLabel}
+                              </h2>
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-[11px] font-mono font-bold text-ink-2 tabular-nums">
+                                  {leagueBucket.totalCount} maç
+                                </span>
+                                {fixtureHref && (
+                                  <Link
+                                    href={fixtureHref}
+                                    className="text-[11px] font-bold text-sky-300 hover:text-sky-200 underline underline-offset-2"
+                                  >
+                                    Lig Fikstürü →
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-3 pl-0 sm:pl-2">
+                              {leagueBucket.groups.map((grp) => {
+                                const groupMatches = grp.items
+                                  .map((item) => workbenchMatchMap.get(item.id))
+                                  .filter((m): m is Match => Boolean(m));
+                                if (groupMatches.length === 0) return null;
+                                return (
+                                  <FixtureTable
+                                    key={`fix-${leagueBucket.leagueKey}-${grp.groupName}`}
+                                    title={grp.groupName}
+                                    subTitle={`${leagueBucket.leagueLabel} · ${groupMatches.length} maç`}
+                                    matches={groupMatches}
+                                    city="Türkiye"
+                                    onSelectMatch={handleSelectMatch}
+                                    isCollapsible
+                                  />
+                                );
+                              })}
+                            </div>
+                          </section>
+                        );
+                      })
+                    )}
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   {visibleMatches.length === 0 ? (
                     <div className="bg-surface border border-line/70 rounded-2xl p-8 text-center text-sm text-ink-2">
                       Seçili filtrelere uygun maç bulunamadı.
                     </div>
                   ) : (
-                    groupedVisibleMatches.map((leagueBucket) => (
+                    groupedVisibleMatches.map((leagueBucket) => {
+                      const fixtureHref = LEAGUE_FIXTURE_PATHS[leagueBucket.leagueKey];
+                      return (
                       <section key={leagueBucket.leagueKey} className="space-y-2.5">
                         <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-raised/80 border border-line/80">
                           <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
                             {leagueBucket.leagueLabel}
                           </h2>
-                          <span className="text-[11px] font-mono font-bold text-ink-2 tabular-nums">
-                            {leagueBucket.totalCount} maç
-                          </span>
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-[11px] font-mono font-bold text-ink-2 tabular-nums">
+                              {leagueBucket.totalCount} maç
+                            </span>
+                            {fixtureHref && (
+                              <Link
+                                href={fixtureHref}
+                                className="text-[11px] font-bold text-sky-300 hover:text-sky-200 underline underline-offset-2"
+                              >
+                                Fikstür →
+                              </Link>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-3 pl-0 sm:pl-2">
@@ -703,8 +803,11 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                           ))}
                         </div>
                       </section>
-                    ))
+                      );
+                    })
                   )}
+                </div>
+                )}
 
                   {filteredMatches.length > pageSize && (
                     <div className="pt-2 text-center">
@@ -717,7 +820,6 @@ export const VolleyboxCockpitClient: React.FC<VolleyboxCockpitClientProps> = ({
                       </button>
                     </div>
                   )}
-                </div>
               </>
             )}
 

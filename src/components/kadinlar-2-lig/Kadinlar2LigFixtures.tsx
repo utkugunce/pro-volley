@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import {
   Calendar,
+  ClipboardCheck,
   ExternalLink,
   AlertTriangle,
   RotateCcw,
@@ -23,8 +25,12 @@ import { PrintScheduleButton } from "@/components/PrintScheduleButton";
 import { isMatchOverdueForScore } from "@/utils/calendar";
 import { getKadinlar2LigRoute } from "@/utils/kadinlar2LigRoutes";
 import { kadinlar2LigMatchToUnified } from "@/utils/unifiedAdapters";
-import { getVolleyboxTournamentMatchesUrl } from "@/utils/volleyboxWorkbench";
-import { trIncludes } from "@/utils/turkishLocale";
+import {
+  getVolleyboxTournamentMatchesUrl,
+  isDiscrepancyIgnored,
+  isUnsyncedIgnored,
+} from "@/utils/volleyboxWorkbench";
+import { trIncludes, trLower } from "@/utils/turkishLocale";
 
 interface Kadinlar2LigFixturesProps {
   group?: Kadinlar2LigGroup;
@@ -158,14 +164,18 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
       const isFinishedOrScored = hasScore || isFinished;
 
       const hasDiff = Boolean(
-        (m.discrepancy?.has_diff || m.volleybox?.discrepancy?.has_diff) && !isFinishedOrScored
+        (m.discrepancy?.has_diff || m.volleybox?.discrepancy?.has_diff) &&
+          !isDiscrepancyIgnored(m.id) &&
+          !isFinishedOrScored
       );
       if (hasDiff) {
         discrepancy++;
       }
 
       if (!isSynced) {
-        unsynced++;
+        if (!isUnsyncedIgnored(m.id)) {
+          unsynced++;
+        }
         return;
       }
 
@@ -224,7 +234,9 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
       const isoDate = m.volleybox?.vb_date || normalizeK2Date(m.tarih);
       const isOverdue = isMatchOverdueForScore(isoDate, todayIso);
       const hasDiscrepancy = Boolean(
-        (m.discrepancy?.has_diff || m.volleybox?.discrepancy?.has_diff) && !isFinishedOrScored
+        (m.discrepancy?.has_diff || m.volleybox?.discrepancy?.has_diff) &&
+          !isDiscrepancyIgnored(m.id) &&
+          !isFinishedOrScored
       );
 
       if (volleyboxFilter === "scored" && (!isSynced || !isScored)) return false;
@@ -234,7 +246,7 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
       ) {
         return false;
       }
-      if (volleyboxFilter === "unsynced" && isSynced) return false;
+      if (volleyboxFilter === "unsynced" && (isSynced || isUnsyncedIgnored(m.id))) return false;
       if (volleyboxFilter === "discrepancy" && !hasDiscrepancy) return false;
 
       return true;
@@ -504,6 +516,21 @@ export const Kadinlar2LigFixtures: React.FC<Kadinlar2LigFixturesProps> = ({
                 <span>Sıfırla</span>
               </button>
             )}
+
+            <Link
+              href={`/volleybox?lig=${
+                trLower(effectiveCategory).includes("sultanlar")
+                  ? "sultanlar"
+                  : trLower(effectiveCategory).includes("1. lig") || trLower(effectiveCategory).includes("1.lig")
+                  ? "1-lig"
+                  : "2-lig"
+              }&gorunum=fixture`}
+              className="ml-auto px-2.5 py-1 rounded-xl text-[11px] font-bold text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 flex items-center gap-1 transition-all shrink-0"
+              title="Volleybox Maç Giriş Kokpiti'nde bu ligin fikstürünü aç"
+            >
+              <ClipboardCheck size={12} />
+              <span>Kokpitte Aç</span>
+            </Link>
           </div>
         </div>
       </div>

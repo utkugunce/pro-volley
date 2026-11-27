@@ -125,4 +125,24 @@ describe("VolleyboxCockpitClient", () => {
     const groupB = screen.getAllByText("B Grubu")[0];
     expect(groupA.compareDocumentPosition(groupB) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it("renders integrated Fikstür tab grouped by league and group with league fixture link", () => {
+    render(
+      <VolleyboxCockpitClient
+        matches={[sampleChecklistMatch]}
+        workbenchMatches={[sampleWorkbenchMatch]}
+        workbenchStandings={{}}
+        unmappedTeams={[]}
+        updatedAtByLeague={{ sultanlar: "2026-11-05 20:00", "1-lig": "-", "2-lig": "-" }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^Fikstür/i }));
+    expect(screen.getByRole("heading", { level: 2, name: "Sultanlar Ligi" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Lig Fikstürü/i })).toHaveAttribute(
+      "href",
+      "/sultanlar-ligi/fikstur"
+    );
+    expect(screen.getByText(/VakıfBank/i)).toBeInTheDocument();
+  });
 });
