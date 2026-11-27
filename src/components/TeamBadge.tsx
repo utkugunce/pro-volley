@@ -68,8 +68,8 @@ export function useTeamColorIndexLoaded(): boolean {
   return useSyncExternalStore(subscribeColorIndex, getColorIndexSnapshot, getServerSnapshot);
 }
 
-// Test ortamında (Vitest / Node) haritayı senkron başlat
-if (typeof window === "undefined" || process.env.NODE_ENV === "test") {
+// Yalnızca test ortamında (Vitest) haritayı senkron başlat; SSR ile istemci hidrasyonu birebir eşleşsin
+if (process.env.NODE_ENV === "test") {
   try {
     colorIndexMap = require("../data/team-color-index.json");
   } catch {
